@@ -153,7 +153,7 @@ export function Sidebar() {
             )}
           </div>
         </div>
-      </aside>
+      </aside >
 
       <UpdateManager
         isOpen={showUpdateModal}

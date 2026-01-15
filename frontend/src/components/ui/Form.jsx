@@ -56,3 +56,13 @@ export function Checkbox({ label, checked, onChange, ...props }) {
         </label>
     );
 }
+
+export function FormField({ label, error, required, children, className = '' }) {
+    return (
+        <div className={`form-field ${className}`}>
+            {label && <Label required={required}>{label}</Label>}
+            {children}
+            {error && <span className="form-error">{error}</span>}
+        </div>
+    );
+}

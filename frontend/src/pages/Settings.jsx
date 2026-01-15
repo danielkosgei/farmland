@@ -3,13 +3,13 @@ import { Database, Download, Upload, HardDrive, RefreshCw, CheckCircle, AlertCir
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { ConfirmDialog, AlertDialog } from '../components/ui/ConfirmDialog';
+import { toast } from 'sonner';
 import './Settings.css';
 
 export function Settings() {
     const [dbInfo, setDbInfo] = useState(null);
     const [version, setVersion] = useState('');
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [searching, setSearching] = useState(false);
@@ -73,16 +73,19 @@ export function Settings() {
 
     const handleBackup = async () => {
         setLoading(true);
-        setMessage(null);
+        const loadingToast = toast.loading('Creating database backup...');
         try {
             const result = await window.go.main.BackupService.CreateBackup();
             if (result) {
-                setMessage({ type: 'success', text: `Backup saved to ${result.path}` });
+                toast.success('Backup successful', {
+                    id: loadingToast,
+                    description: `Saved to ${result.path}`
+                });
             } else {
-                setMessage({ type: 'info', text: 'Backup cancelled' });
+                toast.info('Backup cancelled', { id: loadingToast });
             }
         } catch (err) {
-            setMessage({ type: 'error', text: err.message || 'Backup failed' });
+            toast.error(err.message || 'Backup failed', { id: loadingToast });
         } finally {
             setLoading(false);
         }
@@ -95,17 +98,20 @@ export function Settings() {
     const confirmRestoreDatabase = async () => {
         setConfirmRestore(false);
         setLoading(true);
-        setMessage(null);
+        const loadingToast = toast.loading('Restoring database...');
         try {
             const result = await window.go.main.BackupService.RestoreBackup();
             if (result) {
-                setMessage({ type: 'success', text: 'Database restored successfully. Reload the app to see changes.' });
+                toast.success('Database restored successfully', {
+                    id: loadingToast,
+                    description: 'Reload the app to see changes.'
+                });
                 loadDatabaseInfo();
             } else {
-                setMessage({ type: 'info', text: 'Restore cancelled' });
+                toast.info('Restore cancelled', { id: loadingToast });
             }
         } catch (err) {
-            setMessage({ type: 'error', text: err.message || 'Restore failed' });
+            toast.error(err.message || 'Restore failed', { id: loadingToast });
         } finally {
             setLoading(false);
         }
@@ -139,15 +145,16 @@ export function Settings() {
 
     const handleSaveLocation = async (loc) => {
         setLoading(true);
+        const loadingToast = toast.loading(`Updating location to ${loc.name}...`);
         try {
             const locName = `${loc.name}, ${loc.country}`;
             await window.go.main.WeatherService.SaveWeatherLocation(loc.latitude, loc.longitude, locName);
-            setMessage({ type: 'success', text: `Weather location updated to ${loc.name}` });
+            toast.success('Location updated', { id: loadingToast });
             setCurrentLocation(locName);
             setSearchResults([]);
             setSearchQuery('');
         } catch (err) {
-            setMessage({ type: 'error', text: 'Failed to save location' });
+            toast.error('Failed to save location', { id: loadingToast });
         } finally {
             setLoading(false);
         }
@@ -173,16 +180,6 @@ export function Settings() {
                     <p>Manage application settings and data</p>
                 </div>
             </div>
-
-            {message && (
-                <div className={`settings-message ${message.type}`}>
-                    {message.type === 'success' && <CheckCircle size={18} />}
-                    {message.type === 'error' && <AlertCircle size={18} />}
-                    {message.type === 'info' && <RefreshCw size={18} />}
-                    <span>{message.text}</span>
-                    <button onClick={() => setMessage(null)}>×</button>
-                </div>
-            )}
 
             <div className="settings-grid">
                 <Card>

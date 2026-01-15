@@ -9,6 +9,8 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '.
 import { EmptyState } from '../components/ui/EmptyState';
 import { PhotoGallery } from '../components/PhotoGallery';
 import { ConfirmDialog, AlertDialog } from '../components/ui/ConfirmDialog';
+import { Skeleton } from '../components/ui/Skeleton';
+import { toast } from 'sonner';
 import './Livestock.css';
 import '../components/EntityDetails.css';
 
@@ -46,6 +48,7 @@ export function Livestock() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const loadingToast = toast.loading(editingAnimal ? 'Updating animal...' : 'Adding animal...');
         try {
             const animalData = {
                 ...formData,
@@ -54,22 +57,28 @@ export function Livestock() {
             };
             if (editingAnimal) {
                 await window.go.main.LivestockService.UpdateAnimal({ ...animalData, id: editingAnimal.id });
+                toast.success('Animal record updated', { id: loadingToast });
             } else {
                 const newAnimal = await window.go.main.LivestockService.AddAnimal(animalData);
                 if (newAnimal && tempPhotoId) {
                     await window.go.main.PhotoService.BindPhotos("animal", tempPhotoId, newAnimal.id);
                 }
+                toast.success('New animal added', { id: loadingToast });
             }
             setShowModal(false);
             setEditingAnimal(null);
             setTempPhotoId(null);
             resetForm();
             loadAnimals();
-        } catch (err) { console.error(err); }
+        } catch (err) {
+            console.error(err);
+            toast.error('Failed to save animal record', { id: loadingToast });
+        }
     };
 
     const handleMilkSubmit = async (e) => {
         e.preventDefault();
+        const loadingToast = toast.loading('Saving milk record...');
         try {
             await window.go.main.LivestockService.AddMilkRecord({
                 animalId: selectedAnimal.id,
@@ -78,9 +87,13 @@ export function Livestock() {
                 eveningLiters: parseFloat(milkForm.eveningLiters) || 0,
                 notes: milkForm.notes
             });
+            toast.success('Milk record saved', { id: loadingToast });
             setShowMilkModal(false);
             setMilkForm({ date: new Date().toISOString().split('T')[0], morningLiters: '', eveningLiters: '', notes: '' });
-        } catch (err) { console.error(err); }
+        } catch (err) {
+            console.error(err);
+            toast.error('Failed to save milk record', { id: loadingToast });
+        }
     };
 
     const handleDelete = async (id) => {
@@ -88,18 +101,15 @@ export function Livestock() {
     };
 
     const confirmDeleteAnimal = async () => {
+        const loadingToast = toast.loading('Removing record...');
         try {
             await window.go.main.LivestockService.DeleteAnimal(confirmDelete.id);
             setConfirmDelete({ show: false, id: null });
+            toast.success('Animal record removed', { id: loadingToast });
             loadAnimals();
         } catch (err) {
             console.error(err);
-            setAlert({
-                show: true,
-                title: 'Error',
-                message: 'Failed to delete animal record',
-                type: 'danger'
-            });
+            toast.error('Failed to delete animal record', { id: loadingToast });
         }
     };
 
@@ -136,29 +146,22 @@ export function Livestock() {
         a.tagNumber?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // Filter potential parents (exclude self when editing)
     const potentialMothers = animals.filter(a => a.gender === 'female' && a.id !== editingAnimal?.id);
     const potentialFathers = animals.filter(a => a.gender === 'male' && a.id !== editingAnimal?.id);
 
     const handleExportPDF = async () => {
+        const loadingToast = toast.loading('Generating inventory PDF...');
         try {
             const res = await window.go.main.ExportService.ExportAnimalsPDF();
             if (res) {
-                setAlert({
-                    show: true,
-                    title: 'Export Successful',
-                    message: `Exported ${res.records} animals to ${res.path}`,
-                    type: 'success'
+                toast.success(`Exported ${res.records} animals to PDF`, {
+                    id: loadingToast,
+                    description: `File saved to ${res.path}`
                 });
             }
         } catch (err) {
             console.error('Export failed:', err);
-            setAlert({
-                show: true,
-                title: 'Export Failed',
-                message: 'Failed to export animals to PDF. Please try again.',
-                type: 'danger'
-            });
+            toast.error('Failed to export PDF', { id: loadingToast });
         }
     };
 
@@ -170,7 +173,7 @@ export function Livestock() {
                     <p>Manage your farm animals and track their records</p>
                 </div>
                 <div className="page-actions">
-                    <Button variant="outline" icon={Download} onClick={handleExportPDF}>Export PDF</Button>
+                    <Button variant="outline" icon={Download} onClick={handleExportPDF} title="Generate animal inventory report">Export PDF</Button>
                     <Button icon={Plus} onClick={() => {
                         resetForm();
                         setEditingAnimal(null);
@@ -190,7 +193,30 @@ export function Livestock() {
                 </div>
 
                 {loading ? (
-                    <div className="loading-container"><div className="loading-spinner"></div></div>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Tag / Name</TableHead>
+                                <TableHead>Type</TableHead>
+                                <TableHead>Breed</TableHead>
+                                <TableHead>Parents</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead>Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {[1, 2, 3, 4, 5].map(i => (
+                                <TableRow key={i}>
+                                    <TableCell><Skeleton variant="text" width="120px" /></TableCell>
+                                    <TableCell><Skeleton variant="rounded" width="60px" height="20px" /></TableCell>
+                                    <TableCell><Skeleton variant="text" width="80px" /></TableCell>
+                                    <TableCell><Skeleton variant="text" width="100px" /></TableCell>
+                                    <TableCell><Skeleton variant="rounded" width="70px" height="20px" /></TableCell>
+                                    <TableCell><div className="flex gap-2"><Skeleton variant="circular" width="24px" height="24px" /><Skeleton variant="circular" width="24px" height="24px" /></div></TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
                 ) : filteredAnimals.length === 0 ? (
                     <EmptyState icon={Beef} title="No animals yet" description="Start by adding your first animal to the farm" action={<Button icon={Plus} onClick={() => setShowModal(true)}>Add Animal</Button>} />
                 ) : (
@@ -230,10 +256,10 @@ export function Livestock() {
                                     <TableCell>
                                         <div className="action-buttons">
                                             {(animal.gender === 'female' && animal.status === 'active') && (
-                                                <button className="action-btn milk" onClick={(e) => openMilkRecord(animal, e)} title="Record Milk"><Milk size={16} /></button>
+                                                <button className="action-btn milk" onClick={(e) => openMilkRecord(animal, e)} title="Record milk production"><Milk size={16} /></button>
                                             )}
-                                            <button className="action-btn edit" onClick={(e) => { e.stopPropagation(); openEdit(animal); }} title="Edit"><Edit2 size={16} /></button>
-                                            <button className="action-btn delete" onClick={(e) => { e.stopPropagation(); handleDelete(animal.id); }} title="Delete"><Trash2 size={16} /></button>
+                                            <button className="action-btn edit" onClick={(e) => { e.stopPropagation(); openEdit(animal); }} title="Edit animal profile"><Edit2 size={16} /></button>
+                                            <button className="action-btn delete" onClick={(e) => { e.stopPropagation(); handleDelete(animal.id); }} title="Remove record"><Trash2 size={16} /></button>
                                         </div>
                                     </TableCell>
                                 </TableRow>
