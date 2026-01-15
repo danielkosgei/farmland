@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, MapPin, Wheat, Sprout, Edit2, Info, Droplets, Maximize } from 'lucide-react';
+import { Plus, Search, MapPin, Wheat, Sprout, Edit2, Info, Droplets, Maximize, Camera, Trash2 } from 'lucide-react';
 import { PhotoGallery } from '../components/PhotoGallery';
 import '../components/EntityDetails.css';
 import { Button } from '../components/ui/Button';
