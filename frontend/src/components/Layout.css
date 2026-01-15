@@ -4,7 +4,7 @@
 }
 
 .main-content {
-    margin-left: var(--sidebar-width);
+    margin-left: calc(var(--sidebar-width) + var(--sidebar-floating-margin) * 2);
     flex: 1;
     background: var(--bg-primary);
     min-height: 100vh;

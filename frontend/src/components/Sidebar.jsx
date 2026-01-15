@@ -20,17 +20,36 @@ import { UpdateManager, UpdateBadge } from './UpdateManager';
 import logo from '../assets/logo.png';
 import './Sidebar.css';
 
-const navItems = [
-  { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-  { path: '/livestock', icon: Beef, label: 'Livestock' },
-  { path: '/breeding', icon: Baby, label: 'Breeding' },
-  { path: '/milk-sales', icon: Milk, label: 'Milk Sales' },
-  { path: '/crops', icon: Wheat, label: 'Crops' },
-  { path: '/inventory', icon: Package, label: 'Inventory' },
-  { path: '/feed', icon: Utensils, label: 'Feed Management' },
-  { path: '/health', icon: Heart, label: 'Health & Vet' },
-  { path: '/finances', icon: DollarSign, label: 'Finances' },
-  { path: '/settings', icon: Settings, label: 'Settings' },
+const navGroups = [
+  {
+    title: 'General',
+    items: [
+      { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
+    ]
+  },
+  {
+    title: 'Farm Management',
+    items: [
+      { path: '/livestock', icon: Beef, label: 'Livestock' },
+      { path: '/milk-sales', icon: Milk, label: 'Milk Sales' },
+      { path: '/crops', icon: Wheat, label: 'Crops' },
+    ]
+  },
+  {
+    title: 'Operations',
+    items: [
+      { path: '/inventory', icon: Package, label: 'Inventory' },
+      { path: '/feed', icon: Utensils, label: 'Feed Management' },
+      { path: '/health', icon: Heart, label: 'Health & Vet' },
+    ]
+  },
+  {
+    title: 'System',
+    items: [
+      { path: '/finances', icon: DollarSign, label: 'Finances' },
+      { path: '/settings', icon: Settings, label: 'Settings' },
+    ]
+  }
 ];
 
 export function Sidebar() {
@@ -94,30 +113,32 @@ export function Sidebar() {
         </div>
 
         <nav className="sidebar-nav">
-          <ul className="nav-list">
-            {navItems.map((item) => (
-              <li key={item.path}>
-                <NavLink
-                  to={item.path}
-                  className={({ isActive }) =>
-                    `nav-item ${isActive ? 'active' : ''}`
-                  }
-                >
-                  <item.icon size={20} className="nav-icon" />
-                  <span className="nav-label">{item.label}</span>
-                </NavLink>
-              </li>
-            ))}
-          </ul>
+          {navGroups.map((group) => (
+            <div key={group.title} className="nav-group">
+              <h4 className="nav-group-title">{group.title}</h4>
+              <ul className="nav-list">
+                {group.items.map((item) => (
+                  <li key={item.path}>
+                    <NavLink
+                      to={item.path}
+                      className={({ isActive }) =>
+                        `nav-item ${isActive ? 'active' : ''}`
+                      }
+                    >
+                      <item.icon size={20} className="nav-icon" />
+                      <span className="nav-label">{item.label}</span>
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </nav>
 
         <div className="sidebar-footer">
           <div className="version-row">
-            <span className="version-label">Version {version || '...'}</span>
-            <div className="version-actions">
-              {hasUpdate && (
-                <UpdateBadge hasUpdate={hasUpdate} onClick={() => setShowUpdateModal(true)} />
-              )}
+            <div className="version-info-line">
+              <span className="version-label">Version {version || '...'}</span>
               <button
                 className="check-update-btn"
                 onClick={() => setShowUpdateModal(true)}
@@ -127,6 +148,9 @@ export function Sidebar() {
                 <RefreshCw size={14} className={checkingUpdate ? 'spin' : ''} />
               </button>
             </div>
+            {hasUpdate && (
+              <UpdateBadge hasUpdate={hasUpdate} onClick={() => setShowUpdateModal(true)} />
+            )}
           </div>
         </div>
       </aside>

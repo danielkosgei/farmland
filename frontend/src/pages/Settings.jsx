@@ -111,6 +111,7 @@ export function Settings() {
         }
     };
 
+
     const loadWeatherLocation = async () => {
         if (!window.go?.main?.WeatherService) return;
         try {
@@ -210,10 +211,11 @@ export function Settings() {
                         </div>
 
                         <p className="backup-note">
-                            Backups include all your farm data. Store backups in a safe location.
+                            Create local copies of your data for safety or move your database to another device.
                         </p>
                     </CardContent>
                 </Card>
+
 
                 <Card>
                     <CardHeader>
