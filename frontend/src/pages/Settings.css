@@ -1,7 +1,7 @@
 .settings-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: var(--space-6);
+    gap: var(--space-5);
 }
 
 .settings-message {
@@ -9,8 +9,8 @@
     align-items: center;
     gap: var(--space-3);
     padding: var(--space-3) var(--space-4);
-    border-radius: var(--radius-lg);
-    margin-bottom: var(--space-6);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-5);
     animation: slideIn 0.3s ease-out;
 }
 
@@ -63,9 +63,10 @@
     flex-direction: column;
     gap: var(--space-2);
     margin-bottom: var(--space-4);
-    padding: var(--space-3);
-    background: var(--color-neutral-50);
+    padding: var(--space-4);
+    background: var(--bg-primary);
     border-radius: var(--radius-md);
+    border: var(--border-thin);
 }
 
 .db-stat {
@@ -73,6 +74,7 @@
     align-items: center;
     gap: var(--space-2);
     font-size: var(--font-size-sm);
+    font-family: var(--font-family-mono);
     color: var(--color-neutral-600);
 }
 
@@ -109,8 +111,8 @@
 }
 
 .about-info .version {
-    font-family: monospace;
-    font-size: var(--font-size-sm);
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-xs);
     color: var(--color-neutral-500);
 }
 
@@ -118,4 +120,116 @@
     margin-top: var(--space-4);
     font-size: var(--font-size-xs);
     color: var(--color-neutral-400);
+}
+
+/* Weather Settings Refinements */
+.location-search {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-input-wrapper input {
+    width: 100%;
+    height: 48px;
+    padding: 0 var(--space-4) 0 44px;
+    background: var(--bg-primary);
+    border: var(--border-thin);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-neutral-900);
+    outline: none;
+    transition: all var(--transition-base);
+}
+
+.search-input-wrapper .search-icon {
+    position: absolute;
+    left: var(--space-4);
+    color: var(--color-neutral-400);
+    pointer-events: none;
+}
+
+.search-input-wrapper .searching-spinner {
+    position: absolute;
+    right: var(--space-4);
+    color: var(--color-primary-500);
+}
+
+.search-input-wrapper input:focus {
+    border-color: var(--color-primary-500);
+    background: white;
+}
+
+.search-results {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+    max-height: 250px;
+    overflow-y: auto;
+    padding: var(--space-1);
+    margin: -var(--space-1);
+}
+
+.search-result-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: white;
+    border: var(--border-thin);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-base);
+}
+
+.search-result-item:hover {
+    border-color: var(--color-primary-400);
+    background: var(--bg-primary);
+}
+
+.search-result-item svg {
+    color: var(--color-neutral-400);
+    flex-shrink: 0;
+}
+
+.res-details {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.res-name {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-neutral-900);
+}
+
+.res-admin {
+    font-size: var(--font-size-xs);
+    color: var(--color-neutral-500);
+}
+
+.res-coords {
+    font-size: 10px;
+    font-family: var(--font-family-mono);
+    color: var(--color-neutral-400);
+    background: var(--color-neutral-50);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--color-neutral-100);
+}
+
+.settings-note {
+    font-size: var(--font-size-xs);
+    color: var(--color-neutral-500);
+    margin-top: var(--space-4);
+    line-height: var(--line-height-normal);
 }

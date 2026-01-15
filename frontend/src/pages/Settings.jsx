@@ -18,6 +18,19 @@ export function Settings() {
         loadVersion();
     }, []);
 
+    // Debounced search effect
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchQuery.trim().length >= 2) {
+                handleSearchLocation();
+            } else if (searchQuery.trim().length === 0) {
+                setSearchResults([]);
+            }
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
     const loadDatabaseInfo = async () => {
         if (!window.go?.main?.BackupService) return;
         try {
@@ -176,29 +189,25 @@ export function Settings() {
                     </CardHeader>
                     <CardContent>
                         <div className="location-search">
-                            <div className="search-input-group">
+                            <div className="search-input-wrapper">
+                                <Search size={18} className="search-icon" />
                                 <input
                                     type="text"
                                     placeholder="Search for your city/town..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    onKeyPress={(e) => e.key === 'Enter' && handleSearchLocation()}
+                                // Removed Enter key handler as it's now automatic
                                 />
-                                <Button
-                                    icon={Search}
-                                    onClick={handleSearchLocation}
-                                    disabled={searching}
-                                    variant="secondary"
-                                >
-                                    {searching ? '...' : 'Search'}
-                                </Button>
+                                {searching && <RefreshCw size={16} className="searching-spinner spin" />}
                             </div>
 
                             {searchResults.length > 0 && (
                                 <div className="search-results">
                                     {searchResults.map((loc) => (
                                         <div key={loc.id} className="search-result-item" onClick={() => handleSaveLocation(loc)}>
-                                            <MapPin size={14} />
+                                            <div className="search-result-icon">
+                                                <MapPin size={16} />
+                                            </div>
                                             <div className="res-details">
                                                 <span className="res-name">{loc.name}</span>
                                                 <span className="res-admin">{loc.admin1}, {loc.country}</span>

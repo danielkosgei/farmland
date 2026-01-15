@@ -1,5 +1,5 @@
-/* Import Google Font - MUST be first */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* Import Google Fonts - MUST be first */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 /* ===== FARMLAND DESIGN SYSTEM ===== */
 
@@ -69,67 +69,95 @@
   --color-info: #3b82f6;
 
   /* Background Colors */
-  --bg-primary: #faf8f5;
+  --bg-primary: #fbfbfb;
   --bg-secondary: #ffffff;
-  --bg-tertiary: #f5f3f0;
-  --bg-card: rgba(255, 255, 255, 0.8);
-  --bg-glass: rgba(255, 255, 255, 0.6);
+  --bg-tertiary: #f2f2f2;
+  --bg-card: #ffffff;
+  --bg-sidebar: #ffffff;
 
   /* Typography */
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  --font-family-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   --font-size-xs: 0.75rem;
+  /* 12px */
   --font-size-sm: 0.875rem;
-  --font-size-base: 1rem;
-  --font-size-lg: 1.125rem;
+  /* 14px */
+  --font-size-base: 0.9375rem;
+  /* 15px */
+  --font-size-lg: 1.0625rem;
+  /* 17px */
   --font-size-xl: 1.25rem;
+  /* 20px */
   --font-size-2xl: 1.5rem;
+  /* 24px */
   --font-size-3xl: 1.875rem;
+  /* 30px */
   --font-size-4xl: 2.25rem;
+  /* 36px */
 
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
 
+  --line-height-none: 1;
   --line-height-tight: 1.25;
+  --line-height-snug: 1.375;
   --line-height-normal: 1.5;
-  --line-height-relaxed: 1.75;
+  --line-height-relaxed: 1.625;
 
   /* Spacing */
+  --space-0: 0;
   --space-1: 0.25rem;
+  /* 4px */
   --space-2: 0.5rem;
+  /* 8px */
   --space-3: 0.75rem;
+  /* 12px */
   --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-10: 2.5rem;
-  --space-12: 3rem;
-  --space-16: 4rem;
+  /* 16px */
+  --space-5: 1.5rem;
+  /* 24px */
+  --space-6: 2rem;
+  /* 32px */
+  --space-8: 3rem;
+  /* 48px */
+  --space-10: 4rem;
+  /* 64px */
+  --space-12: 6rem;
+  /* 96px */
 
   /* Border Radius */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-  --radius-2xl: 1.5rem;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
   --radius-full: 9999px;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.08);
+  /* Borders & Strokes (Replacing Shadows) */
+  --border-width: 1px;
+  --border-color: #e5e7eb;
+  --border-color-muted: #f3f4f6;
+  --border-thin: 1px solid var(--border-color);
+  --border-strong: 1px solid var(--color-neutral-900);
+
+  /* Shadows (Minimal or None for Flat Aesthetic) */
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-xl: none;
+  --shadow-glass: none;
 
   /* Transitions */
-  --transition-fast: 150ms ease;
-  --transition-base: 200ms ease;
-  --transition-slow: 300ms ease;
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Layout */
   --sidebar-width: 260px;
-  --header-height: 64px;
+  --header-height: 80px;
 }
 
 /* Base Styles */
@@ -142,10 +170,12 @@ html {
 body {
   font-family: var(--font-family);
   font-size: var(--font-size-base);
-  line-height: var(--line-height-normal);
-  color: var(--color-neutral-800);
+  color: var(--color-neutral-900);
   background: var(--bg-primary);
-  min-height: 100vh;
+  line-height: var(--line-height-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-variant-numeric: tabular-nums;
 }
 
 #root {
@@ -166,10 +196,14 @@ h6 {
 
 h1 {
   font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.04em;
+  color: var(--color-neutral-900);
 }
 
 h2 {
   font-size: var(--font-size-3xl);
+  letter-spacing: -0.03em;
 }
 
 h3 {
@@ -245,6 +279,11 @@ a:hover {
 
 .font-bold {
   font-weight: var(--font-weight-bold);
+}
+
+.font-mono {
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
 }
 
 .text-primary {
