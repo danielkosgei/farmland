@@ -9,5 +9,12 @@
   "author": {
     "name": "Daniel Togey",
     "email": "dannykosgei@gmail.com"
+  },
+  "info": {
+    "companyName": "Farmland",
+    "productName": "Farmland",
+    "productVersion": "0.1.1",
+    "copyright": "Copyright © 2026",
+    "comments": "Modern Farm Management System"
   }
 }
