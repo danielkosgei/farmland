@@ -176,9 +176,9 @@ jobs:
       - name: Package Windows
         if: matrix.platform == 'windows'
         run: |
-          cd build/bin
-          mv *-installer.exe farmland-windows-amd64-installer.exe
-        shell: bash
+          dir build\bin
+          move build\bin\*installer.exe build\bin\farmland-windows-amd64-installer.exe
+        shell: cmd
 
       - name: Package macOS
         if: matrix.platform == 'darwin'
