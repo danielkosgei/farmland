@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Database, Download, Upload, HardDrive, RefreshCw, CheckCircle, AlertCircle, Search, MapPin, Sun } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { ConfirmDialog, AlertDialog } from '../components/ui/ConfirmDialog';
 import './Settings.css';
 
 export function Settings() {
@@ -12,6 +13,7 @@ export function Settings() {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [searching, setSearching] = useState(false);
+    const [confirmRestore, setConfirmRestore] = useState(false);
 
     useEffect(() => {
         loadDatabaseInfo();
@@ -85,9 +87,11 @@ export function Settings() {
     };
 
     const handleRestore = async () => {
-        if (!window.confirm('This will replace your current database. Continue?')) {
-            return;
-        }
+        setConfirmRestore(true);
+    };
+
+    const confirmRestoreDatabase = async () => {
+        setConfirmRestore(false);
         setLoading(true);
         setMessage(null);
         try {
@@ -160,11 +164,11 @@ export function Settings() {
                         <div className="db-info">
                             <div className="db-stat">
                                 <HardDrive size={16} />
-                                <span>Size: {dbInfo ? formatBytes(dbInfo.size) : 'Loading...'}</span>
+                                <span className="font-mono text-sm">Size: {dbInfo ? formatBytes(dbInfo.size) : 'Loading...'}</span>
                             </div>
                             <div className="db-stat">
                                 <RefreshCw size={16} />
-                                <span>Modified: {dbInfo ? formatDate(dbInfo.timestamp) : 'Loading...'}</span>
+                                <span className="font-mono text-sm">Modified: {dbInfo ? formatDate(dbInfo.timestamp) : 'Loading...'}</span>
                             </div>
                         </div>
 
@@ -230,14 +234,24 @@ export function Settings() {
                     </CardHeader>
                     <CardContent>
                         <div className="about-info">
-                            <h3>Farmland</h3>
-                            <p>Farm Management System</p>
-                            <p className="version">Version: {version || 'Loading...'}</p>
-                            <p className="copyright">© 2026 Daniel Kosgei</p>
+                            <h3 className="font-bold text-lg">Farmland</h3>
+                            <p className="text-sm text-neutral-500">Farm Management System</p>
+                            <p className="version font-mono font-bold text-primary-600 mt-2">Version: {version || 'Loading...'}</p>
+                            <p className="copyright text-xs text-neutral-400 mt-4 italic">© 2026 Daniel Kosgei</p>
                         </div>
                     </CardContent>
                 </Card>
             </div>
+
+            <ConfirmDialog
+                isOpen={confirmRestore}
+                onClose={() => setConfirmRestore(false)}
+                onConfirm={confirmRestoreDatabase}
+                title="Restore Database"
+                message="Are you sure you want to restore the database from a backup? This will replace all your current farm data. This action cannot be undone."
+                type="danger"
+                confirmText="Restore Data"
+            />
         </div>
     );
 }

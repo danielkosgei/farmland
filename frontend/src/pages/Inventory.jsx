@@ -6,6 +6,7 @@ import { Modal } from '../components/ui/Modal';
 import { FormGroup, FormRow, Label, Input, Select, Textarea } from '../components/ui/Form';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/Table';
 import { EmptyState } from '../components/ui/EmptyState';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import './Inventory.css';
 
 const categories = ['feed', 'equipment', 'supplies', 'seeds', 'fertilizer', 'medicine', 'tools', 'fuel'];
@@ -17,6 +18,7 @@ export function Inventory() {
     const [showModal, setShowModal] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
     const [filterCategory, setFilterCategory] = useState('all');
+    const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
     const [formData, setFormData] = useState({ name: '', category: 'supplies', quantity: '', unit: 'kg', minimumStock: '', costPerUnit: '', supplier: '', notes: '' });
 
     useEffect(() => { loadItems(); }, []);
@@ -46,12 +48,15 @@ export function Inventory() {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Delete this item?')) {
-            try {
-                await window.go.main.InventoryService.DeleteInventoryItem(id);
-                loadItems();
-            } catch (err) { console.error(err); }
-        }
+        setConfirmDelete({ show: true, id });
+    };
+
+    const confirmDeleteItem = async () => {
+        try {
+            await window.go.main.InventoryService.DeleteInventoryItem(confirmDelete.id);
+            setConfirmDelete({ show: false, id: null });
+            loadItems();
+        } catch (err) { console.error(err); }
     };
 
     const openEdit = (item) => {
@@ -162,6 +167,16 @@ export function Inventory() {
                     <div className="modal-actions"><Button variant="outline" type="button" onClick={() => setShowModal(false)}>Cancel</Button><Button type="submit">{editingItem ? 'Update' : 'Add'} Item</Button></div>
                 </form>
             </Modal>
+
+            <ConfirmDialog
+                isOpen={confirmDelete.show}
+                onClose={() => setConfirmDelete({ show: false, id: null })}
+                onConfirm={confirmDeleteItem}
+                title="Delete Inventory Item"
+                message="Are you sure you want to delete this inventory item? This will remove it from all stock tracking."
+                type="danger"
+                confirmText="Delete Item"
+            />
         </div>
     );
 }

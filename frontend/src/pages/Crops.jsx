@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card'
 import { Modal } from '../components/ui/Modal';
 import { FormGroup, FormRow, Label, Input, Select, Textarea } from '../components/ui/Form';
 import { EmptyState } from '../components/ui/EmptyState';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import './Crops.css';
 
 const cropTypes = ['Maize', 'Beans', 'Sukuma Wiki (Kale)', 'Spinach', 'Cabbage', 'Tomatoes', 'Onions', 'Potatoes', 'Sweet Potatoes', 'Sorghum', 'Millet', 'Groundnuts', 'Cowpeas', 'Green Grams', 'Napier Grass'];
@@ -18,6 +19,7 @@ export function Crops() {
     const [showCropModal, setShowCropModal] = useState(false);
     const [editingField, setEditingField] = useState(null);
     const [selectedField, setSelectedField] = useState(null);
+    const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
     const [fieldForm, setFieldForm] = useState({ name: '', sizeAcres: '', location: '', soilType: '', status: 'fallow', notes: '' });
     const [cropForm, setCropForm] = useState({ cropType: '', variety: '', plantingDate: new Date().toISOString().split('T')[0], expectedHarvest: '', seedCost: '', fertilizerCost: '', notes: '' });
 
@@ -68,12 +70,15 @@ export function Crops() {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Delete this field?')) {
-            try {
-                await window.go.main.CropsService.DeleteField(id);
-                loadFields();
-            } catch (err) { console.error(err); }
-        }
+        setConfirmDelete({ show: true, id });
+    };
+
+    const confirmDeleteField = async () => {
+        try {
+            await window.go.main.CropsService.DeleteField(confirmDelete.id);
+            setConfirmDelete({ show: false, id: null });
+            loadFields();
+        } catch (err) { console.error(err); }
     };
 
     const openEditField = (field) => {
@@ -125,7 +130,7 @@ export function Crops() {
                             <p className="field-location">{field.location || 'No location set'}</p>
                             <div className="field-meta">
                                 <span className="field-size">{field.sizeAcres} acres</span>
-                                <span className={`field-status ${getStatusColor(field.status)}`}>{field.status.replace('_', ' ')}</span>
+                                <span className={`field-status ${getStatusColor(field.status)}`}>{field.status?.replace('_', ' ') || '-'}</span>
                             </div>
                             {field.currentCrop && <div className="current-crop"><Wheat size={14} /> {field.currentCrop}</div>}
                             <div className="field-footer">
@@ -146,7 +151,7 @@ export function Crops() {
                         <FormGroup><Label htmlFor="location">Location</Label><Input id="location" value={fieldForm.location} onChange={(e) => setFieldForm({ ...fieldForm, location: e.target.value })} placeholder="e.g., Near the river" /></FormGroup>
                         <FormGroup><Label htmlFor="soil">Soil Type</Label><Select id="soil" value={fieldForm.soilType} onChange={(e) => setFieldForm({ ...fieldForm, soilType: e.target.value })}><option value="">Select soil type</option>{soilTypes.map(s => <option key={s} value={s}>{s}</option>)}</Select></FormGroup>
                     </FormRow>
-                    <FormGroup><Label htmlFor="fieldStatus">Status</Label><Select id="fieldStatus" value={fieldForm.status} onChange={(e) => setFieldForm({ ...fieldForm, status: e.target.value })}>{fieldStatuses.map(s => <option key={s} value={s}>{s.replace('_', ' ').charAt(0).toUpperCase() + s.replace('_', ' ').slice(1)}</option>)}</Select></FormGroup>
+                    <FormGroup><Label htmlFor="fieldStatus">Status</Label><Select id="fieldStatus" value={fieldForm.status} onChange={(e) => setFieldForm({ ...fieldForm, status: e.target.value })}>{fieldStatuses.map(s => <option key={s} value={s}>{s?.replace('_', ' ').charAt(0).toUpperCase() + s?.replace('_', ' ').slice(1)}</option>)}</Select></FormGroup>
                     <FormGroup><Label htmlFor="fieldNotes">Notes</Label><Textarea id="fieldNotes" value={fieldForm.notes} onChange={(e) => setFieldForm({ ...fieldForm, notes: e.target.value })} rows={2} /></FormGroup>
                     <div className="modal-actions"><Button variant="outline" type="button" onClick={() => setShowFieldModal(false)}>Cancel</Button><Button type="submit">{editingField ? 'Update' : 'Add'} Field</Button></div>
                 </form>
@@ -170,6 +175,16 @@ export function Crops() {
                     <div className="modal-actions"><Button variant="outline" type="button" onClick={() => setShowCropModal(false)}>Cancel</Button><Button type="submit">Plant Crop</Button></div>
                 </form>
             </Modal>
+
+            <ConfirmDialog
+                isOpen={confirmDelete.show}
+                onClose={() => setConfirmDelete({ show: false, id: null })}
+                onConfirm={confirmDeleteField}
+                title="Delete Field"
+                message="Are you sure you want to delete this field? This will also remove all associated crop cycles and history."
+                type="danger"
+                confirmText="Delete Field"
+            />
         </div>
     );
 }

@@ -11,6 +11,7 @@ import { Health } from './pages/Health';
 import { Finances } from './pages/Finances';
 import { Breeding } from './pages/Breeding';
 import { Settings } from './pages/Settings';
+import { Notifications } from './pages/Notifications';
 
 function App() {
     return (
@@ -26,6 +27,7 @@ function App() {
                 <Route path="finances" element={<Finances />} />
                 <Route path="breeding" element={<Breeding />} />
                 <Route path="settings" element={<Settings />} />
+                <Route path="notifications" element={<Notifications />} />
             </Route>
         </Routes>
     );

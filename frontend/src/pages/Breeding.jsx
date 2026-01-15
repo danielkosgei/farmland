@@ -6,6 +6,7 @@ import { Modal } from '../components/ui/Modal';
 import { FormGroup, FormRow, Label, Input, Select, Textarea } from '../components/ui/Form';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/Table';
 import { EmptyState } from '../components/ui/EmptyState';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import './Breeding.css';
 
 export function Breeding() {
@@ -19,6 +20,7 @@ export function Breeding() {
     const [showBirthModal, setShowBirthModal] = useState(false);
     const [editingRecord, setEditingRecord] = useState(null);
     const [selectedBreeding, setSelectedBreeding] = useState(null);
+    const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
     const [formData, setFormData] = useState({
         femaleId: '',
         maleId: '',
@@ -105,13 +107,16 @@ export function Breeding() {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Delete this breeding record?')) {
-            try {
-                await window.go.main.BreedingService.DeleteBreedingRecord(id);
-                loadData();
-            } catch (err) {
-                console.error('Failed to delete:', err);
-            }
+        setConfirmDelete({ show: true, id });
+    };
+
+    const confirmDeleteBreeding = async () => {
+        try {
+            await window.go.main.BreedingService.DeleteBreedingRecord(confirmDelete.id);
+            setConfirmDelete({ show: false, id: null });
+            loadData();
+        } catch (err) {
+            console.error('Failed to delete:', err);
         }
     };
 
@@ -383,6 +388,16 @@ export function Breeding() {
                     </div>
                 </form>
             </Modal>
+
+            <ConfirmDialog
+                isOpen={confirmDelete.show}
+                onClose={() => setConfirmDelete({ show: false, id: null })}
+                onConfirm={confirmDeleteBreeding}
+                title="Delete Breeding Record"
+                message="Are you sure you want to delete this breeding record? This will also remove any associated pregnancy monitoring history."
+                type="danger"
+                confirmText="Delete Record"
+            />
         </div>
     );
 }

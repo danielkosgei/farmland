@@ -11,11 +11,18 @@
 }
 
 .weather-location {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
     font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-medium);
-    opacity: 0.8;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary-600);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.05em;
+}
+
+.weather-location svg {
+    color: var(--color-primary-500);
 }
 
 .weather-widget.loading,

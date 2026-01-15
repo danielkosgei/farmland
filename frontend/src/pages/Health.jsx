@@ -6,6 +6,7 @@ import { Modal } from '../components/ui/Modal';
 import { FormGroup, FormRow, Label, Input, Select, Textarea } from '../components/ui/Form';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/Table';
 import { EmptyState } from '../components/ui/EmptyState';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import './Health.css';
 
 const recordTypes = ['treatment', 'vaccination', 'checkup', 'deworming', 'artificial_insemination', 'pregnancy_check', 'hoof_trimming'];
@@ -16,6 +17,7 @@ export function Health() {
     const [upcoming, setUpcoming] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
     const [formData, setFormData] = useState({ animalId: '', date: new Date().toISOString().split('T')[0], recordType: 'treatment', description: '', diagnosis: '', treatment: '', medicine: '', dosage: '', vetName: '', cost: '', nextDueDate: '', notes: '' });
 
     useEffect(() => { loadData(); }, []);
@@ -58,12 +60,15 @@ export function Health() {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Delete this record?')) {
-            try {
-                await window.go.main.HealthService.DeleteVetRecord(id);
-                loadData();
-            } catch (err) { console.error(err); }
-        }
+        setConfirmDelete({ show: true, id });
+    };
+
+    const confirmDeleteRecord = async () => {
+        try {
+            await window.go.main.HealthService.DeleteVetRecord(confirmDelete.id);
+            setConfirmDelete({ show: false, id: null });
+            loadData();
+        } catch (err) { console.error(err); }
     };
 
     const resetForm = () => setFormData({ animalId: '', date: new Date().toISOString().split('T')[0], recordType: 'treatment', description: '', diagnosis: '', treatment: '', medicine: '', dosage: '', vetName: '', cost: '', nextDueDate: '', notes: '' });
@@ -92,7 +97,7 @@ export function Health() {
                         {upcoming.slice(0, 5).map(item => (
                             <div key={item.id} className="upcoming-item">
                                 <span className="upcoming-animal">{item.animalName}</span>
-                                <span className="upcoming-type">{item.recordType.replace('_', ' ')}</span>
+                                <span className="upcoming-type">{item.recordType?.replace('_', ' ') || '-'}</span>
                                 <span className="upcoming-date">{new Date(item.nextDueDate).toLocaleDateString('en-KE')}</span>
                             </div>
                         ))}
@@ -126,7 +131,7 @@ export function Health() {
                                     <TableCell className="font-medium">{record.animalName}</TableCell>
                                     <TableCell>
                                         <span className={`type-badge type-${record.recordType}`}>
-                                            {getTypeIcon(record.recordType)} {record.recordType.replace('_', ' ')}
+                                            {getTypeIcon(record.recordType)} {record.recordType?.replace('_', ' ') || '-'}
                                         </span>
                                     </TableCell>
                                     <TableCell>{record.description || record.diagnosis || '-'}</TableCell>
@@ -170,6 +175,16 @@ export function Health() {
                     <div className="modal-actions"><Button variant="outline" type="button" onClick={() => setShowModal(false)}>Cancel</Button><Button type="submit">Save Record</Button></div>
                 </form>
             </Modal>
+
+            <ConfirmDialog
+                isOpen={confirmDelete.show}
+                onClose={() => setConfirmDelete({ show: false, id: null })}
+                onConfirm={confirmDeleteRecord}
+                title="Delete Health Record"
+                message="Are you sure you want to delete this veterinary record? This action cannot be undone."
+                type="danger"
+                confirmText="Delete Record"
+            />
         </div>
     );
 }

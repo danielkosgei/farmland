@@ -1,0 +1,52 @@
+.confirm-dialog-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    padding: var(--space-2) 0;
+}
+
+.confirm-dialog-body {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-4);
+}
+
+.confirm-dialog-icon {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    background: var(--bg-primary);
+    border: var(--border-thin);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.confirm-dialog-message {
+    font-size: var(--font-size-base);
+    color: var(--color-neutral-600);
+    line-height: var(--line-height-relaxed);
+    flex: 1;
+}
+
+.confirm-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    padding-top: var(--space-4);
+    border-top: var(--border-thin);
+}
+
+/* Badge colors for the icons */
+.text-warning-500 {
+    color: var(--color-warning);
+}
+
+.text-accent-500 {
+    color: var(--color-accent-600);
+}
+
+.text-primary-500 {
+    color: var(--color-primary-600);
+}

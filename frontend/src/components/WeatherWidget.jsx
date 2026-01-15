@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Cloud, Droplets, Wind, RefreshCw } from 'lucide-react';
+import { Cloud, Droplets, Wind, RefreshCw, MapPin } from 'lucide-react';
 import './WeatherWidget.css';
 
 export function WeatherWidget() {
@@ -59,7 +59,10 @@ export function WeatherWidget() {
 
     return (
         <div className="weather-widget">
-            <div className="weather-location">{weather.location}</div>
+            <div className="weather-location">
+                <MapPin size={14} />
+                <span>{weather.location}</span>
+            </div>
             <div className="weather-current">
                 <div className="weather-icon">{weather.current.icon}</div>
                 <div className="weather-temp">

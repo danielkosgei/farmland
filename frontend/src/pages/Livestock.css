@@ -180,14 +180,6 @@
     background: var(--color-accent-100);
 }
 
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--space-3);
-    margin-top: var(--space-6);
-    padding-top: var(--space-4);
-    border-top: var(--border-thin);
-}
 
 .parents-info {
     display: flex;

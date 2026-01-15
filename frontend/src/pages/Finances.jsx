@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Plus, DollarSign, TrendingUp, TrendingDown, Edit2, Trash2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Button } from '../components/ui/Button';
+import { StatCard } from '../components/ui/StatCard';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Modal } from '../components/ui/Modal';
 import { FormGroup, FormRow, Label, Input, Select, Textarea } from '../components/ui/Form';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/Table';
 import { EmptyState } from '../components/ui/EmptyState';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import './Finances.css';
 
 const incomeCategories = ['milk_sales', 'crop_sales', 'livestock_sales', 'other_income'];
@@ -19,6 +21,7 @@ export function Finances() {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [filterType, setFilterType] = useState('all');
+    const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
     const [formData, setFormData] = useState({ date: new Date().toISOString().split('T')[0], type: 'income', category: 'milk_sales', description: '', amount: '', paymentMethod: 'cash', relatedEntity: '', notes: '' });
 
     useEffect(() => { loadData(); }, []);
@@ -55,12 +58,15 @@ export function Finances() {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Delete this transaction?')) {
-            try {
-                await window.go.main.FinancialService.DeleteTransaction(id);
-                loadData();
-            } catch (err) { console.error(err); }
-        }
+        setConfirmDelete({ show: true, id });
+    };
+
+    const confirmDeleteTransaction = async () => {
+        try {
+            await window.go.main.FinancialService.DeleteTransaction(confirmDelete.id);
+            setConfirmDelete({ show: false, id: null });
+            loadData();
+        } catch (err) { console.error(err); }
     };
 
     const resetForm = () => setFormData({ date: new Date().toISOString().split('T')[0], type: 'income', category: 'milk_sales', description: '', amount: '', paymentMethod: 'cash', relatedEntity: '', notes: '' });
@@ -85,27 +91,21 @@ export function Finances() {
             </header>
 
             <div className="finance-stats">
-                <Card className="stat-card income">
-                    <div className="stat-icon"><TrendingUp size={24} /></div>
-                    <div className="stat-content">
-                        <span className="stat-value">{formatCurrency(summary?.totalIncome)}</span>
-                        <span className="stat-label">Total Income</span>
-                    </div>
-                </Card>
-                <Card className="stat-card expense">
-                    <div className="stat-icon"><TrendingDown size={24} /></div>
-                    <div className="stat-content">
-                        <span className="stat-value">{formatCurrency(summary?.totalExpenses)}</span>
-                        <span className="stat-label">Total Expenses</span>
-                    </div>
-                </Card>
-                <Card className="stat-card profit">
-                    <div className="stat-icon"><DollarSign size={24} /></div>
-                    <div className="stat-content">
-                        <span className="stat-value">{formatCurrency(summary?.netProfit)}</span>
-                        <span className="stat-label">Net Profit</span>
-                    </div>
-                </Card>
+                <StatCard
+                    title="Total Income"
+                    value={formatCurrency(summary?.totalIncome)}
+                    icon={TrendingUp}
+                />
+                <StatCard
+                    title="Total Expenses"
+                    value={formatCurrency(summary?.totalExpenses)}
+                    icon={TrendingDown}
+                />
+                <StatCard
+                    title="Net Profit"
+                    value={formatCurrency(summary?.netProfit)}
+                    icon={DollarSign}
+                />
             </div>
 
             <div className="finance-grid">
@@ -153,10 +153,10 @@ export function Finances() {
                             <TableBody>
                                 {filteredTransactions.slice(0, 15).map(trans => (
                                     <TableRow key={trans.id}>
-                                        <TableCell>{new Date(trans.date).toLocaleDateString('en-KE')}</TableCell>
-                                        <TableCell>{trans.description || '-'}</TableCell>
-                                        <TableCell><span className={`cat-badge cat-${trans.type}`}>{trans.category.replace('_', ' ')}</span></TableCell>
-                                        <TableCell className={`amount ${trans.type}`}>
+                                        <TableCell className="font-mono">{new Date(trans.date).toLocaleDateString('en-KE')}</TableCell>
+                                        <TableCell><span className="font-bold text-neutral-900">{trans.description || '-'}</span></TableCell>
+                                        <TableCell><span className={`cat-badge cat-${trans.type}`}>{trans.category?.replace('_', ' ') || '-'}</span></TableCell>
+                                        <TableCell className={`amount font-mono font-bold ${trans.type}`}>
                                             {trans.type === 'income' ? '+' : '-'}{formatCurrency(trans.amount)}
                                         </TableCell>
                                         <TableCell>
@@ -189,6 +189,16 @@ export function Finances() {
                     <div className="modal-actions"><Button variant="outline" type="button" onClick={() => setShowModal(false)}>Cancel</Button><Button type="submit">Save Transaction</Button></div>
                 </form>
             </Modal>
+
+            <ConfirmDialog
+                isOpen={confirmDelete.show}
+                onClose={() => setConfirmDelete({ show: false, id: null })}
+                onConfirm={confirmDeleteTransaction}
+                title="Delete Transaction"
+                message="Are you sure you want to delete this financial transaction? This action cannot be undone."
+                type="danger"
+                confirmText="Delete Transaction"
+            />
         </div>
     );
 }

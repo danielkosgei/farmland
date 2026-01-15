@@ -7,6 +7,7 @@ import { FormGroup, FormRow, Label, Input, Select, Textarea } from '../component
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/Table';
 import { EmptyState } from '../components/ui/EmptyState';
 import { PhotoGallery } from '../components/PhotoGallery';
+import { ConfirmDialog, AlertDialog } from '../components/ui/ConfirmDialog';
 import './Livestock.css';
 
 const animalTypes = ['cow', 'bull', 'heifer', 'calf'];
@@ -21,6 +22,8 @@ export function Livestock() {
     const [editingAnimal, setEditingAnimal] = useState(null);
     const [selectedAnimal, setSelectedAnimal] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
+    const [alert, setAlert] = useState({ show: false, title: '', message: '', type: 'info' });
     const [formData, setFormData] = useState({
         tagNumber: '', name: '', type: 'cow', breed: '', dateOfBirth: '',
         gender: 'female', motherId: null, fatherId: null, status: 'active', notes: ''
@@ -73,11 +76,22 @@ export function Livestock() {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this animal?')) {
-            try {
-                await window.go.main.LivestockService.DeleteAnimal(id);
-                loadAnimals();
-            } catch (err) { console.error(err); }
+        setConfirmDelete({ show: true, id });
+    };
+
+    const confirmDeleteAnimal = async () => {
+        try {
+            await window.go.main.LivestockService.DeleteAnimal(confirmDelete.id);
+            setConfirmDelete({ show: false, id: null });
+            loadAnimals();
+        } catch (err) {
+            console.error(err);
+            setAlert({
+                show: true,
+                title: 'Error',
+                message: 'Failed to delete animal record',
+                type: 'danger'
+            });
         }
     };
 
@@ -117,11 +131,21 @@ export function Livestock() {
         try {
             const res = await window.go.main.ExportService.ExportAnimalsPDF();
             if (res) {
-                alert(`Exported ${res.records} animals to ${res.path}`);
+                setAlert({
+                    show: true,
+                    title: 'Export Successful',
+                    message: `Exported ${res.records} animals to ${res.path}`,
+                    type: 'success'
+                });
             }
         } catch (err) {
             console.error('Export failed:', err);
-            alert('Failed to export PDF');
+            setAlert({
+                show: true,
+                title: 'Export Failed',
+                message: 'Failed to export animals to PDF. Please try again.',
+                type: 'danger'
+            });
         }
     };
 
@@ -255,6 +279,24 @@ export function Livestock() {
                     <div className="modal-actions"><Button variant="outline" type="button" onClick={() => setShowMilkModal(false)}>Cancel</Button><Button type="submit">Save Record</Button></div>
                 </form>
             </Modal>
+
+            <ConfirmDialog
+                isOpen={confirmDelete.show}
+                onClose={() => setConfirmDelete({ show: false, id: null })}
+                onConfirm={confirmDeleteAnimal}
+                title="Delete Animal"
+                message="Are you sure you want to delete this animal? This action cannot be undone and all associated records (milk, breeding, health) will be removed."
+                type="danger"
+                confirmText="Delete Animal"
+            />
+
+            <AlertDialog
+                isOpen={alert.show}
+                onClose={() => setAlert({ ...alert, show: false })}
+                title={alert.title}
+                message={alert.message}
+                type={alert.type}
+            />
         </div>
     );
 }
