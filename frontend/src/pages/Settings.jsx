@@ -6,19 +6,32 @@ import './Settings.css';
 
 export function Settings() {
     const [dbInfo, setDbInfo] = useState(null);
+    const [version, setVersion] = useState('');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState(null);
 
     useEffect(() => {
         loadDatabaseInfo();
+        loadVersion();
     }, []);
 
     const loadDatabaseInfo = async () => {
+        if (!window.go?.main?.BackupService) return;
         try {
             const info = await window.go.main.BackupService.GetDatabaseInfo();
             setDbInfo(info);
         } catch (err) {
             console.error('Failed to get database info:', err);
+        }
+    };
+
+    const loadVersion = async () => {
+        if (!window.go?.main?.UpdateService) return;
+        try {
+            const v = await window.go.main.UpdateService.GetCurrentVersion();
+            setVersion(v);
+        } catch (err) {
+            console.error('Failed to get version:', err);
         }
     };
 
@@ -135,7 +148,7 @@ export function Settings() {
                         <div className="about-info">
                             <h3>Farmland</h3>
                             <p>Farm Management System</p>
-                            <p className="version">Version: {window.go?.main?.UpdateService?.GetCurrentVersion?.() || 'Loading...'}</p>
+                            <p className="version">Version: {version || 'Loading...'}</p>
                             <p className="copyright">© 2026 Daniel Kosgei</p>
                         </div>
                     </CardContent>
