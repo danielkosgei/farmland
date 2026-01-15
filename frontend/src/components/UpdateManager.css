@@ -113,7 +113,36 @@
     font-size: var(--font-size-sm);
     color: var(--color-neutral-600);
     line-height: 1.6;
-    white-space: pre-wrap;
+}
+
+.notes-content .changelog-section {
+    margin: var(--space-3) 0 var(--space-2) 0;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-neutral-800);
+}
+
+.notes-content .changelog-section:first-child {
+    margin-top: 0;
+}
+
+.notes-content .changelog-list {
+    margin: 0 0 var(--space-2) 0;
+    padding-left: var(--space-4);
+    list-style: disc;
+}
+
+.notes-content .changelog-list li {
+    margin-bottom: var(--space-1);
+    color: var(--color-neutral-600);
+}
+
+.notes-content code {
+    background: var(--color-neutral-100);
+    padding: 1px 4px;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    font-family: monospace;
 }
 
 .update-meta {

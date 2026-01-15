@@ -93,6 +93,27 @@ export function UpdateManager({ isOpen, onClose }) {
         });
     };
 
+    // Parse markdown changelog to HTML
+    const parseChangelog = (text) => {
+        if (!text) return '';
+
+        return text
+            // Section headers with emojis
+            .replace(/##\s*(.+)/g, '<h5 class="changelog-section">$1</h5>')
+            // List items
+            .replace(/^-\s+(.+)$/gm, '<li>$1</li>')
+            // Wrap consecutive list items in ul
+            .replace(/(<li>.*<\/li>\n?)+/g, '<ul class="changelog-list">$&</ul>')
+            // Bold text
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            // Code/backticks
+            .replace(/`(.+?)`/g, '<code>$1</code>')
+            // Line breaks
+            .replace(/\n\n/g, '<br/>')
+            .replace(/\n(?!<)/g, '');
+    };
+
+
     return (
         <Modal isOpen={isOpen} onClose={handleClose} title="Software Update" size="md">
             <div className="update-manager">
@@ -128,7 +149,7 @@ export function UpdateManager({ isOpen, onClose }) {
                         {updateInfo.releaseNotes && (
                             <div className="release-notes">
                                 <h4>What's New:</h4>
-                                <div className="notes-content">{updateInfo.releaseNotes}</div>
+                                <div className="notes-content" dangerouslySetInnerHTML={{ __html: parseChangelog(updateInfo.releaseNotes) }} />
                             </div>
                         )}
 
