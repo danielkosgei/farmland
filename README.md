@@ -27,14 +27,22 @@ A modern, cross-platform desktop application for small-scale farm management. Bu
 
 ### Download
 
-Download the latest release for your platform from [GitHub Releases](https://github.com/danielkosgei/farmland/releases):
+Download the latest version for your platform from [GitHub Releases](https://github.com/danielkosgei/farmland/releases):
 
-| Platform | Download |
-|----------|----------|
-| Windows | `farmland-windows-amd64.exe` |
-| macOS (Intel) | `farmland-darwin-amd64.zip` |
-| macOS (Apple Silicon) | `farmland-darwin-arm64.zip` |
-| Linux | `farmland-linux-amd64.tar.gz` |
+#### 🪟 Windows
+- Download `farmland-windows-amd64-installer.exe`.
+- Run the installer and follow the prompts.
+- Farmland will be installed to `Program Files`, with shortcuts on your **Desktop** and **Start Menu**.
+
+#### 🐧 Linux
+We provide packages for most major distributions:
+- **Debian/Ubuntu**: Download `farmland-linux-amd64.deb` and install with `sudo apt install ./farmland-linux-amd64.deb`.
+- **Fedora/RHEL/openSUSE**: Download `farmland-linux-amd64.rpm` and install with `sudo dnf install ./farmland-linux-amd64.rpm` or `rpm -i`.
+- **Generic**: Download `farmland-linux-amd64.tar.gz`, extract it, and run the `farmland` binary.
+
+#### 🍎 macOS
+- Download the `.zip` for your architecture (`arm64` for Apple Silicon, `amd64` for Intel).
+- Extract and move `Farmland.app` to your `/Applications` folder.
 
 ### Build from Source
 

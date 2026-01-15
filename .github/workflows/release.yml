@@ -158,7 +158,7 @@ jobs:
 
       - name: Build for Windows
         if: matrix.platform == 'windows'
-        run: wails build -clean -platform windows/amd64 -ldflags "-X main.Version=${{ github.ref_name }}"
+        run: wails build -clean -platform windows/amd64 --nsis -ldflags "-X main.Version=${{ github.ref_name }}"
         shell: bash
 
       - name: Build for macOS (amd64)
@@ -177,7 +177,7 @@ jobs:
         if: matrix.platform == 'windows'
         run: |
           cd build/bin
-          mv farmland.exe farmland-windows-amd64.exe
+          mv farmland-amd64-installer.exe farmland-windows-amd64-installer.exe
         shell: bash
 
       - name: Package macOS
@@ -186,7 +186,43 @@ jobs:
           cd build/bin
           zip -r farmland-${{ matrix.platform }}-${{ matrix.arch }}.zip farmland.app
 
-      - name: Package Linux
+      - name: Install NFPM
+        if: matrix.platform == 'linux'
+        run: |
+          echo 'deb [trusted=yes] https://repo.goreleaser.com/apt/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
+          sudo apt-get update
+          sudo apt-get install -y nfpm
+
+      - name: Generate NFPM Config
+        if: matrix.platform == 'linux'
+        run: |
+          cat > build/linux/nfpm.yaml <<EOF
+          name: "farmland"
+          arch: "amd64"
+          platform: "linux"
+          version: "${{ github.ref_name }}"
+          section: "utils"
+          priority: "extra"
+          maintainer: "Daniel Togey <dannykosgei@gmail.com>"
+          description: "Modern Farm Management System"
+          vendor: "Farmland"
+          homepage: "https://github.com/danielkosgei/farmland"
+          license: "MIT"
+          contents:
+            - src: "../../build/bin/farmland"
+              dst: "/usr/bin/farmland"
+          EOF
+        shell: bash
+
+      - name: Package Linux (.deb & .rpm)
+        if: matrix.platform == 'linux'
+        run: |
+          cd build/linux
+          nfpm pkg --target ../bin/farmland-linux-amd64.deb
+          nfpm pkg --target ../bin/farmland-linux-amd64.rpm
+        shell: bash
+
+      - name: Package Linux (tar.gz)
         if: matrix.platform == 'linux'
         run: |
           cd build/bin
@@ -196,8 +232,8 @@ jobs:
         if: matrix.platform == 'windows'
         uses: actions/upload-artifact@v4
         with:
-          name: farmland-windows-amd64
-          path: build/bin/farmland-windows-amd64.exe
+          name: farmland-windows-amd64-installer
+          path: build/bin/farmland-windows-amd64-installer.exe
 
       - name: Upload macOS artifact
         if: matrix.platform == 'darwin'
@@ -211,7 +247,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: farmland-linux-amd64
-          path: build/bin/farmland-linux-amd64.tar.gz
+          path: |
+            build/bin/farmland-linux-amd64.tar.gz
+            build/bin/farmland-linux-amd64.deb
+            build/bin/farmland-linux-amd64.rpm
 
   release:
     needs: [changelog, build]
@@ -230,10 +269,12 @@ jobs:
         with:
           body: ${{ needs.changelog.outputs.changelog }}
           files: |
-            artifacts/farmland-windows-amd64/farmland-windows-amd64.exe
+            artifacts/farmland-windows-amd64-installer/farmland-windows-amd64-installer.exe
             artifacts/farmland-darwin-amd64/farmland-darwin-amd64.zip
             artifacts/farmland-darwin-arm64/farmland-darwin-arm64.zip
             artifacts/farmland-linux-amd64/farmland-linux-amd64.tar.gz
+            artifacts/farmland-linux-amd64/farmland-linux-amd64.deb
+            artifacts/farmland-linux-amd64/farmland-linux-amd64.rpm
           draft: false
           prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
         env:
