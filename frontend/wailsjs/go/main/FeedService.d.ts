@@ -6,24 +6,14 @@ export function AddFeedRecord(arg1:main.FeedRecord):Promise<number>;
 
 export function AddFeedType(arg1:main.FeedType):Promise<number>;
 
-export function AddGrindingRecord(arg1:main.FeedGrinding):Promise<number>;
-
 export function DeleteFeedRecord(arg1:number):Promise<void>;
 
 export function DeleteFeedType(arg1:number):Promise<void>;
-
-export function DeleteGrindingRecord(arg1:number):Promise<void>;
 
 export function GetAllFeedTypes():Promise<Array<main.FeedType>>;
 
 export function GetFeedRecords(arg1:string,arg2:string):Promise<Array<main.FeedRecord>>;
 
-export function GetGrindingMaterials():Promise<Array<string>>;
-
-export function GetGrindingRecords(arg1:string,arg2:string):Promise<Array<main.FeedGrinding>>;
-
 export function UpdateFeedRecord(arg1:main.FeedRecord):Promise<void>;
 
 export function UpdateFeedType(arg1:main.FeedType):Promise<void>;
-
-export function UpdateGrindingRecord(arg1:main.FeedGrinding):Promise<void>;
