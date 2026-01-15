@@ -197,7 +197,7 @@ export function Breeding() {
 
             {/* Pregnant Animals Alert */}
             {pregnantAnimals.length > 0 && (
-                <Card variant="glass" className="pregnant-alert">
+                <Card className="pregnant-alert">
                     <CardHeader>
                         <CardTitle><AlertCircle size={20} /> Active Pregnancies ({pregnantAnimals.length})</CardTitle>
                     </CardHeader>
@@ -259,12 +259,12 @@ export function Breeding() {
                             <TableBody>
                                 {records.map(record => (
                                     <TableRow key={record.id}>
-                                        <TableCell><strong>{record.femaleName}</strong></TableCell>
+                                        <TableCell><span className="font-bold text-neutral-900">{record.femaleName}</span></TableCell>
                                         <TableCell>{record.maleName || record.sireSource || '-'}</TableCell>
-                                        <TableCell>{record.breedingDate}</TableCell>
+                                        <TableCell className="font-mono">{record.breedingDate}</TableCell>
                                         <TableCell>{record.breedingMethod === 'artificial_insemination' ? 'AI' : 'Natural'}</TableCell>
                                         <TableCell>{getStatusBadge(record.pregnancyStatus)}</TableCell>
-                                        <TableCell>{record.expectedDueDate || '-'}</TableCell>
+                                        <TableCell className="font-mono">{record.expectedDueDate || '-'}</TableCell>
                                         <TableCell>{record.offspringName || '-'}</TableCell>
                                         <TableCell>
                                             <div className="action-buttons">
