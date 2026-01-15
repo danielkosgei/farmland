@@ -9,6 +9,104 @@ permissions:
   contents: write
 
 jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    outputs:
+      changelog: ${{ steps.changelog.outputs.changelog }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get previous tag
+        id: prev_tag
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          echo "tag=$PREV_TAG" >> $GITHUB_OUTPUT
+
+      - name: Generate Changelog
+        id: changelog
+        run: |
+          if [ -z "${{ steps.prev_tag.outputs.tag }}" ]; then
+            COMMITS=$(git log --pretty=format:"%s|%h" --no-merges)
+          else
+            COMMITS=$(git log ${{ steps.prev_tag.outputs.tag }}..HEAD --pretty=format:"%s|%h" --no-merges)
+          fi
+
+          # Initialize sections
+          FEATURES=""
+          FIXES=""
+          BREAKING=""
+          SECURITY=""
+          OTHER=""
+
+          while IFS='|' read -r message hash; do
+            # Skip empty, whitespace-only, typo fixes, and trivial commits
+            [[ -z "$message" ]] && continue
+            [[ "$message" =~ ^[[:space:]]*$ ]] && continue
+            [[ "$message" =~ ^(typo|fix[[:space:]]typo|whitespace|formatting|lint|style:|chore\(deps\)|bump|wip|temp|todo) ]] && continue
+            [[ "$message" =~ ^(Merge|Initial commit) ]] && continue
+            [[ ${#message} -lt 10 ]] && continue
+
+            # Categorize commits by conventional commit prefix or keywords
+            if [[ "$message" =~ ^feat(\(|:|\!) ]] || [[ "$message" =~ (add|implement|new|feature|support) ]]; then
+              FEATURES="$FEATURES\n- $message"
+            elif [[ "$message" =~ ^fix(\(|:) ]] || [[ "$message" =~ (fix|bug|patch|resolve|correct) ]]; then
+              FIXES="$FIXES\n- $message"
+            elif [[ "$message" =~ ^(BREAKING|breaking|!) ]] || [[ "$message" =~ (breaking change|remove|deprecate) ]]; then
+              BREAKING="$BREAKING\n- $message"
+            elif [[ "$message" =~ (security|vulnerability|CVE|auth) ]]; then
+              SECURITY="$SECURITY\n- $message"
+            else
+              OTHER="$OTHER\n- $message"
+            fi
+          done <<< "$COMMITS"
+
+          # Build changelog
+          CHANGELOG=""
+
+          if [ -n "$BREAKING" ]; then
+            CHANGELOG="$CHANGELOG## ⚠️ Breaking Changes\n$BREAKING\n\n"
+          fi
+
+          if [ -n "$SECURITY" ]; then
+            CHANGELOG="$CHANGELOG## 🔒 Security\n$SECURITY\n\n"
+          fi
+
+          if [ -n "$FEATURES" ]; then
+            CHANGELOG="$CHANGELOG## ✨ New Features\n$FEATURES\n\n"
+          fi
+
+          if [ -n "$FIXES" ]; then
+            CHANGELOG="$CHANGELOG## 🐛 Bug Fixes\n$FIXES\n\n"
+          fi
+
+          if [ -n "$OTHER" ]; then
+            CHANGELOG="$CHANGELOG## 📝 Other Changes\n$OTHER\n\n"
+          fi
+
+          # Default message if no categorized commits
+          if [ -z "$CHANGELOG" ]; then
+            CHANGELOG="Minor improvements and updates."
+          fi
+
+          # Save to file for multiline support
+          echo -e "$CHANGELOG" > changelog.md
+          echo "Generated changelog:"
+          cat changelog.md
+
+          # Use file output for multiline
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          cat changelog.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Upload changelog
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: changelog.md
+
   build:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -75,7 +173,6 @@ jobs:
         if: matrix.platform == 'linux'
         run: wails build -clean -platform linux/amd64 -ldflags "-X main.Version=${{ github.ref_name }}"
 
-      # Package with predictable names (no version in filename - version is in the release)
       - name: Package Windows
         if: matrix.platform == 'windows'
         run: |
@@ -117,7 +214,7 @@ jobs:
           path: build/bin/farmland-linux-amd64.tar.gz
 
   release:
-    needs: build
+    needs: [changelog, build]
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
@@ -131,12 +228,12 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
+          body: ${{ needs.changelog.outputs.changelog }}
           files: |
             artifacts/farmland-windows-amd64/farmland-windows-amd64.exe
             artifacts/farmland-darwin-amd64/farmland-darwin-amd64.zip
             artifacts/farmland-darwin-arm64/farmland-darwin-arm64.zip
             artifacts/farmland-linux-amd64/farmland-linux-amd64.tar.gz
-          generate_release_notes: true
           draft: false
           prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
         env:
