@@ -300,7 +300,7 @@ export function Settings() {
                             <p className="about-subtitle">Farm Management System</p>
                             <div className="about-details mt-4">
                                 <span className="version-badge">Version {version || 'Loading...'}</span>
-                                <p className="copyright mt-6">© 2026 Daniel Kosgei • All Rights Reserved</p>
+                                <p className="copyright mt-6">© 2026 Daniel Kosgei • Licensed under MIT</p>
                             </div>
                         </div>
                     </CardContent>
