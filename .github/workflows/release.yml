@@ -156,9 +156,14 @@ jobs:
         run: npm ci
         working-directory: frontend
 
+      - name: Add NSIS to PATH
+        if: matrix.platform == 'windows'
+        run: echo "C:\Program Files (x86)\NSIS" >> $GITHUB_PATH
+        shell: bash
+
       - name: Build for Windows
         if: matrix.platform == 'windows'
-        run: wails build -clean -platform windows/amd64 --nsis -ldflags "-X main.Version=${{ github.ref_name }}"
+        run: wails build -clean -nsis -platform windows/amd64 -ldflags "-X main.Version=${{ github.ref_name }}" -v 2
         shell: bash
 
       - name: Build for macOS (amd64)
@@ -176,9 +181,20 @@ jobs:
       - name: Package Windows
         if: matrix.platform == 'windows'
         run: |
-          dir build\bin
-          move build\bin\*installer.exe build\bin\farmland-windows-amd64-installer.exe
-        shell: cmd
+          Get-ChildItem build\bin
+          $installer = Get-ChildItem build\bin\*installer.exe | Select-Object -First 1
+          if ($installer) {
+            Move-Item $installer.FullName build\bin\farmland-windows-amd64-installer.exe -Force
+            Write-Host "Installer packaged: build\bin\farmland-windows-amd64-installer.exe"
+          } else {
+            Write-Warning "No installer found! This build may have failed to trigger NSIS."
+            # Fallback for debugging: if only exe exists, rename it (though it's not an installer)
+            if (Test-Path build\bin\farmland.exe) {
+              Write-Host "Found farmland.exe, but no installer."
+            }
+            exit 1
+          }
+        shell: pwsh
 
       - name: Package macOS
         if: matrix.platform == 'darwin'
@@ -197,6 +213,7 @@ jobs:
         if: matrix.platform == 'linux'
         run: |
           mkdir -p build/linux
+          ls -d build/linux
           cat > build/linux/nfpm.yaml <<EOF
           name: "farmland"
           arch: "amd64"
