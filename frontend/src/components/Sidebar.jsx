@@ -138,7 +138,7 @@ export function Sidebar() {
         <div className="sidebar-footer">
           <div className="version-row">
             <div className="version-info-line">
-              <span className="version-label">Version {version || '...'}</span>
+              <span className="version-label">{version || '...'}</span>
               <button
                 className="check-update-btn"
                 onClick={() => setShowUpdateModal(true)}
