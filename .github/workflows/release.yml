@@ -156,14 +156,21 @@ jobs:
         run: npm ci
         working-directory: frontend
 
-      - name: Add NSIS to PATH
+      - name: Install NSIS
         if: matrix.platform == 'windows'
-        run: echo "C:\Program Files (x86)\NSIS" >> $GITHUB_PATH
+        run: |
+          choco install nsis -y
+          echo "C:\Program Files (x86)\NSIS" >> $GITHUB_PATH
         shell: bash
+
+      - name: Verify NSIS
+        if: matrix.platform == 'windows'
+        run: makensis /VERSION
+        shell: cmd
 
       - name: Build for Windows
         if: matrix.platform == 'windows'
-        run: wails build -clean -nsis -platform windows/amd64 -ldflags "-X main.Version=${{ github.ref_name }}" -v 2
+        run: wails build -clean -platform windows/amd64 --nsis -ldflags "-X main.Version=${{ github.ref_name }}" -v 2
         shell: bash
 
       - name: Build for macOS (amd64)
@@ -213,7 +220,6 @@ jobs:
         if: matrix.platform == 'linux'
         run: |
           mkdir -p build/linux
-          ls -d build/linux
           cat > build/linux/nfpm.yaml <<EOF
           name: "farmland"
           arch: "amd64"
