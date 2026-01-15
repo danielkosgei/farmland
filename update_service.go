@@ -100,16 +100,41 @@ func (s *UpdateService) CheckForUpdates() (*UpdateInfo, error) {
 	}
 
 	// Find the correct asset for this platform
-	assetName := s.getAssetName()
 	var downloadURL string
 	var assetSize int64
+	var foundAsset GitHubAsset
 
-	for _, asset := range release.Assets {
-		if asset.Name == assetName {
-			downloadURL = asset.BrowserDownloadURL
-			assetSize = asset.Size
-			break
+	// Try multiple naming patterns to be robust
+	patterns := s.getAssetPatterns()
+
+	// First pass: try to find an exact match for one of our patterns
+	for _, pattern := range patterns {
+		for _, asset := range release.Assets {
+			if asset.Name == pattern {
+				foundAsset = asset
+				goto found
+			}
 		}
+	}
+
+	// Second pass: fallback to "contains" if no exact match (useful for versioned filenames)
+	for _, pattern := range patterns {
+		basePattern := strings.TrimSuffix(pattern, ".exe")
+		basePattern = strings.TrimSuffix(basePattern, ".zip")
+		basePattern = strings.TrimSuffix(basePattern, ".tar.gz")
+
+		for _, asset := range release.Assets {
+			if strings.Contains(strings.ToLower(asset.Name), strings.ToLower(basePattern)) {
+				foundAsset = asset
+				goto found
+			}
+		}
+	}
+
+found:
+	if foundAsset.Name != "" {
+		downloadURL = foundAsset.BrowserDownloadURL
+		assetSize = foundAsset.Size
 	}
 
 	info := &UpdateInfo{
@@ -118,7 +143,7 @@ func (s *UpdateService) CheckForUpdates() (*UpdateInfo, error) {
 		HasUpdate:      s.isNewerVersion(release.TagName, Version),
 		ReleaseNotes:   release.Body,
 		DownloadURL:    downloadURL,
-		AssetName:      assetName,
+		AssetName:      foundAsset.Name,
 		AssetSize:      assetSize,
 		PublishedAt:    release.PublishedAt,
 	}
@@ -126,22 +151,28 @@ func (s *UpdateService) CheckForUpdates() (*UpdateInfo, error) {
 	return info, nil
 }
 
-// getAssetName returns the expected asset name for this platform
-func (s *UpdateService) getAssetName() string {
+// getAssetPatterns returns possible asset names for this platform
+func (s *UpdateService) getAssetPatterns() []string {
 	switch runtime.GOOS {
 	case "windows":
-		// Use the professional NSIS installer
-		return "farmland-windows-amd64-installer.exe"
+		return []string{
+			"farmland-windows-amd64-installer.exe",
+			"farmland-windows-amd64.exe",
+			"farmland.exe",
+		}
 	case "darwin":
 		if runtime.GOARCH == "arm64" {
-			return "farmland-darwin-arm64.zip"
+			return []string{"farmland-darwin-arm64.zip", "farmland-macos-arm64.zip"}
 		}
-		return "farmland-darwin-amd64.zip"
+		return []string{"farmland-darwin-amd64.zip", "farmland-macos-amd64.zip"}
 	case "linux":
-		// Use the tarball for binary replacement updates
-		return "farmland-linux-amd64.tar.gz"
+		return []string{
+			"farmland-linux-amd64.deb",
+			"farmland-linux-amd64.rpm",
+			"farmland-linux-amd64.tar.gz",
+		}
 	default:
-		return ""
+		return []string{}
 	}
 }
 
@@ -219,7 +250,7 @@ func (s *UpdateService) StartDownload(url string) {
 
 		// Create temp file
 		tempDir := os.TempDir()
-		tempFile := filepath.Join(tempDir, "farmland-update"+s.getExtension())
+		tempFile := filepath.Join(tempDir, "farmland-update"+s.getExtension(url))
 
 		out, err := os.Create(tempFile)
 		if err != nil {
@@ -277,18 +308,12 @@ func (s *UpdateService) DownloadUpdate(url string) (string, error) {
 	return s.downloadedFile, nil
 }
 
-// getExtension returns the file extension for this platform
-func (s *UpdateService) getExtension() string {
-	switch runtime.GOOS {
-	case "windows":
-		return ".exe"
-	case "darwin":
-		return ".zip"
-	case "linux":
+// getExtension returns the file extension for a given filename
+func (s *UpdateService) getExtension(filename string) string {
+	if strings.HasSuffix(filename, ".tar.gz") {
 		return ".tar.gz"
-	default:
-		return ""
 	}
+	return filepath.Ext(filename)
 }
 
 // ApplyUpdate replaces the current executable with the downloaded one
@@ -302,9 +327,9 @@ func (s *UpdateService) ApplyUpdate() error {
 		return fmt.Errorf("failed to get current executable: %w", err)
 	}
 
-	// On Windows, the download is an INSTALLER, not a raw binary.
-	// We need to EXECUTE the installer and quit the app.
-	if runtime.GOOS == "windows" {
+	// On Windows, if it's an INSTALLER, we execute it.
+	// We check the filename to be sure.
+	if runtime.GOOS == "windows" && strings.Contains(strings.ToLower(s.downloadedFile), "installer") {
 		// Launch installer as a separate process
 		cmd := exec.Command(s.downloadedFile)
 		if err := cmd.Start(); err != nil {

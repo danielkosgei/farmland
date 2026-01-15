@@ -170,7 +170,11 @@ jobs:
 
       - name: Build for Windows
         if: matrix.platform == 'windows'
-        run: wails build -clean -platform windows/amd64 --nsis -ldflags "-X main.Version=${{ github.ref_name }}" -v 2
+        run: |
+          # Clean build artifacts
+          rm -rf build/bin/*
+          # Build with NSIS
+          wails build -platform windows/amd64 -nsis -ldflags "-X main.Version=${{ github.ref_name }}" -v 2
         shell: bash
 
       - name: Build for macOS (amd64)
