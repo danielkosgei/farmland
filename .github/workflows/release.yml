@@ -177,7 +177,7 @@ jobs:
         if: matrix.platform == 'windows'
         run: |
           cd build/bin
-          mv farmland-amd64-installer.exe farmland-windows-amd64-installer.exe
+          mv *-installer.exe farmland-windows-amd64-installer.exe
         shell: bash
 
       - name: Package macOS
@@ -196,6 +196,7 @@ jobs:
       - name: Generate NFPM Config
         if: matrix.platform == 'linux'
         run: |
+          mkdir -p build/linux
           cat > build/linux/nfpm.yaml <<EOF
           name: "farmland"
           arch: "amd64"
