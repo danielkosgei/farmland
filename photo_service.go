@@ -108,6 +108,16 @@ func (s *PhotoService) GetPhotos(entityType string, entityID int64) ([]Photo, er
 	return photos, nil
 }
 
+// BindPhotos updates photos from a temporary ID to a permanent record ID
+func (s *PhotoService) BindPhotos(entityType string, oldID, newID int64) error {
+	_, err := db.Exec(`
+		UPDATE photos 
+		SET entity_id = ? 
+		WHERE entity_type = ? AND entity_id = ?
+	`, newID, entityType, oldID)
+	return err
+}
+
 // DeletePhoto deletes a photo record and the file
 func (s *PhotoService) DeletePhoto(id int64) error {
 	var path string

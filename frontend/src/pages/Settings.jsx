@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Database, Download, Upload, HardDrive, RefreshCw, CheckCircle, AlertCircle, Search, MapPin, Sun } from 'lucide-react';
+import { Database, Download, Upload, HardDrive, RefreshCw, CheckCircle, AlertCircle, Search, MapPin, Sun, Bell } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { ConfirmDialog, AlertDialog } from '../components/ui/ConfirmDialog';
@@ -136,6 +136,18 @@ export function Settings() {
         }
     };
 
+    const handleTestNotification = async () => {
+        setLoading(true);
+        try {
+            const result = await window.go.main.NotificationService.TestNotification();
+            setMessage({ type: 'success', text: result });
+        } catch (err) {
+            setMessage({ type: 'error', text: 'Failed to send test notification' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="page-container animate-fade-in">
             <div className="page-header">
@@ -224,6 +236,31 @@ export function Settings() {
                         </div>
                         <p className="settings-note">
                             Set your farm's location to get accurate weather forecasts on the dashboard.
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle><Bell size={20} /> Desktop Notifications</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="notification-settings">
+                            <p className="settings-note mb-4">
+                                Enable system notifications to get alerts for low stock and upcoming tasks even when the app is minimized.
+                            </p>
+                            <Button
+                                icon={Bell}
+                                onClick={handleTestNotification}
+                                variant="outline"
+                                disabled={loading}
+                                className="w-full"
+                            >
+                                Send Test Notification
+                            </Button>
+                        </div>
+                        <p className="settings-note mt-4">
+                            Note: Ensure that system notifications are allowed for "Farmland" in your Windows settings.
                         </p>
                     </CardContent>
                 </Card>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Wheat, Sprout } from 'lucide-react';
+import { Plus, Edit2, Trash2, Wheat, Sprout, Camera } from 'lucide-react';
+import { PhotoGallery } from '../components/PhotoGallery';
 import { Button } from '../components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Modal } from '../components/ui/Modal';
@@ -20,6 +21,7 @@ export function Crops() {
     const [editingField, setEditingField] = useState(null);
     const [selectedField, setSelectedField] = useState(null);
     const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
+    const [tempPhotoId, setTempPhotoId] = useState(null);
     const [fieldForm, setFieldForm] = useState({ name: '', sizeAcres: '', location: '', soilType: '', status: 'fallow', notes: '' });
     const [cropForm, setCropForm] = useState({ cropType: '', variety: '', plantingDate: new Date().toISOString().split('T')[0], expectedHarvest: '', seedCost: '', fertilizerCost: '', notes: '' });
 
@@ -40,10 +42,14 @@ export function Crops() {
             if (editingField) {
                 await window.go.main.CropsService.UpdateField({ ...data, id: editingField.id });
             } else {
-                await window.go.main.CropsService.AddField(data);
+                const newField = await window.go.main.CropsService.AddField(data);
+                if (newField && tempPhotoId) {
+                    await window.go.main.PhotoService.BindPhotos("field", tempPhotoId, newField.id);
+                }
             }
             setShowFieldModal(false);
             setEditingField(null);
+            setTempPhotoId(null);
             setFieldForm({ name: '', sizeAcres: '', location: '', soilType: '', status: 'fallow', notes: '' });
             loadFields();
         } catch (err) { console.error(err); }
@@ -108,7 +114,12 @@ export function Crops() {
                     <h1>Crops & Fields</h1>
                     <p>Manage your farm fields and crop cycles</p>
                 </div>
-                <Button icon={Plus} onClick={() => { setEditingField(null); setFieldForm({ name: '', sizeAcres: '', location: '', soilType: '', status: 'fallow', notes: '' }); setShowFieldModal(true); }}>Add Field</Button>
+                <Button icon={Plus} onClick={() => {
+                    setEditingField(null);
+                    setFieldForm({ name: '', sizeAcres: '', location: '', soilType: '', status: 'fallow', notes: '' });
+                    setTempPhotoId(Date.now() * -1);
+                    setShowFieldModal(true);
+                }}>Add Field</Button>
             </header>
 
             {loading ? (
@@ -122,6 +133,7 @@ export function Crops() {
                             <div className="field-header">
                                 <div className="field-icon"><Sprout size={24} /></div>
                                 <div className="field-actions">
+                                    <button className="action-btn" title="View/Edit Photos" onClick={() => openEditField(field)}><Camera size={16} /></button>
                                     <button className="action-btn" onClick={() => openEditField(field)}><Edit2 size={16} /></button>
                                     <button className="action-btn delete" onClick={() => handleDelete(field.id)}><Trash2 size={16} /></button>
                                 </div>
@@ -153,6 +165,12 @@ export function Crops() {
                     </FormRow>
                     <FormGroup><Label htmlFor="fieldStatus">Status</Label><Select id="fieldStatus" value={fieldForm.status} onChange={(e) => setFieldForm({ ...fieldForm, status: e.target.value })}>{fieldStatuses.map(s => <option key={s} value={s}>{s?.replace('_', ' ').charAt(0).toUpperCase() + s?.replace('_', ' ').slice(1)}</option>)}</Select></FormGroup>
                     <FormGroup><Label htmlFor="fieldNotes">Notes</Label><Textarea id="fieldNotes" value={fieldForm.notes} onChange={(e) => setFieldForm({ ...fieldForm, notes: e.target.value })} rows={2} /></FormGroup>
+
+                    <PhotoGallery
+                        entityType="field"
+                        entityId={editingField ? editingField.id : tempPhotoId}
+                    />
+
                     <div className="modal-actions"><Button variant="outline" type="button" onClick={() => setShowFieldModal(false)}>Cancel</Button><Button type="submit">{editingField ? 'Update' : 'Add'} Field</Button></div>
                 </form>
             </Modal>

@@ -1,15 +1,101 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"time"
+
+	"github.com/gen2brain/beeep"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // NotificationService handles reminder and alert notifications
-type NotificationService struct{}
+type NotificationService struct {
+	ctx          context.Context
+	lastNotified map[string]time.Time
+}
 
 // NewNotificationService creates a new NotificationService
 func NewNotificationService() *NotificationService {
-	return &NotificationService{}
+	return &NotificationService{
+		lastNotified: make(map[string]time.Time),
+	}
+}
+
+// SetContext sets the context for the service
+func (s *NotificationService) SetContext(ctx context.Context) {
+	s.ctx = ctx
+}
+
+// StartBackgroundWorker starts the notification poller
+func (s *NotificationService) StartBackgroundWorker() {
+	go func() {
+		// Initial wait to let app settle
+		time.Sleep(10 * time.Second)
+
+		ticker := time.NewTicker(30 * time.Minute)
+		defer ticker.Stop()
+
+		for {
+			s.CheckAndNotify()
+			select {
+			case <-ticker.C:
+				continue
+			}
+		}
+	}()
+}
+
+// CheckAndNotify checks for urgent alerts and triggers desktop notifications
+func (s *NotificationService) CheckAndNotify() {
+	notifs, err := s.GetAllNotifications()
+	if err != nil {
+		return
+	}
+
+	for _, n := range notifs {
+		// Only notify for high priority items due today or low stock
+		isUrgent := n.Priority == "high" && (n.DaysUntil <= 0 || n.Type == "low_stock")
+
+		if isUrgent {
+			key := fmt.Sprintf("%s_%d", n.Type, n.ID)
+
+			// Don't notify more than once every 24 hours for the same item
+			if last, exists := s.lastNotified[key]; exists && time.Since(last) < 24*time.Hour {
+				continue
+			}
+
+			s.Notify(n.Title, n.Description)
+			s.lastNotified[key] = time.Now()
+
+			// Small delay between multiple notifications to avoid clogging
+			time.Sleep(2 * time.Second)
+		}
+	}
+}
+
+// Notify triggers a desktop notification
+func (s *NotificationService) Notify(title, message string) error {
+	// Emit event to frontend as well
+	if s.ctx != nil {
+		runtime.EventsEmit(s.ctx, "desktop_notification", map[string]string{
+			"title":   title,
+			"message": message,
+		})
+	}
+
+	// Trigger system notification
+	// Use App Icon if possible, but beeep defaults to app icon on Windows if compiled correctly
+	return beeep.Notify(title, message, "")
+}
+
+// TestNotification sends a test desktop notification
+func (s *NotificationService) TestNotification() string {
+	err := s.Notify("Farmland Notification Test", "If you see this, desktop notifications are working perfectly!")
+	if err != nil {
+		return "Error: " + err.Error()
+	}
+	return "Test notification sent successfully"
 }
 
 // Reminder represents an upcoming task or event

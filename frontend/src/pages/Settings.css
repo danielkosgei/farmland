@@ -240,3 +240,20 @@
     margin-top: var(--space-4);
     line-height: var(--line-height-normal);
 }
+
+.notification-settings {
+    display: flex;
+    flex-direction: column;
+}
+
+.w-full {
+    width: 100%;
+}
+
+.mb-4 {
+    margin-bottom: var(--space-4);
+}
+
+.mt-4 {
+    margin-top: var(--space-4);
+}

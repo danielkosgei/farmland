@@ -24,6 +24,7 @@ export function Livestock() {
     const [searchTerm, setSearchTerm] = useState('');
     const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
     const [alert, setAlert] = useState({ show: false, title: '', message: '', type: 'info' });
+    const [tempPhotoId, setTempPhotoId] = useState(null);
     const [formData, setFormData] = useState({
         tagNumber: '', name: '', type: 'cow', breed: '', dateOfBirth: '',
         gender: 'female', motherId: null, fatherId: null, status: 'active', notes: ''
@@ -51,10 +52,14 @@ export function Livestock() {
             if (editingAnimal) {
                 await window.go.main.LivestockService.UpdateAnimal({ ...animalData, id: editingAnimal.id });
             } else {
-                await window.go.main.LivestockService.AddAnimal(animalData);
+                const newAnimal = await window.go.main.LivestockService.AddAnimal(animalData);
+                if (newAnimal && tempPhotoId) {
+                    await window.go.main.PhotoService.BindPhotos("animal", tempPhotoId, newAnimal.id);
+                }
             }
             setShowModal(false);
             setEditingAnimal(null);
+            setTempPhotoId(null);
             resetForm();
             loadAnimals();
         } catch (err) { console.error(err); }
@@ -158,7 +163,12 @@ export function Livestock() {
                 </div>
                 <div className="page-actions">
                     <Button variant="outline" icon={Download} onClick={handleExportPDF}>Export PDF</Button>
-                    <Button icon={Plus} onClick={() => { resetForm(); setEditingAnimal(null); setShowModal(true); }}>Add Animal</Button>
+                    <Button icon={Plus} onClick={() => {
+                        resetForm();
+                        setEditingAnimal(null);
+                        setTempPhotoId(Date.now() * -1);
+                        setShowModal(true);
+                    }}>Add Animal</Button>
                 </div>
             </header>
 
@@ -260,9 +270,10 @@ export function Livestock() {
                     </FormRow>
                     <FormGroup><Label htmlFor="notes">Notes</Label><Textarea id="notes" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Any additional notes..." rows={3} /></FormGroup>
 
-                    {editingAnimal && (
-                        <PhotoGallery entityType="animal" entityId={editingAnimal.id} />
-                    )}
+                    <PhotoGallery
+                        entityType="animal"
+                        entityId={editingAnimal ? editingAnimal.id : tempPhotoId}
+                    />
 
                     <div className="modal-actions"><Button variant="outline" type="button" onClick={() => setShowModal(false)}>Cancel</Button><Button type="submit">{editingAnimal ? 'Update' : 'Add'} Animal</Button></div>
                 </form>
