@@ -106,7 +106,7 @@ func (s *WeatherService) SaveWeatherLocation(lat, lng float64, name string) erro
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	settings := map[string]string{
 		"weather_lat":           fmt.Sprintf("%.4f", lat),

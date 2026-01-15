@@ -38,10 +38,7 @@ func (s *NotificationService) StartBackgroundWorker() {
 
 		for {
 			s.CheckAndNotify()
-			select {
-			case <-ticker.C:
-				continue
-			}
+			<-ticker.C
 		}
 	}()
 }
@@ -65,7 +62,9 @@ func (s *NotificationService) CheckAndNotify() {
 				continue
 			}
 
-			s.Notify(n.Title, n.Description)
+			if err := s.Notify(n.Title, n.Description); err != nil {
+				fmt.Printf("Notification failed: %v\n", err)
+			}
 			s.lastNotified[key] = time.Now()
 
 			// Small delay between multiple notifications to avoid clogging
