@@ -3,6 +3,8 @@
 import {main} from '../models';
 import {context} from '../models';
 
+export function BindPhotos(arg1:string,arg2:number,arg3:number):Promise<void>;
+
 export function DeletePhoto(arg1:number):Promise<void>;
 
 export function GetPhotoBase64(arg1:number):Promise<string>;

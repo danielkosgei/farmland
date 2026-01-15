@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, Milk, Beef, Download } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Search, Edit2, Trash2, Milk, Beef, Download, Calendar, Info, Users } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
 import { Modal } from '../components/ui/Modal';
@@ -9,6 +10,7 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { PhotoGallery } from '../components/PhotoGallery';
 import { ConfirmDialog, AlertDialog } from '../components/ui/ConfirmDialog';
 import './Livestock.css';
+import '../components/EntityDetails.css';
 
 const animalTypes = ['cow', 'bull', 'heifer', 'calf'];
 const breeds = ['Friesian', 'Ayrshire', 'Jersey', 'Guernsey', 'Sahiwal', 'Boran', 'Mixed'];
@@ -21,6 +23,7 @@ export function Livestock() {
     const [showMilkModal, setShowMilkModal] = useState(false);
     const [editingAnimal, setEditingAnimal] = useState(null);
     const [selectedAnimal, setSelectedAnimal] = useState(null);
+    const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
     const [alert, setAlert] = useState({ show: false, title: '', message: '', type: 'info' });
@@ -111,9 +114,14 @@ export function Livestock() {
         setShowModal(true);
     };
 
-    const openMilkRecord = (animal) => {
+    const openMilkRecord = (animal, e) => {
+        if (e) e.stopPropagation();
         setSelectedAnimal(animal);
         setShowMilkModal(true);
+    };
+
+    const handleRowClick = (animal) => {
+        navigate(`/livestock/${animal.id}`);
     };
 
     const resetForm = () => {
@@ -199,7 +207,7 @@ export function Livestock() {
                         </TableHeader>
                         <TableBody>
                             {filteredAnimals.map(animal => (
-                                <TableRow key={animal.id}>
+                                <TableRow key={animal.id} onClick={() => handleRowClick(animal)} className="clickable-row">
                                     <TableCell>
                                         <div className="animal-info">
                                             <span className="animal-name">{animal.name}</span>
@@ -222,10 +230,10 @@ export function Livestock() {
                                     <TableCell>
                                         <div className="action-buttons">
                                             {(animal.gender === 'female' && animal.status === 'active') && (
-                                                <button className="action-btn milk" onClick={() => openMilkRecord(animal)} title="Record Milk"><Milk size={16} /></button>
+                                                <button className="action-btn milk" onClick={(e) => openMilkRecord(animal, e)} title="Record Milk"><Milk size={16} /></button>
                                             )}
-                                            <button className="action-btn edit" onClick={() => openEdit(animal)} title="Edit"><Edit2 size={16} /></button>
-                                            <button className="action-btn delete" onClick={() => handleDelete(animal.id)} title="Delete"><Trash2 size={16} /></button>
+                                            <button className="action-btn edit" onClick={(e) => { e.stopPropagation(); openEdit(animal); }} title="Edit"><Edit2 size={16} /></button>
+                                            <button className="action-btn delete" onClick={(e) => { e.stopPropagation(); handleDelete(animal.id); }} title="Delete"><Trash2 size={16} /></button>
                                         </div>
                                     </TableCell>
                                 </TableRow>

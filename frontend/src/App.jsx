@@ -12,6 +12,8 @@ import { Finances } from './pages/Finances';
 import { Breeding } from './pages/Breeding';
 import { Settings } from './pages/Settings';
 import { Notifications } from './pages/Notifications';
+import { AnimalDetails } from './pages/AnimalDetails';
+import { FieldDetails } from './pages/FieldDetails';
 
 function App() {
     return (
@@ -19,8 +21,10 @@ function App() {
             <Route path="/" element={<Layout />}>
                 <Route index element={<Dashboard />} />
                 <Route path="livestock" element={<Livestock />} />
+                <Route path="livestock/:id" element={<AnimalDetails />} />
                 <Route path="milk-sales" element={<MilkSales />} />
                 <Route path="crops" element={<Crops />} />
+                <Route path="crops/field/:id" element={<FieldDetails />} />
                 <Route path="inventory" element={<Inventory />} />
                 <Route path="feed" element={<Feed />} />
                 <Route path="health" element={<Health />} />

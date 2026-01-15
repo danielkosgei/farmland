@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Wheat, Sprout, Camera } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Search, MapPin, Wheat, Sprout, Edit2, Info, Droplets, Maximize } from 'lucide-react';
 import { PhotoGallery } from '../components/PhotoGallery';
+import '../components/EntityDetails.css';
 import { Button } from '../components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Modal } from '../components/ui/Modal';
@@ -20,6 +22,8 @@ export function Crops() {
     const [showCropModal, setShowCropModal] = useState(false);
     const [editingField, setEditingField] = useState(null);
     const [selectedField, setSelectedField] = useState(null);
+    const navigate = useNavigate();
+    const [searchTerm, setSearchTerm] = useState('');
     const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
     const [tempPhotoId, setTempPhotoId] = useState(null);
     const [fieldForm, setFieldForm] = useState({ name: '', sizeAcres: '', location: '', soilType: '', status: 'fallow', notes: '' });
@@ -93,9 +97,14 @@ export function Crops() {
         setShowFieldModal(true);
     };
 
-    const openPlantCrop = (field) => {
+    const openPlantCrop = (field, e) => {
+        if (e) e.stopPropagation();
         setSelectedField(field);
         setShowCropModal(true);
+    };
+
+    const handleCardClick = (field) => {
+        navigate(`/crops/field/${field.id}`);
     };
 
     const getStatusColor = (status) => {
@@ -129,13 +138,13 @@ export function Crops() {
             ) : (
                 <div className="fields-grid">
                     {fields.map(field => (
-                        <Card key={field.id} className="field-card" hover>
+                        <Card key={field.id} className="field-card clickable-card" hover onClick={() => handleCardClick(field)}>
                             <div className="field-header">
                                 <div className="field-icon"><Sprout size={24} /></div>
                                 <div className="field-actions">
-                                    <button className="action-btn" title="View/Edit Photos" onClick={() => openEditField(field)}><Camera size={16} /></button>
-                                    <button className="action-btn" onClick={() => openEditField(field)}><Edit2 size={16} /></button>
-                                    <button className="action-btn delete" onClick={() => handleDelete(field.id)}><Trash2 size={16} /></button>
+                                    <button className="action-btn" title="View/Edit Photos" onClick={(e) => { e.stopPropagation(); openEditField(field); }}><Camera size={16} /></button>
+                                    <button className="action-btn" onClick={(e) => { e.stopPropagation(); openEditField(field); }}><Edit2 size={16} /></button>
+                                    <button className="action-btn delete" onClick={(e) => { e.stopPropagation(); handleDelete(field.id); }}><Trash2 size={16} /></button>
                                 </div>
                             </div>
                             <h3 className="field-name">{field.name}</h3>
@@ -146,7 +155,7 @@ export function Crops() {
                             </div>
                             {field.currentCrop && <div className="current-crop"><Wheat size={14} /> {field.currentCrop}</div>}
                             <div className="field-footer">
-                                <Button variant="outline" size="sm" icon={Sprout} onClick={() => openPlantCrop(field)} fullWidth>Plant Crop</Button>
+                                <Button variant="outline" size="sm" icon={Sprout} onClick={(e) => openPlantCrop(field, e)} fullWidth>Plant Crop</Button>
                             </div>
                         </Card>
                     ))}
