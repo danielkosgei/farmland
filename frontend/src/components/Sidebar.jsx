@@ -11,7 +11,8 @@ import {
   DollarSign,
   Tractor,
   Download,
-  RefreshCw
+  RefreshCw,
+  Baby
 } from 'lucide-react';
 import { UpdateManager, UpdateBadge } from './UpdateManager';
 import './Sidebar.css';
@@ -19,6 +20,7 @@ import './Sidebar.css';
 const navItems = [
   { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { path: '/livestock', icon: Beef, label: 'Livestock' },
+  { path: '/breeding', icon: Baby, label: 'Breeding' },
   { path: '/milk-sales', icon: Milk, label: 'Milk Sales' },
   { path: '/crops', icon: Wheat, label: 'Crops' },
   { path: '/inventory', icon: Package, label: 'Inventory' },

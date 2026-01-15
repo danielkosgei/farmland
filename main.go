@@ -38,6 +38,7 @@ func main() {
 			app.Financial,
 			app.Dashboard,
 			app.Update,
+			app.Breeding,
 		},
 	})
 

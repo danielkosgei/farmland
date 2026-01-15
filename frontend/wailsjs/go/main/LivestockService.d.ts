@@ -20,11 +20,17 @@ export function GetAnimal(arg1:number):Promise<main.Animal>;
 
 export function GetDairyCows():Promise<Array<main.Animal>>;
 
+export function GetFemaleAnimals():Promise<Array<main.Animal>>;
+
+export function GetMaleAnimals():Promise<Array<main.Animal>>;
+
 export function GetMilkRecords(arg1:number,arg2:string,arg3:string):Promise<Array<main.MilkRecord>>;
 
 export function GetMilkSales(arg1:string,arg2:string):Promise<Array<main.MilkSale>>;
 
 export function GetMonthMilkTotal():Promise<number>;
+
+export function GetOffspring(arg1:number):Promise<Array<main.Animal>>;
 
 export function GetTodayMilkTotal():Promise<number>;
 

@@ -56,6 +56,8 @@ func createTables() error {
 			breed TEXT,
 			date_of_birth TEXT,
 			gender TEXT,
+			mother_id INTEGER REFERENCES animals(id),
+			father_id INTEGER REFERENCES animals(id),
 			status TEXT DEFAULT 'active',
 			notes TEXT,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -186,6 +188,20 @@ func createTables() error {
 			notes TEXT,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)`,
+		`CREATE TABLE IF NOT EXISTS breeding_records (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			female_id INTEGER NOT NULL REFERENCES animals(id),
+			male_id INTEGER REFERENCES animals(id),
+			breeding_date TEXT NOT NULL,
+			breeding_method TEXT,
+			sire_source TEXT,
+			expected_due_date TEXT,
+			actual_birth_date TEXT,
+			offspring_id INTEGER REFERENCES animals(id),
+			pregnancy_status TEXT DEFAULT 'pending',
+			notes TEXT,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		)`,
 	}
 
 	for _, table := range tables {
@@ -193,6 +209,9 @@ func createTables() error {
 			return err
 		}
 	}
+
+	// Run migrations for existing databases
+	runMigrations()
 
 	// Create indexes for frequently queried columns
 	indexes := []string{
@@ -203,6 +222,10 @@ func createTables() error {
 		`CREATE INDEX IF NOT EXISTS idx_vet_records_animal ON vet_records(animal_id)`,
 		`CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date)`,
 		`CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type)`,
+		`CREATE INDEX IF NOT EXISTS idx_animals_mother ON animals(mother_id)`,
+		`CREATE INDEX IF NOT EXISTS idx_animals_father ON animals(father_id)`,
+		`CREATE INDEX IF NOT EXISTS idx_breeding_female ON breeding_records(female_id)`,
+		`CREATE INDEX IF NOT EXISTS idx_breeding_status ON breeding_records(pregnancy_status)`,
 	}
 
 	for _, idx := range indexes {
@@ -212,6 +235,18 @@ func createTables() error {
 	}
 
 	return nil
+}
+
+// runMigrations handles schema updates for existing databases
+func runMigrations() {
+	migrations := []string{
+		`ALTER TABLE animals ADD COLUMN mother_id INTEGER REFERENCES animals(id)`,
+		`ALTER TABLE animals ADD COLUMN father_id INTEGER REFERENCES animals(id)`,
+	}
+
+	for _, m := range migrations {
+		_, _ = db.Exec(m) // Ignore errors (column may already exist)
+	}
 }
 
 func insertDefaultFeedTypes() error {

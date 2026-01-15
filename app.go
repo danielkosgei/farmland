@@ -15,6 +15,7 @@ type App struct {
 	Financial *FinancialService
 	Dashboard *DashboardService
 	Update    *UpdateService
+	Breeding  *BreedingService
 }
 
 // NewApp creates a new App application struct
@@ -27,6 +28,7 @@ func NewApp() *App {
 	financial := NewFinancialService()
 	dashboard := NewDashboardService(livestock, crops, inventory, health, financial)
 	update := NewUpdateService()
+	breeding := NewBreedingService()
 
 	return &App{
 		Livestock: livestock,
@@ -37,6 +39,7 @@ func NewApp() *App {
 		Financial: financial,
 		Dashboard: dashboard,
 		Update:    update,
+		Breeding:  breeding,
 	}
 }
 

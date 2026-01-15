@@ -16,8 +16,168 @@ func NewLivestockService() *LivestockService {
 // GetAllAnimals returns all animals
 func (s *LivestockService) GetAllAnimals() ([]Animal, error) {
 	rows, err := db.Query(`
+		SELECT a.id, a.tag_number, a.name, a.type, a.breed, a.date_of_birth, a.gender, 
+			   a.mother_id, m.name, a.father_id, f.name,
+			   a.status, a.notes, a.created_at, a.updated_at
+		FROM animals a
+		LEFT JOIN animals m ON a.mother_id = m.id
+		LEFT JOIN animals f ON a.father_id = f.id
+		ORDER BY a.name
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var animals []Animal
+	for rows.Next() {
+		var a Animal
+		var tagNumber, breed, dateOfBirth, gender, notes sql.NullString
+		var motherID, fatherID sql.NullInt64
+		var motherName, fatherName sql.NullString
+		err := rows.Scan(&a.ID, &tagNumber, &a.Name, &a.Type, &breed, &dateOfBirth, &gender,
+			&motherID, &motherName, &fatherID, &fatherName,
+			&a.Status, &notes, &a.CreatedAt, &a.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+		a.TagNumber = tagNumber.String
+		a.Breed = breed.String
+		a.DateOfBirth = dateOfBirth.String
+		a.Gender = gender.String
+		a.Notes = notes.String
+		if motherID.Valid {
+			a.MotherID = &motherID.Int64
+		}
+		if fatherID.Valid {
+			a.FatherID = &fatherID.Int64
+		}
+		a.MotherName = motherName.String
+		a.FatherName = fatherName.String
+		animals = append(animals, a)
+	}
+	return animals, nil
+}
+
+// GetAnimal returns a single animal by ID with parent info
+func (s *LivestockService) GetAnimal(id int64) (*Animal, error) {
+	var a Animal
+	var tagNumber, breed, dateOfBirth, gender, notes sql.NullString
+	var motherID, fatherID sql.NullInt64
+	var motherName, fatherName sql.NullString
+	err := db.QueryRow(`
+		SELECT a.id, a.tag_number, a.name, a.type, a.breed, a.date_of_birth, a.gender,
+			   a.mother_id, m.name, a.father_id, f.name,
+			   a.status, a.notes, a.created_at, a.updated_at
+		FROM animals a
+		LEFT JOIN animals m ON a.mother_id = m.id
+		LEFT JOIN animals f ON a.father_id = f.id
+		WHERE a.id = ?
+	`, id).Scan(&a.ID, &tagNumber, &a.Name, &a.Type, &breed, &dateOfBirth, &gender,
+		&motherID, &motherName, &fatherID, &fatherName,
+		&a.Status, &notes, &a.CreatedAt, &a.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	a.TagNumber = tagNumber.String
+	a.Breed = breed.String
+	a.DateOfBirth = dateOfBirth.String
+	a.Gender = gender.String
+	a.Notes = notes.String
+	if motherID.Valid {
+		a.MotherID = &motherID.Int64
+	}
+	if fatherID.Valid {
+		a.FatherID = &fatherID.Int64
+	}
+	a.MotherName = motherName.String
+	a.FatherName = fatherName.String
+	return &a, nil
+}
+
+// AddAnimal adds a new animal
+func (s *LivestockService) AddAnimal(animal Animal) (int64, error) {
+	result, err := db.Exec(`
+		INSERT INTO animals (tag_number, name, type, breed, date_of_birth, gender, mother_id, father_id, status, notes)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	`, animal.TagNumber, animal.Name, animal.Type, animal.Breed, animal.DateOfBirth, animal.Gender,
+		animal.MotherID, animal.FatherID, animal.Status, animal.Notes)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
+}
+
+// UpdateAnimal updates an existing animal
+func (s *LivestockService) UpdateAnimal(animal Animal) error {
+	_, err := db.Exec(`
+		UPDATE animals SET tag_number = ?, name = ?, type = ?, breed = ?, date_of_birth = ?, 
+			gender = ?, mother_id = ?, father_id = ?, status = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
+		WHERE id = ?
+	`, animal.TagNumber, animal.Name, animal.Type, animal.Breed, animal.DateOfBirth,
+		animal.Gender, animal.MotherID, animal.FatherID, animal.Status, animal.Notes, animal.ID)
+	return err
+}
+
+// DeleteAnimal deletes an animal
+func (s *LivestockService) DeleteAnimal(id int64) error {
+	_, err := db.Exec(`DELETE FROM animals WHERE id = ?`, id)
+	return err
+}
+
+// GetOffspring returns all children of an animal
+func (s *LivestockService) GetOffspring(parentID int64) ([]Animal, error) {
+	rows, err := db.Query(`
+		SELECT a.id, a.tag_number, a.name, a.type, a.breed, a.date_of_birth, a.gender,
+			   a.mother_id, m.name, a.father_id, f.name,
+			   a.status, a.notes, a.created_at, a.updated_at
+		FROM animals a
+		LEFT JOIN animals m ON a.mother_id = m.id
+		LEFT JOIN animals f ON a.father_id = f.id
+		WHERE a.mother_id = ? OR a.father_id = ?
+		ORDER BY a.date_of_birth DESC
+	`, parentID, parentID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var animals []Animal
+	for rows.Next() {
+		var a Animal
+		var tagNumber, breed, dateOfBirth, gender, notes sql.NullString
+		var motherID, fatherID sql.NullInt64
+		var motherName, fatherName sql.NullString
+		err := rows.Scan(&a.ID, &tagNumber, &a.Name, &a.Type, &breed, &dateOfBirth, &gender,
+			&motherID, &motherName, &fatherID, &fatherName,
+			&a.Status, &notes, &a.CreatedAt, &a.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+		a.TagNumber = tagNumber.String
+		a.Breed = breed.String
+		a.DateOfBirth = dateOfBirth.String
+		a.Gender = gender.String
+		a.Notes = notes.String
+		if motherID.Valid {
+			a.MotherID = &motherID.Int64
+		}
+		if fatherID.Valid {
+			a.FatherID = &fatherID.Int64
+		}
+		a.MotherName = motherName.String
+		a.FatherName = fatherName.String
+		animals = append(animals, a)
+	}
+	return animals, nil
+}
+
+// GetFemaleAnimals returns female animals for breeding selection
+func (s *LivestockService) GetFemaleAnimals() ([]Animal, error) {
+	rows, err := db.Query(`
 		SELECT id, tag_number, name, type, breed, date_of_birth, gender, status, notes, created_at, updated_at
-		FROM animals ORDER BY name
+		FROM animals WHERE gender = 'female' AND status = 'active'
+		ORDER BY name
 	`)
 	if err != nil {
 		return nil, err
@@ -42,50 +202,34 @@ func (s *LivestockService) GetAllAnimals() ([]Animal, error) {
 	return animals, nil
 }
 
-// GetAnimal returns a single animal by ID
-func (s *LivestockService) GetAnimal(id int64) (*Animal, error) {
-	var a Animal
-	var tagNumber, breed, dateOfBirth, gender, notes sql.NullString
-	err := db.QueryRow(`
+// GetMaleAnimals returns male animals for breeding selection
+func (s *LivestockService) GetMaleAnimals() ([]Animal, error) {
+	rows, err := db.Query(`
 		SELECT id, tag_number, name, type, breed, date_of_birth, gender, status, notes, created_at, updated_at
-		FROM animals WHERE id = ?
-	`, id).Scan(&a.ID, &tagNumber, &a.Name, &a.Type, &breed, &dateOfBirth, &gender, &a.Status, &notes, &a.CreatedAt, &a.UpdatedAt)
+		FROM animals WHERE gender = 'male' AND status = 'active'
+		ORDER BY name
+	`)
 	if err != nil {
 		return nil, err
 	}
-	a.TagNumber = tagNumber.String
-	a.Breed = breed.String
-	a.DateOfBirth = dateOfBirth.String
-	a.Gender = gender.String
-	a.Notes = notes.String
-	return &a, nil
-}
+	defer rows.Close()
 
-// AddAnimal adds a new animal
-func (s *LivestockService) AddAnimal(animal Animal) (int64, error) {
-	result, err := db.Exec(`
-		INSERT INTO animals (tag_number, name, type, breed, date_of_birth, gender, status, notes)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-	`, animal.TagNumber, animal.Name, animal.Type, animal.Breed, animal.DateOfBirth, animal.Gender, animal.Status, animal.Notes)
-	if err != nil {
-		return 0, err
+	var animals []Animal
+	for rows.Next() {
+		var a Animal
+		var tagNumber, breed, dateOfBirth, gender, notes sql.NullString
+		err := rows.Scan(&a.ID, &tagNumber, &a.Name, &a.Type, &breed, &dateOfBirth, &gender, &a.Status, &notes, &a.CreatedAt, &a.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+		a.TagNumber = tagNumber.String
+		a.Breed = breed.String
+		a.DateOfBirth = dateOfBirth.String
+		a.Gender = gender.String
+		a.Notes = notes.String
+		animals = append(animals, a)
 	}
-	return result.LastInsertId()
-}
-
-// UpdateAnimal updates an existing animal
-func (s *LivestockService) UpdateAnimal(animal Animal) error {
-	_, err := db.Exec(`
-		UPDATE animals SET tag_number = ?, name = ?, type = ?, breed = ?, date_of_birth = ?, gender = ?, status = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
-		WHERE id = ?
-	`, animal.TagNumber, animal.Name, animal.Type, animal.Breed, animal.DateOfBirth, animal.Gender, animal.Status, animal.Notes, animal.ID)
-	return err
-}
-
-// DeleteAnimal deletes an animal
-func (s *LivestockService) DeleteAnimal(id int64) error {
-	_, err := db.Exec(`DELETE FROM animals WHERE id = ?`, id)
-	return err
+	return animals, nil
 }
 
 // GetMilkRecords returns milk records for an animal or all if animalId is 0

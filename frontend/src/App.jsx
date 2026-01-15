@@ -9,6 +9,7 @@ import { Inventory } from './pages/Inventory';
 import { Feed } from './pages/Feed';
 import { Health } from './pages/Health';
 import { Finances } from './pages/Finances';
+import { Breeding } from './pages/Breeding';
 
 function App() {
     return (
@@ -22,6 +23,7 @@ function App() {
                 <Route path="feed" element={<Feed />} />
                 <Route path="health" element={<Health />} />
                 <Route path="finances" element={<Finances />} />
+                <Route path="breeding" element={<Breeding />} />
             </Route>
         </Routes>
     );

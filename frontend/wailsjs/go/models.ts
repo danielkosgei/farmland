@@ -8,6 +8,10 @@ export namespace main {
 	    breed: string;
 	    dateOfBirth: string;
 	    gender: string;
+	    motherId?: number;
+	    fatherId?: number;
+	    motherName?: string;
+	    fatherName?: string;
 	    status: string;
 	    notes: string;
 	    // Go type: time
@@ -28,10 +32,73 @@ export namespace main {
 	        this.breed = source["breed"];
 	        this.dateOfBirth = source["dateOfBirth"];
 	        this.gender = source["gender"];
+	        this.motherId = source["motherId"];
+	        this.fatherId = source["fatherId"];
+	        this.motherName = source["motherName"];
+	        this.fatherName = source["fatherName"];
 	        this.status = source["status"];
 	        this.notes = source["notes"];
 	        this.createdAt = this.convertValues(source["createdAt"], null);
 	        this.updatedAt = this.convertValues(source["updatedAt"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class BreedingRecord {
+	    id: number;
+	    femaleId: number;
+	    femaleName?: string;
+	    maleId?: number;
+	    maleName?: string;
+	    breedingDate: string;
+	    breedingMethod: string;
+	    sireSource: string;
+	    expectedDueDate: string;
+	    actualBirthDate: string;
+	    offspringId?: number;
+	    offspringName?: string;
+	    pregnancyStatus: string;
+	    notes: string;
+	    // Go type: time
+	    createdAt: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new BreedingRecord(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.femaleId = source["femaleId"];
+	        this.femaleName = source["femaleName"];
+	        this.maleId = source["maleId"];
+	        this.maleName = source["maleName"];
+	        this.breedingDate = source["breedingDate"];
+	        this.breedingMethod = source["breedingMethod"];
+	        this.sireSource = source["sireSource"];
+	        this.expectedDueDate = source["expectedDueDate"];
+	        this.actualBirthDate = source["actualBirthDate"];
+	        this.offspringId = source["offspringId"];
+	        this.offspringName = source["offspringName"];
+	        this.pregnancyStatus = source["pregnancyStatus"];
+	        this.notes = source["notes"];
+	        this.createdAt = this.convertValues(source["createdAt"], null);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -564,6 +631,32 @@ export namespace main {
 		    }
 		    return a;
 		}
+	}
+	export class UpdateInfo {
+	    currentVersion: string;
+	    latestVersion: string;
+	    hasUpdate: boolean;
+	    releaseNotes: string;
+	    downloadUrl: string;
+	    assetName: string;
+	    assetSize: number;
+	    publishedAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new UpdateInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.currentVersion = source["currentVersion"];
+	        this.latestVersion = source["latestVersion"];
+	        this.hasUpdate = source["hasUpdate"];
+	        this.releaseNotes = source["releaseNotes"];
+	        this.downloadUrl = source["downloadUrl"];
+	        this.assetName = source["assetName"];
+	        this.assetSize = source["assetSize"];
+	        this.publishedAt = source["publishedAt"];
+	    }
 	}
 	export class VetRecord {
 	    id: number;

@@ -7,11 +7,15 @@ type Animal struct {
 	ID          int64     `json:"id"`
 	TagNumber   string    `json:"tagNumber"`
 	Name        string    `json:"name"`
-	Type        string    `json:"type"`        // cow, bull, calf, heifer
-	Breed       string    `json:"breed"`       // Friesian, Ayrshire, Jersey, etc.
-	DateOfBirth string    `json:"dateOfBirth"` // YYYY-MM-DD format
-	Gender      string    `json:"gender"`      // male, female
-	Status      string    `json:"status"`      // active, sold, deceased
+	Type        string    `json:"type"`                 // cow, bull, calf, heifer
+	Breed       string    `json:"breed"`                // Friesian, Ayrshire, Jersey, etc.
+	DateOfBirth string    `json:"dateOfBirth"`          // YYYY-MM-DD format
+	Gender      string    `json:"gender"`               // male, female
+	MotherID    *int64    `json:"motherId"`             // Optional reference to mother
+	FatherID    *int64    `json:"fatherId"`             // Optional reference to father
+	MotherName  string    `json:"motherName,omitempty"` // Joined field
+	FatherName  string    `json:"fatherName,omitempty"` // Joined field
+	Status      string    `json:"status"`               // active, sold, deceased
 	Notes       string    `json:"notes"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
@@ -109,8 +113,8 @@ type FeedRecord struct {
 	FeedTypeID   int64     `json:"feedTypeId"`
 	FeedTypeName string    `json:"feedTypeName,omitempty"` // Joined field
 	QuantityKg   float64   `json:"quantityKg"`
-	AnimalCount  int       `json:"animalCount"`   // number of animals fed
-	FeedingTime  string    `json:"feedingTime"`   // morning, afternoon, evening
+	AnimalCount  int       `json:"animalCount"` // number of animals fed
+	FeedingTime  string    `json:"feedingTime"` // morning, afternoon, evening
 	Notes        string    `json:"notes"`
 	CreatedAt    time.Time `json:"createdAt"`
 }
@@ -118,13 +122,13 @@ type FeedRecord struct {
 // FeedGrinding represents feed grinding/processing records
 type FeedGrinding struct {
 	ID               int64     `json:"id"`
-	Date             string    `json:"date"` // YYYY-MM-DD
-	InputMaterial    string    `json:"inputMaterial"`    // maize, wheat bran, etc.
+	Date             string    `json:"date"`          // YYYY-MM-DD
+	InputMaterial    string    `json:"inputMaterial"` // maize, wheat bran, etc.
 	InputQuantityKg  float64   `json:"inputQuantityKg"`
 	OutputQuantityKg float64   `json:"outputQuantityKg"`
-	GrindingCost     float64   `json:"grindingCost"`     // labor + machine cost
-	MachineCost      float64   `json:"machineCost"`      // fuel, maintenance
-	OutputType       string    `json:"outputType"`       // type of feed produced
+	GrindingCost     float64   `json:"grindingCost"` // labor + machine cost
+	MachineCost      float64   `json:"machineCost"`  // fuel, maintenance
+	OutputType       string    `json:"outputType"`   // type of feed produced
 	Notes            string    `json:"notes"`
 	CreatedAt        time.Time `json:"createdAt"`
 }
@@ -151,13 +155,13 @@ type VetRecord struct {
 // Transaction represents financial transactions
 type Transaction struct {
 	ID            int64     `json:"id"`
-	Date          string    `json:"date"`            // YYYY-MM-DD
-	Type          string    `json:"type"`            // income, expense
-	Category      string    `json:"category"`        // milk_sales, crop_sales, feed, veterinary, labor, equipment, etc.
+	Date          string    `json:"date"`     // YYYY-MM-DD
+	Type          string    `json:"type"`     // income, expense
+	Category      string    `json:"category"` // milk_sales, crop_sales, feed, veterinary, labor, equipment, etc.
 	Description   string    `json:"description"`
 	Amount        float64   `json:"amount"`
-	PaymentMethod string    `json:"paymentMethod"`   // cash, mpesa, bank
-	RelatedEntity string    `json:"relatedEntity"`   // e.g., "Cow: Daisy" or "Field: North Plot"
+	PaymentMethod string    `json:"paymentMethod"` // cash, mpesa, bank
+	RelatedEntity string    `json:"relatedEntity"` // e.g., "Cow: Daisy" or "Field: North Plot"
 	Notes         string    `json:"notes"`
 	CreatedAt     time.Time `json:"createdAt"`
 }
@@ -179,17 +183,36 @@ type DashboardStats struct {
 // RecentActivity represents recent activity items for dashboard
 type RecentActivity struct {
 	ID          int64     `json:"id"`
-	Type        string    `json:"type"`        // milk, sale, crop, vet, feed, transaction
+	Type        string    `json:"type"` // milk, sale, crop, vet, feed, transaction
 	Description string    `json:"description"`
-	Amount      string    `json:"amount"`      // e.g., "15.5 liters" or "KES 2,500"
+	Amount      string    `json:"amount"` // e.g., "15.5 liters" or "KES 2,500"
 	Date        time.Time `json:"date"`
 }
 
 // FinancialSummary for reports
 type FinancialSummary struct {
-	TotalIncome      float64            `json:"totalIncome"`
-	TotalExpenses    float64            `json:"totalExpenses"`
-	NetProfit        float64            `json:"netProfit"`
-	IncomeByCategory map[string]float64 `json:"incomeByCategory"`
+	TotalIncome       float64            `json:"totalIncome"`
+	TotalExpenses     float64            `json:"totalExpenses"`
+	NetProfit         float64            `json:"netProfit"`
+	IncomeByCategory  map[string]float64 `json:"incomeByCategory"`
 	ExpenseByCategory map[string]float64 `json:"expenseByCategory"`
+}
+
+// BreedingRecord represents a breeding event and pregnancy tracking
+type BreedingRecord struct {
+	ID              int64     `json:"id"`
+	FemaleID        int64     `json:"femaleId"`
+	FemaleName      string    `json:"femaleName,omitempty"`    // Joined field
+	MaleID          *int64    `json:"maleId"`                  // Null for AI
+	MaleName        string    `json:"maleName,omitempty"`      // Joined field
+	BreedingDate    string    `json:"breedingDate"`            // YYYY-MM-DD
+	BreedingMethod  string    `json:"breedingMethod"`          // natural, artificial_insemination
+	SireSource      string    `json:"sireSource"`              // For AI: semen source/bull name
+	ExpectedDueDate string    `json:"expectedDueDate"`         // YYYY-MM-DD
+	ActualBirthDate string    `json:"actualBirthDate"`         // YYYY-MM-DD
+	OffspringID     *int64    `json:"offspringId"`             // Reference to born calf
+	OffspringName   string    `json:"offspringName,omitempty"` // Joined field
+	PregnancyStatus string    `json:"pregnancyStatus"`         // pending, confirmed, failed, delivered
+	Notes           string    `json:"notes"`
+	CreatedAt       time.Time `json:"createdAt"`
 }

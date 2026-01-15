@@ -20,7 +20,10 @@ export function Livestock() {
     const [editingAnimal, setEditingAnimal] = useState(null);
     const [selectedAnimal, setSelectedAnimal] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const [formData, setFormData] = useState({ tagNumber: '', name: '', type: 'cow', breed: '', dateOfBirth: '', gender: 'female', status: 'active', notes: '' });
+    const [formData, setFormData] = useState({
+        tagNumber: '', name: '', type: 'cow', breed: '', dateOfBirth: '',
+        gender: 'female', motherId: null, fatherId: null, status: 'active', notes: ''
+    });
     const [milkForm, setMilkForm] = useState({ date: new Date().toISOString().split('T')[0], morningLiters: '', eveningLiters: '', notes: '' });
 
     useEffect(() => { loadAnimals(); }, []);
@@ -36,10 +39,15 @@ export function Livestock() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            const animalData = {
+                ...formData,
+                motherId: formData.motherId ? parseInt(formData.motherId) : null,
+                fatherId: formData.fatherId ? parseInt(formData.fatherId) : null
+            };
             if (editingAnimal) {
-                await window.go.main.LivestockService.UpdateAnimal({ ...formData, id: editingAnimal.id });
+                await window.go.main.LivestockService.UpdateAnimal({ ...animalData, id: editingAnimal.id });
             } else {
-                await window.go.main.LivestockService.AddAnimal(formData);
+                await window.go.main.LivestockService.AddAnimal(animalData);
             }
             setShowModal(false);
             setEditingAnimal(null);
@@ -74,7 +82,12 @@ export function Livestock() {
 
     const openEdit = (animal) => {
         setEditingAnimal(animal);
-        setFormData({ tagNumber: animal.tagNumber, name: animal.name, type: animal.type, breed: animal.breed, dateOfBirth: animal.dateOfBirth, gender: animal.gender, status: animal.status, notes: animal.notes });
+        setFormData({
+            tagNumber: animal.tagNumber, name: animal.name, type: animal.type,
+            breed: animal.breed, dateOfBirth: animal.dateOfBirth, gender: animal.gender,
+            motherId: animal.motherId || '', fatherId: animal.fatherId || '',
+            status: animal.status, notes: animal.notes
+        });
         setShowModal(true);
     };
 
@@ -84,13 +97,20 @@ export function Livestock() {
     };
 
     const resetForm = () => {
-        setFormData({ tagNumber: '', name: '', type: 'cow', breed: '', dateOfBirth: '', gender: 'female', status: 'active', notes: '' });
+        setFormData({
+            tagNumber: '', name: '', type: 'cow', breed: '', dateOfBirth: '',
+            gender: 'female', motherId: null, fatherId: null, status: 'active', notes: ''
+        });
     };
 
     const filteredAnimals = animals.filter(a =>
         a.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         a.tagNumber?.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    // Filter potential parents (exclude self when editing)
+    const potentialMothers = animals.filter(a => a.gender === 'female' && a.id !== editingAnimal?.id);
+    const potentialFathers = animals.filter(a => a.gender === 'male' && a.id !== editingAnimal?.id);
 
     return (
         <div className="livestock-page">
@@ -124,7 +144,7 @@ export function Livestock() {
                                 <TableHead>Tag / Name</TableHead>
                                 <TableHead>Type</TableHead>
                                 <TableHead>Breed</TableHead>
-                                <TableHead>Gender</TableHead>
+                                <TableHead>Parents</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
@@ -140,7 +160,16 @@ export function Livestock() {
                                     </TableCell>
                                     <TableCell><span className={`type-badge type-${animal.type}`}>{animal.type}</span></TableCell>
                                     <TableCell>{animal.breed || '-'}</TableCell>
-                                    <TableCell>{animal.gender || '-'}</TableCell>
+                                    <TableCell>
+                                        <div className="parents-info">
+                                            {animal.motherName || animal.fatherName ? (
+                                                <>
+                                                    {animal.motherName && <span className="parent-tag">♀ {animal.motherName}</span>}
+                                                    {animal.fatherName && <span className="parent-tag">♂ {animal.fatherName}</span>}
+                                                </>
+                                            ) : '-'}
+                                        </div>
+                                    </TableCell>
                                     <TableCell><span className={`status-badge status-${animal.status}`}>{animal.status}</span></TableCell>
                                     <TableCell>
                                         <div className="action-buttons">
@@ -171,6 +200,22 @@ export function Livestock() {
                     <FormRow>
                         <FormGroup><Label htmlFor="gender">Gender</Label><Select id="gender" value={formData.gender} onChange={(e) => setFormData({ ...formData, gender: e.target.value })}><option value="female">Female</option><option value="male">Male</option></Select></FormGroup>
                         <FormGroup><Label htmlFor="dateOfBirth">Date of Birth</Label><Input id="dateOfBirth" type="date" value={formData.dateOfBirth} onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })} /></FormGroup>
+                    </FormRow>
+                    <FormRow>
+                        <FormGroup>
+                            <Label htmlFor="motherId">Mother</Label>
+                            <Select id="motherId" value={formData.motherId || ''} onChange={(e) => setFormData({ ...formData, motherId: e.target.value || null })}>
+                                <option value="">Unknown / Not specified</option>
+                                {potentialMothers.map(a => <option key={a.id} value={a.id}>{a.name} {a.tagNumber ? `(#${a.tagNumber})` : ''}</option>)}
+                            </Select>
+                        </FormGroup>
+                        <FormGroup>
+                            <Label htmlFor="fatherId">Father</Label>
+                            <Select id="fatherId" value={formData.fatherId || ''} onChange={(e) => setFormData({ ...formData, fatherId: e.target.value || null })}>
+                                <option value="">Unknown / Not specified</option>
+                                {potentialFathers.map(a => <option key={a.id} value={a.id}>{a.name} {a.tagNumber ? `(#${a.tagNumber})` : ''}</option>)}
+                            </Select>
+                        </FormGroup>
                     </FormRow>
                     <FormGroup><Label htmlFor="status">Status</Label><Select id="status" value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })}>{statuses.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}</Select></FormGroup>
                     <FormGroup><Label htmlFor="notes">Notes</Label><Textarea id="notes" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Any additional notes..." rows={3} /></FormGroup>

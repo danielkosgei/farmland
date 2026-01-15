@@ -162,3 +162,22 @@
     padding-top: var(--space-4);
     border-top: 1px solid var(--color-neutral-100);
 }
+
+.parents-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.parent-tag {
+    font-size: var(--font-size-xs);
+    color: var(--color-neutral-600);
+}
+
+.parent-tag:first-child {
+    color: var(--color-accent-600);
+}
+
+.parent-tag:last-child {
+    color: var(--color-primary-600);
+}

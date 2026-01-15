@@ -38,6 +38,14 @@ export function GetDairyCows() {
   return window['go']['main']['LivestockService']['GetDairyCows']();
 }
 
+export function GetFemaleAnimals() {
+  return window['go']['main']['LivestockService']['GetFemaleAnimals']();
+}
+
+export function GetMaleAnimals() {
+  return window['go']['main']['LivestockService']['GetMaleAnimals']();
+}
+
 export function GetMilkRecords(arg1, arg2, arg3) {
   return window['go']['main']['LivestockService']['GetMilkRecords'](arg1, arg2, arg3);
 }
@@ -48,6 +56,10 @@ export function GetMilkSales(arg1, arg2) {
 
 export function GetMonthMilkTotal() {
   return window['go']['main']['LivestockService']['GetMonthMilkTotal']();
+}
+
+export function GetOffspring(arg1) {
+  return window['go']['main']['LivestockService']['GetOffspring'](arg1);
 }
 
 export function GetTodayMilkTotal() {
