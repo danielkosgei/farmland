@@ -217,7 +217,7 @@ export function UpdateBadge({ hasUpdate, onClick }) {
     if (!hasUpdate) return null;
     return (
         <button className="update-badge" onClick={onClick} title="Update available - click to update">
-            New
+            Update Available
         </button>
     );
 }

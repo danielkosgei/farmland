@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Beef, Milk, Wheat, DollarSign, Calendar, TrendingUp, Activity } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { StatCard } from '../components/ui/StatCard';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { WeatherWidget } from '../components/WeatherWidget';
+import { Skeleton } from '../components/ui/Skeleton';
 import './Dashboard.css';
 
 export function Dashboard() {
@@ -39,9 +40,58 @@ export function Dashboard() {
 
     if (loading) {
         return (
-            <div className="dashboard-loading">
-                <div className="loading-spinner"></div>
-                <p>Loading dashboard...</p>
+            <div className="dashboard">
+                <header className="page-header">
+                    <div className="page-header-content">
+                        <Skeleton variant="text" width="200px" height="2.5rem" />
+                        <Skeleton variant="text" width="350px" height="1rem" className="mt-2" />
+                    </div>
+                </header>
+
+                <div className="stats-grid">
+                    {[1, 2, 3].map(i => (
+                        <Card key={i} className="stat-card-skeleton">
+                            <CardContent>
+                                <div className="flex justify-between items-start">
+                                    <div className="flex-1">
+                                        <Skeleton variant="text" width="60%" height="0.75rem" />
+                                        <Skeleton variant="text" width="40%" height="1.5rem" className="mt-2" />
+                                        <Skeleton variant="text" width="50%" height="0.75rem" className="mt-2" />
+                                    </div>
+                                    <Skeleton variant="rounded" width="40px" height="40px" />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+
+                <div className="dashboard-grid">
+                    <Card className="chart-card">
+                        <CardHeader>
+                            <Skeleton variant="text" width="250px" height="1.25rem" />
+                        </CardHeader>
+                        <CardContent>
+                            <Skeleton variant="rounded" width="100%" height="280px" />
+                        </CardContent>
+                    </Card>
+
+                    <div className="side-cards">
+                        <Skeleton variant="rounded" width="100%" height="180px" />
+                        <Card className="activity-card">
+                            <CardHeader>
+                                <Skeleton variant="text" width="150px" height="1.25rem" />
+                            </CardHeader>
+                            <CardContent>
+                                {[1, 2, 3, 4].map(i => (
+                                    <div key={i} className="flex gap-4 mb-4">
+                                        <Skeleton variant="circular" width="12px" height="12px" />
+                                        <Skeleton variant="text" width="80%" />
+                                    </div>
+                                ))}
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -105,7 +155,7 @@ export function Dashboard() {
                                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
                                         <XAxis dataKey="date" tick={{ fontSize: 12 }} tickFormatter={(val) => val.slice(5)} />
                                         <YAxis tick={{ fontSize: 12 }} />
-                                        <Tooltip
+                                        <RechartsTooltip
                                             contentStyle={{ borderRadius: '8px', border: '1px solid #e5e5e5' }}
                                             formatter={(value) => [`${value} L`, 'Milk']}
                                         />
