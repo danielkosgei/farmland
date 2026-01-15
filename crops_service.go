@@ -144,7 +144,7 @@ func (s *CropsService) AddCropRecord(record CropRecord) (int64, error) {
 
 	// Update field's current crop and status
 	if record.Status == "planted" || record.Status == "growing" {
-		db.Exec(`UPDATE fields SET current_crop = ?, status = ? WHERE id = ?`, record.CropType, record.Status, record.FieldID)
+		_, _ = db.Exec(`UPDATE fields SET current_crop = ?, status = ? WHERE id = ?`, record.CropType, record.Status, record.FieldID)
 	}
 
 	return result.LastInsertId()
