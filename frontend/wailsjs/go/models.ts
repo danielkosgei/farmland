@@ -210,6 +210,24 @@ export namespace main {
 	        this.pendingVetVisits = source["pendingVetVisits"];
 	    }
 	}
+	export class DownloadStatus {
+	    progress: number;
+	    isComplete: boolean;
+	    isError: boolean;
+	    errorMsg: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DownloadStatus(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.progress = source["progress"];
+	        this.isComplete = source["isComplete"];
+	        this.isError = source["isError"];
+	        this.errorMsg = source["errorMsg"];
+	    }
+	}
 	export class FeedGrinding {
 	    id: number;
 	    date: string;

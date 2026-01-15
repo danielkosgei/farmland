@@ -40,18 +40,23 @@ export function UpdateManager({ isOpen, onClose }) {
         setProgress(0);
 
         try {
-            // Start download
-            await window.go.main.UpdateService.DownloadUpdate(updateInfo.downloadUrl);
+            // Start download asynchronously (non-blocking)
+            await window.go.main.UpdateService.StartDownload(updateInfo.downloadUrl);
 
-            // Poll progress
-            const pollProgress = setInterval(async () => {
-                const prog = await window.go.main.UpdateService.GetDownloadProgress();
-                setProgress(prog);
-                if (prog >= 100) {
-                    clearInterval(pollProgress);
+            // Poll download status
+            const pollStatus = setInterval(async () => {
+                const downloadStatus = await window.go.main.UpdateService.GetDownloadStatus();
+                setProgress(downloadStatus.progress);
+
+                if (downloadStatus.isError) {
+                    clearInterval(pollStatus);
+                    setError(downloadStatus.errorMsg || 'Download failed');
+                    setStatus('error');
+                } else if (downloadStatus.isComplete) {
+                    clearInterval(pollStatus);
                     setStatus('ready');
                 }
-            }, 200);
+            }, 100);
         } catch (err) {
             setError(err.message || 'Download failed');
             setStatus('error');

@@ -22,10 +22,18 @@ export function GetDownloadProgress() {
   return window['go']['main']['UpdateService']['GetDownloadProgress']();
 }
 
+export function GetDownloadStatus() {
+  return window['go']['main']['UpdateService']['GetDownloadStatus']();
+}
+
 export function GetPlatformInfo() {
   return window['go']['main']['UpdateService']['GetPlatformInfo']();
 }
 
 export function RestartApp() {
   return window['go']['main']['UpdateService']['RestartApp']();
+}
+
+export function StartDownload(arg1) {
+  return window['go']['main']['UpdateService']['StartDownload'](arg1);
 }

@@ -21,6 +21,8 @@ const (
 type UpdateService struct {
 	downloadProgress float64
 	downloadedFile   string
+	isDownloading    bool
+	downloadError    string
 }
 
 // NewUpdateService creates a new UpdateService
@@ -177,54 +179,98 @@ func (s *UpdateService) GetDownloadProgress() float64 {
 	return s.downloadProgress
 }
 
-// DownloadUpdate downloads the update to a temp file
-func (s *UpdateService) DownloadUpdate(url string) (string, error) {
+// DownloadStatus represents the current download state
+type DownloadStatus struct {
+	Progress   float64 `json:"progress"`
+	IsComplete bool    `json:"isComplete"`
+	IsError    bool    `json:"isError"`
+	ErrorMsg   string  `json:"errorMsg"`
+}
+
+// GetDownloadStatus returns current download status
+func (s *UpdateService) GetDownloadStatus() DownloadStatus {
+	return DownloadStatus{
+		Progress:   s.downloadProgress,
+		IsComplete: s.downloadProgress >= 100 && !s.isDownloading,
+		IsError:    s.downloadError != "",
+		ErrorMsg:   s.downloadError,
+	}
+}
+
+// StartDownload starts downloading the update asynchronously
+func (s *UpdateService) StartDownload(url string) {
 	s.downloadProgress = 0
+	s.isDownloading = true
+	s.downloadError = ""
+	s.downloadedFile = ""
 
-	resp, err := http.Get(url)
-	if err != nil {
-		return "", fmt.Errorf("failed to download: %w", err)
-	}
-	defer resp.Body.Close()
+	go func() {
+		defer func() { s.isDownloading = false }()
 
-	// Create temp file
-	tempDir := os.TempDir()
-	tempFile := filepath.Join(tempDir, "farmland-update"+s.getExtension())
-
-	out, err := os.Create(tempFile)
-	if err != nil {
-		return "", fmt.Errorf("failed to create temp file: %w", err)
-	}
-	defer out.Close()
-
-	// Download with progress
-	totalSize := resp.ContentLength
-	var downloaded int64
-
-	buf := make([]byte, 32*1024)
-	for {
-		n, err := resp.Body.Read(buf)
-		if n > 0 {
-			_, writeErr := out.Write(buf[:n])
-			if writeErr != nil {
-				return "", writeErr
-			}
-			downloaded += int64(n)
-			if totalSize > 0 {
-				s.downloadProgress = float64(downloaded) / float64(totalSize) * 100
-			}
-		}
-		if err == io.EOF {
-			break
-		}
+		resp, err := http.Get(url)
 		if err != nil {
-			return "", err
+			s.downloadError = fmt.Sprintf("failed to download: %v", err)
+			return
 		}
+		defer resp.Body.Close()
+
+		// Create temp file
+		tempDir := os.TempDir()
+		tempFile := filepath.Join(tempDir, "farmland-update"+s.getExtension())
+
+		out, err := os.Create(tempFile)
+		if err != nil {
+			s.downloadError = fmt.Sprintf("failed to create temp file: %v", err)
+			return
+		}
+		defer out.Close()
+
+		// Download with progress
+		totalSize := resp.ContentLength
+		var downloaded int64
+
+		buf := make([]byte, 32*1024)
+		for {
+			n, err := resp.Body.Read(buf)
+			if n > 0 {
+				_, writeErr := out.Write(buf[:n])
+				if writeErr != nil {
+					s.downloadError = fmt.Sprintf("write error: %v", writeErr)
+					return
+				}
+				downloaded += int64(n)
+				if totalSize > 0 {
+					s.downloadProgress = float64(downloaded) / float64(totalSize) * 100
+				}
+			}
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				s.downloadError = fmt.Sprintf("download error: %v", err)
+				return
+			}
+		}
+
+		s.downloadProgress = 100
+		s.downloadedFile = tempFile
+	}()
+}
+
+// DownloadUpdate downloads the update synchronously (for backwards compatibility)
+func (s *UpdateService) DownloadUpdate(url string) (string, error) {
+	s.StartDownload(url)
+
+	// Wait for download to complete
+	for s.isDownloading {
+		// Sleep briefly to avoid busy waiting
 	}
 
-	s.downloadProgress = 100
-	s.downloadedFile = tempFile
-	return tempFile, nil
+	if s.downloadError != "" {
+		return "", fmt.Errorf("download failed: %s", s.downloadError)
+	}
+
+	return s.downloadedFile, nil
 }
 
 // getExtension returns the file extension for this platform

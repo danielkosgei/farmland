@@ -12,6 +12,10 @@ export function GetCurrentVersion():Promise<string>;
 
 export function GetDownloadProgress():Promise<number>;
 
+export function GetDownloadStatus():Promise<main.DownloadStatus>;
+
 export function GetPlatformInfo():Promise<Record<string, string>>;
 
 export function RestartApp():Promise<void>;
+
+export function StartDownload(arg1:string):Promise<void>;
