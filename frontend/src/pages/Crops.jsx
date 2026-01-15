@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Wheat, Sprout } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Search, MapPin, Wheat, Sprout, Edit2, Info, Droplets, Maximize, Camera, Trash2 } from 'lucide-react';
+import { PhotoGallery } from '../components/PhotoGallery';
+import '../components/EntityDetails.css';
 import { Button } from '../components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Modal } from '../components/ui/Modal';
 import { FormGroup, FormRow, Label, Input, Select, Textarea } from '../components/ui/Form';
 import { EmptyState } from '../components/ui/EmptyState';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import './Crops.css';
 
 const cropTypes = ['Maize', 'Beans', 'Sukuma Wiki (Kale)', 'Spinach', 'Cabbage', 'Tomatoes', 'Onions', 'Potatoes', 'Sweet Potatoes', 'Sorghum', 'Millet', 'Groundnuts', 'Cowpeas', 'Green Grams', 'Napier Grass'];
@@ -18,6 +22,10 @@ export function Crops() {
     const [showCropModal, setShowCropModal] = useState(false);
     const [editingField, setEditingField] = useState(null);
     const [selectedField, setSelectedField] = useState(null);
+    const navigate = useNavigate();
+    const [searchTerm, setSearchTerm] = useState('');
+    const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
+    const [tempPhotoId, setTempPhotoId] = useState(null);
     const [fieldForm, setFieldForm] = useState({ name: '', sizeAcres: '', location: '', soilType: '', status: 'fallow', notes: '' });
     const [cropForm, setCropForm] = useState({ cropType: '', variety: '', plantingDate: new Date().toISOString().split('T')[0], expectedHarvest: '', seedCost: '', fertilizerCost: '', notes: '' });
 
@@ -38,10 +46,14 @@ export function Crops() {
             if (editingField) {
                 await window.go.main.CropsService.UpdateField({ ...data, id: editingField.id });
             } else {
-                await window.go.main.CropsService.AddField(data);
+                const newField = await window.go.main.CropsService.AddField(data);
+                if (newField && tempPhotoId) {
+                    await window.go.main.PhotoService.BindPhotos("field", tempPhotoId, newField.id);
+                }
             }
             setShowFieldModal(false);
             setEditingField(null);
+            setTempPhotoId(null);
             setFieldForm({ name: '', sizeAcres: '', location: '', soilType: '', status: 'fallow', notes: '' });
             loadFields();
         } catch (err) { console.error(err); }
@@ -68,12 +80,15 @@ export function Crops() {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Delete this field?')) {
-            try {
-                await window.go.main.CropsService.DeleteField(id);
-                loadFields();
-            } catch (err) { console.error(err); }
-        }
+        setConfirmDelete({ show: true, id });
+    };
+
+    const confirmDeleteField = async () => {
+        try {
+            await window.go.main.CropsService.DeleteField(confirmDelete.id);
+            setConfirmDelete({ show: false, id: null });
+            loadFields();
+        } catch (err) { console.error(err); }
     };
 
     const openEditField = (field) => {
@@ -82,9 +97,14 @@ export function Crops() {
         setShowFieldModal(true);
     };
 
-    const openPlantCrop = (field) => {
+    const openPlantCrop = (field, e) => {
+        if (e) e.stopPropagation();
         setSelectedField(field);
         setShowCropModal(true);
+    };
+
+    const handleCardClick = (field) => {
+        navigate(`/crops/field/${field.id}`);
     };
 
     const getStatusColor = (status) => {
@@ -103,7 +123,12 @@ export function Crops() {
                     <h1>Crops & Fields</h1>
                     <p>Manage your farm fields and crop cycles</p>
                 </div>
-                <Button icon={Plus} onClick={() => { setEditingField(null); setFieldForm({ name: '', sizeAcres: '', location: '', soilType: '', status: 'fallow', notes: '' }); setShowFieldModal(true); }}>Add Field</Button>
+                <Button icon={Plus} onClick={() => {
+                    setEditingField(null);
+                    setFieldForm({ name: '', sizeAcres: '', location: '', soilType: '', status: 'fallow', notes: '' });
+                    setTempPhotoId(Date.now() * -1);
+                    setShowFieldModal(true);
+                }}>Add Field</Button>
             </header>
 
             {loading ? (
@@ -113,23 +138,24 @@ export function Crops() {
             ) : (
                 <div className="fields-grid">
                     {fields.map(field => (
-                        <Card key={field.id} className="field-card" hover>
+                        <Card key={field.id} className="field-card clickable-card" hover onClick={() => handleCardClick(field)}>
                             <div className="field-header">
                                 <div className="field-icon"><Sprout size={24} /></div>
                                 <div className="field-actions">
-                                    <button className="action-btn" onClick={() => openEditField(field)}><Edit2 size={16} /></button>
-                                    <button className="action-btn delete" onClick={() => handleDelete(field.id)}><Trash2 size={16} /></button>
+                                    <button className="action-btn" title="View/Edit Photos" onClick={(e) => { e.stopPropagation(); openEditField(field); }}><Camera size={16} /></button>
+                                    <button className="action-btn" onClick={(e) => { e.stopPropagation(); openEditField(field); }}><Edit2 size={16} /></button>
+                                    <button className="action-btn delete" onClick={(e) => { e.stopPropagation(); handleDelete(field.id); }}><Trash2 size={16} /></button>
                                 </div>
                             </div>
                             <h3 className="field-name">{field.name}</h3>
                             <p className="field-location">{field.location || 'No location set'}</p>
                             <div className="field-meta">
                                 <span className="field-size">{field.sizeAcres} acres</span>
-                                <span className={`field-status ${getStatusColor(field.status)}`}>{field.status.replace('_', ' ')}</span>
+                                <span className={`field-status ${getStatusColor(field.status)}`}>{field.status?.replace('_', ' ') || '-'}</span>
                             </div>
                             {field.currentCrop && <div className="current-crop"><Wheat size={14} /> {field.currentCrop}</div>}
                             <div className="field-footer">
-                                <Button variant="outline" size="sm" icon={Sprout} onClick={() => openPlantCrop(field)} fullWidth>Plant Crop</Button>
+                                <Button variant="outline" size="sm" icon={Sprout} onClick={(e) => openPlantCrop(field, e)} fullWidth>Plant Crop</Button>
                             </div>
                         </Card>
                     ))}
@@ -146,8 +172,14 @@ export function Crops() {
                         <FormGroup><Label htmlFor="location">Location</Label><Input id="location" value={fieldForm.location} onChange={(e) => setFieldForm({ ...fieldForm, location: e.target.value })} placeholder="e.g., Near the river" /></FormGroup>
                         <FormGroup><Label htmlFor="soil">Soil Type</Label><Select id="soil" value={fieldForm.soilType} onChange={(e) => setFieldForm({ ...fieldForm, soilType: e.target.value })}><option value="">Select soil type</option>{soilTypes.map(s => <option key={s} value={s}>{s}</option>)}</Select></FormGroup>
                     </FormRow>
-                    <FormGroup><Label htmlFor="fieldStatus">Status</Label><Select id="fieldStatus" value={fieldForm.status} onChange={(e) => setFieldForm({ ...fieldForm, status: e.target.value })}>{fieldStatuses.map(s => <option key={s} value={s}>{s.replace('_', ' ').charAt(0).toUpperCase() + s.replace('_', ' ').slice(1)}</option>)}</Select></FormGroup>
+                    <FormGroup><Label htmlFor="fieldStatus">Status</Label><Select id="fieldStatus" value={fieldForm.status} onChange={(e) => setFieldForm({ ...fieldForm, status: e.target.value })}>{fieldStatuses.map(s => <option key={s} value={s}>{s?.replace('_', ' ').charAt(0).toUpperCase() + s?.replace('_', ' ').slice(1)}</option>)}</Select></FormGroup>
                     <FormGroup><Label htmlFor="fieldNotes">Notes</Label><Textarea id="fieldNotes" value={fieldForm.notes} onChange={(e) => setFieldForm({ ...fieldForm, notes: e.target.value })} rows={2} /></FormGroup>
+
+                    <PhotoGallery
+                        entityType="field"
+                        entityId={editingField ? editingField.id : tempPhotoId}
+                    />
+
                     <div className="modal-actions"><Button variant="outline" type="button" onClick={() => setShowFieldModal(false)}>Cancel</Button><Button type="submit">{editingField ? 'Update' : 'Add'} Field</Button></div>
                 </form>
             </Modal>
@@ -170,6 +202,16 @@ export function Crops() {
                     <div className="modal-actions"><Button variant="outline" type="button" onClick={() => setShowCropModal(false)}>Cancel</Button><Button type="submit">Plant Crop</Button></div>
                 </form>
             </Modal>
+
+            <ConfirmDialog
+                isOpen={confirmDelete.show}
+                onClose={() => setConfirmDelete({ show: false, id: null })}
+                onConfirm={confirmDeleteField}
+                title="Delete Field"
+                message="Are you sure you want to delete this field? This will also remove all associated crop cycles and history."
+                type="danger"
+                confirmText="Delete Field"
+            />
         </div>
     );
 }

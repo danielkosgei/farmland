@@ -1,21 +1,28 @@
 .weather-widget {
-    background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-700));
-    border-radius: var(--radius-xl);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
     padding: var(--space-4);
-    color: white;
+    color: var(--color-neutral-800);
     min-height: 120px;
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border: var(--border-thin);
 }
 
 .weather-location {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
     font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-medium);
-    opacity: 0.8;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary-600);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.05em;
+}
+
+.weather-location svg {
+    color: var(--color-primary-500);
 }
 
 .weather-widget.loading,
@@ -67,6 +74,7 @@
 }
 
 .temp-value {
+    font-family: var(--font-family-mono);
     font-size: var(--font-size-3xl);
     font-weight: var(--font-weight-bold);
     line-height: 1;
@@ -97,7 +105,7 @@
     display: flex;
     justify-content: space-between;
     padding-top: var(--space-3);
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    border-top: var(--border-thin);
 }
 
 .forecast-day {
@@ -119,6 +127,7 @@
 .forecast-temps {
     display: flex;
     gap: 4px;
+    font-family: var(--font-family-mono);
     font-size: var(--font-size-xs);
 }
 

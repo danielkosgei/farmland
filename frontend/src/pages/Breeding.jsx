@@ -6,6 +6,7 @@ import { Modal } from '../components/ui/Modal';
 import { FormGroup, FormRow, Label, Input, Select, Textarea } from '../components/ui/Form';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/Table';
 import { EmptyState } from '../components/ui/EmptyState';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import './Breeding.css';
 
 export function Breeding() {
@@ -19,6 +20,7 @@ export function Breeding() {
     const [showBirthModal, setShowBirthModal] = useState(false);
     const [editingRecord, setEditingRecord] = useState(null);
     const [selectedBreeding, setSelectedBreeding] = useState(null);
+    const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
     const [formData, setFormData] = useState({
         femaleId: '',
         maleId: '',
@@ -105,13 +107,16 @@ export function Breeding() {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Delete this breeding record?')) {
-            try {
-                await window.go.main.BreedingService.DeleteBreedingRecord(id);
-                loadData();
-            } catch (err) {
-                console.error('Failed to delete:', err);
-            }
+        setConfirmDelete({ show: true, id });
+    };
+
+    const confirmDeleteBreeding = async () => {
+        try {
+            await window.go.main.BreedingService.DeleteBreedingRecord(confirmDelete.id);
+            setConfirmDelete({ show: false, id: null });
+            loadData();
+        } catch (err) {
+            console.error('Failed to delete:', err);
         }
     };
 
@@ -197,7 +202,7 @@ export function Breeding() {
 
             {/* Pregnant Animals Alert */}
             {pregnantAnimals.length > 0 && (
-                <Card variant="glass" className="pregnant-alert">
+                <Card className="pregnant-alert">
                     <CardHeader>
                         <CardTitle><AlertCircle size={20} /> Active Pregnancies ({pregnantAnimals.length})</CardTitle>
                     </CardHeader>
@@ -259,12 +264,12 @@ export function Breeding() {
                             <TableBody>
                                 {records.map(record => (
                                     <TableRow key={record.id}>
-                                        <TableCell><strong>{record.femaleName}</strong></TableCell>
+                                        <TableCell><span className="font-bold text-neutral-900">{record.femaleName}</span></TableCell>
                                         <TableCell>{record.maleName || record.sireSource || '-'}</TableCell>
-                                        <TableCell>{record.breedingDate}</TableCell>
+                                        <TableCell className="font-mono">{record.breedingDate}</TableCell>
                                         <TableCell>{record.breedingMethod === 'artificial_insemination' ? 'AI' : 'Natural'}</TableCell>
                                         <TableCell>{getStatusBadge(record.pregnancyStatus)}</TableCell>
-                                        <TableCell>{record.expectedDueDate || '-'}</TableCell>
+                                        <TableCell className="font-mono">{record.expectedDueDate || '-'}</TableCell>
                                         <TableCell>{record.offspringName || '-'}</TableCell>
                                         <TableCell>
                                             <div className="action-buttons">
@@ -383,6 +388,16 @@ export function Breeding() {
                     </div>
                 </form>
             </Modal>
+
+            <ConfirmDialog
+                isOpen={confirmDelete.show}
+                onClose={() => setConfirmDelete({ show: false, id: null })}
+                onConfirm={confirmDeleteBreeding}
+                title="Delete Breeding Record"
+                message="Are you sure you want to delete this breeding record? This will also remove any associated pregnancy monitoring history."
+                type="danger"
+                confirmText="Delete Record"
+            />
         </div>
     );
 }

@@ -1,9 +1,8 @@
 .notification-center {
     padding: var(--space-4);
-    background: white;
-    border-radius: var(--radius-xl);
-    border: 1px solid var(--color-neutral-200);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    border: var(--border-thin);
 }
 
 .notif-header {
@@ -25,10 +24,12 @@
 .notif-badge {
     background: var(--color-accent-600);
     color: white;
-    font-size: var(--font-size-xs);
+    font-size: 10px;
     font-weight: var(--font-weight-bold);
     padding: 2px 8px;
-    border-radius: var(--radius-full);
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-family: var(--font-family-mono);
 }
 
 .notif-list {
@@ -41,30 +42,28 @@
     display: flex;
     align-items: center;
     gap: var(--space-3);
-    padding: var(--space-3);
-    border-radius: var(--radius-lg);
-    background: var(--color-neutral-50);
-    border: 1px solid var(--color-neutral-100);
-    transition: all 0.2s;
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    background: white;
+    border: var(--border-thin);
+    transition: all var(--transition-base);
     cursor: pointer;
 }
 
 .notif-item:hover {
-    background: white;
-    border-color: var(--color-primary-200);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    transform: translateX(4px);
+    background: var(--bg-primary);
+    border-color: var(--color-primary-400);
 }
 
 .notif-icon-wrap {
-    width: 36px;
-    height: 36px;
-    border-radius: var(--radius-md);
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
     background: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: var(--border-thin);
 }
 
 .notif-content {
@@ -86,6 +85,7 @@
 
 .notif-date {
     font-size: var(--font-size-xs);
+    font-family: var(--font-family-mono);
     color: var(--color-neutral-500);
 }
 

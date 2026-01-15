@@ -10,20 +10,12 @@ export function AddFeedType(arg1) {
   return window['go']['main']['FeedService']['AddFeedType'](arg1);
 }
 
-export function AddGrindingRecord(arg1) {
-  return window['go']['main']['FeedService']['AddGrindingRecord'](arg1);
-}
-
 export function DeleteFeedRecord(arg1) {
   return window['go']['main']['FeedService']['DeleteFeedRecord'](arg1);
 }
 
 export function DeleteFeedType(arg1) {
   return window['go']['main']['FeedService']['DeleteFeedType'](arg1);
-}
-
-export function DeleteGrindingRecord(arg1) {
-  return window['go']['main']['FeedService']['DeleteGrindingRecord'](arg1);
 }
 
 export function GetAllFeedTypes() {
@@ -34,22 +26,10 @@ export function GetFeedRecords(arg1, arg2) {
   return window['go']['main']['FeedService']['GetFeedRecords'](arg1, arg2);
 }
 
-export function GetGrindingMaterials() {
-  return window['go']['main']['FeedService']['GetGrindingMaterials']();
-}
-
-export function GetGrindingRecords(arg1, arg2) {
-  return window['go']['main']['FeedService']['GetGrindingRecords'](arg1, arg2);
-}
-
 export function UpdateFeedRecord(arg1) {
   return window['go']['main']['FeedService']['UpdateFeedRecord'](arg1);
 }
 
 export function UpdateFeedType(arg1) {
   return window['go']['main']['FeedService']['UpdateFeedType'](arg1);
-}
-
-export function UpdateGrindingRecord(arg1) {
-  return window['go']['main']['FeedService']['UpdateGrindingRecord'](arg1);
 }

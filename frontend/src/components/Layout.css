@@ -11,8 +11,8 @@
 }
 
 .page-container {
-    padding: var(--space-8);
-    max-width: 1600px;
+    padding: var(--space-8) var(--space-8) var(--space-12);
+    max-width: 1400px;
     margin: 0 auto;
     animation: fadeIn var(--transition-base) ease-out;
 }
@@ -27,15 +27,17 @@
 }
 
 .page-header-content h1 {
-    font-size: var(--font-size-3xl);
+    font-size: var(--font-size-4xl);
     font-weight: var(--font-weight-bold);
     color: var(--color-neutral-900);
-    margin-bottom: var(--space-2);
+    margin-bottom: var(--space-1);
+    letter-spacing: -0.04em;
 }
 
 .page-header-content p {
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-sm);
     color: var(--color-neutral-500);
+    font-weight: var(--font-weight-medium);
 }
 
 .page-actions {

@@ -4,7 +4,6 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { StatCard } from '../components/ui/StatCard';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { WeatherWidget } from '../components/WeatherWidget';
-import { NotificationCenter } from '../components/NotificationCenter';
 import './Dashboard.css';
 
 export function Dashboard() {
@@ -82,13 +81,6 @@ export function Dashboard() {
                     icon={Wheat}
                     color="info"
                 />
-                <StatCard
-                    title="Monthly Revenue"
-                    value={formatCurrency(stats?.monthIncome || 0)}
-                    subtitle={`Expenses: ${formatCurrency(stats?.monthExpenses || 0)}`}
-                    icon={DollarSign}
-                    color="primary"
-                />
             </div>
 
             <div className="dashboard-grid">
@@ -131,7 +123,6 @@ export function Dashboard() {
 
                 <div className="side-cards">
                     <WeatherWidget />
-                    <NotificationCenter />
 
                     <Card className="activity-card">
                         <CardHeader>

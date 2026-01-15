@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Database, Download, Upload, HardDrive, RefreshCw, CheckCircle, AlertCircle, Search, MapPin, Sun } from 'lucide-react';
+import { Database, Download, Upload, HardDrive, RefreshCw, CheckCircle, AlertCircle, Search, MapPin, Sun, Bell } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { ConfirmDialog, AlertDialog } from '../components/ui/ConfirmDialog';
 import './Settings.css';
 
 export function Settings() {
@@ -12,11 +13,27 @@ export function Settings() {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [searching, setSearching] = useState(false);
+    const [confirmRestore, setConfirmRestore] = useState(false);
+    const [currentLocation, setCurrentLocation] = useState(null);
 
     useEffect(() => {
         loadDatabaseInfo();
         loadVersion();
+        loadWeatherLocation();
     }, []);
+
+    // Debounced search effect
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchQuery.trim().length >= 2) {
+                handleSearchLocation();
+            } else if (searchQuery.trim().length === 0) {
+                setSearchResults([]);
+            }
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     const loadDatabaseInfo = async () => {
         if (!window.go?.main?.BackupService) return;
@@ -72,9 +89,11 @@ export function Settings() {
     };
 
     const handleRestore = async () => {
-        if (!window.confirm('This will replace your current database. Continue?')) {
-            return;
-        }
+        setConfirmRestore(true);
+    };
+
+    const confirmRestoreDatabase = async () => {
+        setConfirmRestore(false);
         setLoading(true);
         setMessage(null);
         try {
@@ -89,6 +108,18 @@ export function Settings() {
             setMessage({ type: 'error', text: err.message || 'Restore failed' });
         } finally {
             setLoading(false);
+        }
+    };
+
+    const loadWeatherLocation = async () => {
+        if (!window.go?.main?.WeatherService) return;
+        try {
+            const weather = await window.go.main.WeatherService.GetWeather();
+            if (weather && weather.location && weather.location !== "Local Area") {
+                setCurrentLocation(weather.location);
+            }
+        } catch (err) {
+            console.error('Failed to get weather location:', err);
         }
     };
 
@@ -108,12 +139,26 @@ export function Settings() {
     const handleSaveLocation = async (loc) => {
         setLoading(true);
         try {
-            await window.go.main.WeatherService.SaveWeatherLocation(loc.latitude, loc.longitude, `${loc.name}, ${loc.country}`);
+            const locName = `${loc.name}, ${loc.country}`;
+            await window.go.main.WeatherService.SaveWeatherLocation(loc.latitude, loc.longitude, locName);
             setMessage({ type: 'success', text: `Weather location updated to ${loc.name}` });
+            setCurrentLocation(locName);
             setSearchResults([]);
             setSearchQuery('');
         } catch (err) {
             setMessage({ type: 'error', text: 'Failed to save location' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleTestNotification = async () => {
+        setLoading(true);
+        try {
+            const result = await window.go.main.NotificationService.TestNotification();
+            setMessage({ type: 'success', text: result });
+        } catch (err) {
+            setMessage({ type: 'error', text: 'Failed to send test notification' });
         } finally {
             setLoading(false);
         }
@@ -147,11 +192,11 @@ export function Settings() {
                         <div className="db-info">
                             <div className="db-stat">
                                 <HardDrive size={16} />
-                                <span>Size: {dbInfo ? formatBytes(dbInfo.size) : 'Loading...'}</span>
+                                <span className="font-mono text-sm">Size: {dbInfo ? formatBytes(dbInfo.size) : 'Loading...'}</span>
                             </div>
                             <div className="db-stat">
                                 <RefreshCw size={16} />
-                                <span>Modified: {dbInfo ? formatDate(dbInfo.timestamp) : 'Loading...'}</span>
+                                <span className="font-mono text-sm">Modified: {dbInfo ? formatDate(dbInfo.timestamp) : 'Loading...'}</span>
                             </div>
                         </div>
 
@@ -176,29 +221,34 @@ export function Settings() {
                     </CardHeader>
                     <CardContent>
                         <div className="location-search">
-                            <div className="search-input-group">
+                            {currentLocation && (
+                                <div className="current-location-display mb-4">
+                                    <span className="data-label block mb-2">Current Location</span>
+                                    <div className="current-location-pill">
+                                        <MapPin size={16} className="text-primary-500" />
+                                        <span className="font-bold text-sm">{currentLocation}</span>
+                                    </div>
+                                </div>
+                            )}
+                            <div className="search-input-wrapper">
+                                <Search size={18} className="search-icon" />
                                 <input
                                     type="text"
                                     placeholder="Search for your city/town..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    onKeyPress={(e) => e.key === 'Enter' && handleSearchLocation()}
+                                // Removed Enter key handler as it's now automatic
                                 />
-                                <Button
-                                    icon={Search}
-                                    onClick={handleSearchLocation}
-                                    disabled={searching}
-                                    variant="secondary"
-                                >
-                                    {searching ? '...' : 'Search'}
-                                </Button>
+                                {searching && <RefreshCw size={16} className="searching-spinner spin" />}
                             </div>
 
                             {searchResults.length > 0 && (
                                 <div className="search-results">
                                     {searchResults.map((loc) => (
                                         <div key={loc.id} className="search-result-item" onClick={() => handleSaveLocation(loc)}>
-                                            <MapPin size={14} />
+                                            <div className="search-result-icon">
+                                                <MapPin size={16} />
+                                            </div>
                                             <div className="res-details">
                                                 <span className="res-name">{loc.name}</span>
                                                 <span className="res-admin">{loc.admin1}, {loc.country}</span>
@@ -217,18 +267,55 @@ export function Settings() {
 
                 <Card>
                     <CardHeader>
+                        <CardTitle><Bell size={20} /> Desktop Notifications</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="notification-settings">
+                            <p className="settings-note mb-4">
+                                Enable system notifications to get alerts for low stock and upcoming tasks even when the app is minimized.
+                            </p>
+                            <Button
+                                icon={Bell}
+                                onClick={handleTestNotification}
+                                variant="outline"
+                                disabled={loading}
+                                className="w-full"
+                            >
+                                Send Test Notification
+                            </Button>
+                        </div>
+                        <p className="settings-note mt-4">
+                            Note: Ensure that system notifications are allowed for "Farmland" in your Windows settings.
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
                         <CardTitle>About</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="about-info">
-                            <h3>Farmland</h3>
-                            <p>Farm Management System</p>
-                            <p className="version">Version: {version || 'Loading...'}</p>
-                            <p className="copyright">© 2026 Daniel Kosgei</p>
+                            <h3 className="about-title">Farmland</h3>
+                            <p className="about-subtitle">Farm Management System</p>
+                            <div className="about-details mt-4">
+                                <span className="version-badge">Version {version || 'Loading...'}</span>
+                                <p className="copyright mt-6">© 2026 Daniel Kosgei • Licensed under MIT</p>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
             </div>
+
+            <ConfirmDialog
+                isOpen={confirmRestore}
+                onClose={() => setConfirmRestore(false)}
+                onConfirm={confirmRestoreDatabase}
+                title="Restore Database"
+                message="Are you sure you want to restore the database from a backup? This will replace all your current farm data. This action cannot be undone."
+                type="danger"
+                confirmText="Restore Data"
+            />
         </div>
     );
 }

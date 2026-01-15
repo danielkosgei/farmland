@@ -4,9 +4,9 @@
     justify-content: center;
     gap: var(--space-2);
     font-family: var(--font-family);
-    font-weight: var(--font-weight-medium);
-    border: none;
-    border-radius: var(--radius-lg);
+    font-weight: var(--font-weight-semibold);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
     cursor: pointer;
     transition: all var(--transition-fast);
     white-space: nowrap;
@@ -19,20 +19,20 @@
 
 /* Sizes */
 .btn--sm {
-    height: 32px;
-    padding: 0 var(--space-3);
+    height: 36px;
+    padding: 0 var(--space-4);
     font-size: var(--font-size-xs);
 }
 
 .btn--md {
-    height: 40px;
-    padding: 0 var(--space-4);
+    height: 44px;
+    padding: 0 var(--space-5);
     font-size: var(--font-size-sm);
 }
 
 .btn--lg {
-    height: 48px;
-    padding: 0 var(--space-6);
+    height: 54px;
+    padding: 0 var(--space-8);
     font-size: var(--font-size-base);
 }
 
@@ -42,37 +42,33 @@
 
 /* Variants */
 .btn--primary {
-    background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-600) 100%);
+    background: var(--color-primary-600);
     color: white;
-    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
 }
 
 .btn--primary:hover:not(:disabled) {
-    background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-700) 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
+    background: var(--color-primary-700);
 }
 
 .btn--secondary {
-    background: linear-gradient(135deg, var(--color-secondary-400) 0%, var(--color-secondary-500) 100%);
+    background: var(--color-secondary-400);
     color: var(--color-secondary-900);
-    box-shadow: 0 2px 8px rgba(234, 179, 8, 0.3);
 }
 
 .btn--secondary:hover:not(:disabled) {
-    background: linear-gradient(135deg, var(--color-secondary-500) 0%, var(--color-secondary-600) 100%);
-    transform: translateY(-1px);
+    background: var(--color-secondary-500);
 }
 
 .btn--outline {
     background: transparent;
-    border: 1.5px solid var(--color-neutral-300);
+    border: 1px solid var(--color-neutral-300);
     color: var(--color-neutral-700);
 }
 
 .btn--outline:hover:not(:disabled) {
     background: var(--color-neutral-50);
     border-color: var(--color-neutral-400);
+    color: var(--color-neutral-900);
 }
 
 .btn--ghost {
@@ -86,14 +82,12 @@
 }
 
 .btn--danger {
-    background: linear-gradient(135deg, var(--color-accent-500) 0%, var(--color-accent-600) 100%);
+    background: var(--color-accent-600);
     color: white;
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
 }
 
 .btn--danger:hover:not(:disabled) {
-    background: linear-gradient(135deg, var(--color-accent-600) 0%, var(--color-accent-700) 100%);
-    transform: translateY(-1px);
+    background: var(--color-accent-700);
 }
 
 /* Icon */

@@ -1,9 +1,8 @@
 .stat-card {
     background: var(--bg-secondary);
-    border-radius: var(--radius-xl);
-    padding: var(--space-6);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: var(--shadow-sm);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5) var(--space-4);
+    border: var(--border-thin);
     transition: all var(--transition-base);
     position: relative;
     overflow: hidden;
@@ -19,24 +18,23 @@
 }
 
 .stat-card--primary::before {
-    background: linear-gradient(90deg, var(--color-primary-400), var(--color-primary-600));
+    background: var(--color-primary-500);
 }
 
 .stat-card--secondary::before {
-    background: linear-gradient(90deg, var(--color-secondary-400), var(--color-secondary-600));
+    background: var(--color-secondary-500);
 }
 
 .stat-card--accent::before {
-    background: linear-gradient(90deg, var(--color-accent-400), var(--color-accent-600));
+    background: var(--color-accent-500);
 }
 
 .stat-card--info::before {
-    background: linear-gradient(90deg, #60a5fa, #3b82f6);
+    background: var(--color-info);
 }
 
 .stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+    border-color: var(--color-primary-400);
 }
 
 .stat-card-header {
@@ -76,10 +74,12 @@
 }
 
 .stat-card-trend {
+    font-family: var(--font-family-mono);
     font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-semibold);
+    font-weight: var(--font-weight-bold);
     padding: var(--space-1) var(--space-2);
     border-radius: var(--radius-full);
+    font-variant-numeric: tabular-nums;
 }
 
 .stat-card-trend.trend-up {
@@ -93,11 +93,16 @@
 }
 
 .stat-card-value {
-    font-size: var(--font-size-3xl);
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-2xl);
     font-weight: var(--font-weight-bold);
     color: var(--color-neutral-900);
     margin: 0 0 var(--space-1) 0;
-    line-height: 1;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .stat-card-title {
@@ -109,6 +114,7 @@
 
 .stat-card-subtitle {
     font-size: var(--font-size-xs);
+    font-family: var(--font-family-mono);
     color: var(--color-neutral-400);
     margin: var(--space-1) 0 0 0;
 }

@@ -13,7 +13,8 @@ import {
   Download,
   RefreshCw,
   Baby,
-  Settings
+  Settings,
+  Bell
 } from 'lucide-react';
 import { UpdateManager, UpdateBadge } from './UpdateManager';
 import logo from '../assets/logo.png';
@@ -37,11 +38,22 @@ export function Sidebar() {
   const [hasUpdate, setHasUpdate] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [checkingUpdate, setCheckingUpdate] = useState(false);
+  const [notifCount, setNotifCount] = useState(0);
 
   useEffect(() => {
     loadVersion();
     checkForUpdates();
+    loadNotificationCount();
   }, []);
+
+  const loadNotificationCount = async () => {
+    try {
+      const data = await window.go.main.NotificationService.GetAllNotifications();
+      setNotifCount(data?.length || 0);
+    } catch (err) {
+      console.error('Failed to load notification count:', err);
+    }
+  };
 
   const loadVersion = async () => {
     try {
@@ -75,6 +87,10 @@ export function Sidebar() {
               <span className="logo-subtitle">Management</span>
             </div>
           </div>
+          <NavLink to="/notifications" className="header-notif-btn" title="View Alerts">
+            <Bell size={18} />
+            {notifCount > 0 && <span className="header-notif-badge">{notifCount}</span>}
+          </NavLink>
         </div>
 
         <nav className="sidebar-nav">

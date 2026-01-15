@@ -106,7 +106,7 @@ func (s *WeatherService) SaveWeatherLocation(lat, lng float64, name string) erro
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	settings := map[string]string{
 		"weather_lat":           fmt.Sprintf("%.4f", lat),
@@ -190,7 +190,7 @@ func (s *WeatherService) GetWeather() (*WeatherData, error) {
 
 	// Convert to our format
 	weather := &WeatherData{
-		Location: "Local Area", // Can be enhanced with reverse geocoding
+		Location: locationName,
 		Current: CurrentWeather{
 			Temperature: apiResp.Current.Temperature2m,
 			FeelsLike:   apiResp.Current.ApparentTemp,

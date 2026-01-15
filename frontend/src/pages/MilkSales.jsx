@@ -6,6 +6,7 @@ import { Modal } from '../components/ui/Modal';
 import { FormGroup, FormRow, Label, Input, Textarea, Checkbox } from '../components/ui/Form';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/Table';
 import { EmptyState } from '../components/ui/EmptyState';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import './MilkSales.css';
 
 export function MilkSales() {
@@ -13,6 +14,7 @@ export function MilkSales() {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingSale, setEditingSale] = useState(null);
+    const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
     const [formData, setFormData] = useState({ date: new Date().toISOString().split('T')[0], buyerName: '', liters: '', pricePerLiter: '60', isPaid: false, notes: '' });
 
     useEffect(() => { loadSales(); }, []);
@@ -49,12 +51,15 @@ export function MilkSales() {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Delete this sale record?')) {
-            try {
-                await window.go.main.LivestockService.DeleteMilkSale(id);
-                loadSales();
-            } catch (err) { console.error(err); }
-        }
+        setConfirmDelete({ show: true, id });
+    };
+
+    const confirmDeleteSale = async () => {
+        try {
+            await window.go.main.LivestockService.DeleteMilkSale(confirmDelete.id);
+            setConfirmDelete({ show: false, id: null });
+            loadSales();
+        } catch (err) { console.error(err); }
     };
 
     const openEdit = (sale) => {
@@ -80,10 +85,27 @@ export function MilkSales() {
                 <Button icon={Plus} onClick={() => { resetForm(); setEditingSale(null); setShowModal(true); }}>Record Sale</Button>
             </header>
 
-            <div className="sales-summary">
-                <div className="summary-card"><span className="summary-value">{totalLiters.toFixed(1)} L</span><span className="summary-label">Total Liters Sold</span></div>
-                <div className="summary-card"><span className="summary-value">{formatCurrency(totalRevenue)}</span><span className="summary-label">Total Revenue</span></div>
-                <div className="summary-card"><span className="summary-value">{sales.length}</span><span className="summary-label">Total Sales</span></div>
+            <div className="livestock-toolbar" style={{ border: 'none', marginBottom: 'var(--space-6)', padding: 0 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-6)', width: '100%' }}>
+                    <Card className="stat-card" style={{ padding: 'var(--space-6)' }}>
+                        <div className="stat-content">
+                            <span className="stat-value font-mono">{totalLiters.toFixed(1)} L</span>
+                            <span className="stat-label uppercase tracking-wider text-[10px] font-bold text-neutral-400">Total Volume</span>
+                        </div>
+                    </Card>
+                    <Card className="stat-card" style={{ padding: 'var(--space-6)' }}>
+                        <div className="stat-content">
+                            <span className="stat-value font-mono text-primary-600">{formatCurrency(totalRevenue)}</span>
+                            <span className="stat-label uppercase tracking-wider text-[10px] font-bold text-neutral-400">Total Revenue</span>
+                        </div>
+                    </Card>
+                    <Card className="stat-card" style={{ padding: 'var(--space-6)' }}>
+                        <div className="stat-content">
+                            <span className="stat-value font-mono">{sales.length}</span>
+                            <span className="stat-label uppercase tracking-wider text-[10px] font-bold text-neutral-400">Sales Records</span>
+                        </div>
+                    </Card>
+                </div>
             </div>
 
             <Card padding="none">
@@ -107,11 +129,11 @@ export function MilkSales() {
                         <TableBody>
                             {sales.map(sale => (
                                 <TableRow key={sale.id}>
-                                    <TableCell>{new Date(sale.date).toLocaleDateString('en-KE')}</TableCell>
-                                    <TableCell>{sale.buyerName || 'Walk-in'}</TableCell>
-                                    <TableCell>{sale.liters.toFixed(1)} L</TableCell>
-                                    <TableCell>{formatCurrency(sale.pricePerLiter)}</TableCell>
-                                    <TableCell className="font-semibold">{formatCurrency(sale.totalAmount)}</TableCell>
+                                    <TableCell className="font-mono">{new Date(sale.date).toLocaleDateString('en-KE')}</TableCell>
+                                    <TableCell><span className="font-bold text-neutral-900">{sale.buyerName || 'Walk-in'}</span></TableCell>
+                                    <TableCell className="font-mono">{sale.liters.toFixed(1)} L</TableCell>
+                                    <TableCell className="font-mono text-neutral-500">{formatCurrency(sale.pricePerLiter)}</TableCell>
+                                    <TableCell className="font-mono font-bold text-primary-600">{formatCurrency(sale.totalAmount)}</TableCell>
                                     <TableCell>
                                         <span className={`payment-badge ${sale.isPaid ? 'paid' : 'pending'}`}>
                                             {sale.isPaid ? <><CheckCircle size={14} /> Paid</> : 'Pending'}
@@ -146,6 +168,16 @@ export function MilkSales() {
                     <div className="modal-actions"><Button variant="outline" type="button" onClick={() => setShowModal(false)}>Cancel</Button><Button type="submit">{editingSale ? 'Update' : 'Record'} Sale</Button></div>
                 </form>
             </Modal>
+
+            <ConfirmDialog
+                isOpen={confirmDelete.show}
+                onClose={() => setConfirmDelete({ show: false, id: null })}
+                onConfirm={confirmDeleteSale}
+                title="Delete Sale Record"
+                message="Are you sure you want to delete this milk sale record? This action cannot be undone."
+                type="danger"
+                confirmText="Delete Record"
+            />
         </div>
     );
 }

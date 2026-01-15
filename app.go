@@ -61,9 +61,11 @@ func NewApp() *App {
 // startup is called when the app starts
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
-	a.Backup.SetContext(ctx) // Set context for file dialogs
-	a.Export.SetContext(ctx) // Set context for file dialogs
-	a.Photo.SetContext(ctx)  // Set context for file dialogs
+	a.Backup.SetContext(ctx)               // Set context for file dialogs
+	a.Export.SetContext(ctx)               // Set context for file dialogs
+	a.Photo.SetContext(ctx)                // Set context for file dialogs
+	a.Notification.SetContext(ctx)         // Set context for desktop notifications
+	a.Notification.StartBackgroundWorker() // Start background poller
 	if err := InitDatabase(); err != nil {
 		println("Database initialization error:", err.Error())
 	}

@@ -18,7 +18,7 @@ A modern, cross-platform desktop application for small-scale farm management. Bu
 - 👶 **Breeding & Pregnancy** - Record breeding events, track pregnancies, link calves to parents
 - 🌾 **Crop Management** - Manage fields, track planting cycles, costs, and yields
 - 📦 **Inventory** - Track supplies with low-stock alerts
-- 🍽️ **Feed Management** - Log daily feeding and feed grinding operations
+- 🍽️ **Feed Management** - Log daily feeding records and monitor stock levels
 - 🏥 **Health & Vet Records** - Treatments, vaccinations, and follow-up reminders
 - 💰 **Financial Tracking** - Income/expense tracking with visual summaries
 - 🔄 **Auto-Updates** - Built-in update manager with GitHub Releases integration

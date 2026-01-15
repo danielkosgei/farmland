@@ -147,18 +147,6 @@ func createTables() error {
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (feed_type_id) REFERENCES feed_types(id)
 		)`,
-		`CREATE TABLE IF NOT EXISTS feed_grinding (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			date TEXT NOT NULL,
-			input_material TEXT NOT NULL,
-			input_quantity_kg REAL NOT NULL,
-			output_quantity_kg REAL DEFAULT 0,
-			grinding_cost REAL DEFAULT 0,
-			machine_cost REAL DEFAULT 0,
-			output_type TEXT,
-			notes TEXT,
-			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-		)`,
 		`CREATE TABLE IF NOT EXISTS vet_records (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			animal_id INTEGER NOT NULL,

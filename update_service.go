@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 )
 
 const (
@@ -264,6 +265,7 @@ func (s *UpdateService) DownloadUpdate(url string) (string, error) {
 	// Wait for download to complete
 	for s.isDownloading {
 		// Sleep briefly to avoid busy waiting
+		time.Sleep(100 * time.Millisecond)
 	}
 
 	if s.downloadError != "" {

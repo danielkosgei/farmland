@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Camera, Trash2, X, Maximize2, Loader2, Plus } from 'lucide-react';
+import { ConfirmDialog } from './ui/ConfirmDialog';
 import './PhotoGallery.css';
 
 export function PhotoGallery({ entityType, entityId }) {
@@ -8,6 +9,7 @@ export function PhotoGallery({ entityType, entityId }) {
     const [uploading, setUploading] = useState(false);
     const [selectedPhoto, setSelectedPhoto] = useState(null);
     const [photoData, setPhotoData] = useState({});
+    const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
 
     useEffect(() => {
         loadPhotos();
@@ -53,14 +55,18 @@ export function PhotoGallery({ entityType, entityId }) {
 
     const handleDelete = async (id, e) => {
         e.stopPropagation();
-        if (!window.confirm('Delete this photo?')) return;
+        setConfirmDelete({ show: true, id });
+    };
 
+    const confirmDeletePhoto = async () => {
+        const id = confirmDelete.id;
         try {
             await window.go.main.PhotoService.DeletePhoto(id);
             setPhotos(prev => prev.filter(p => p.id !== id));
             const newData = { ...photoData };
             delete newData[id];
             setPhotoData(newData);
+            setConfirmDelete({ show: false, id: null });
         } catch (err) {
             console.error('Delete failed:', err);
         }
@@ -132,6 +138,16 @@ export function PhotoGallery({ entityType, entityId }) {
                     </div>
                 </div>
             )}
+
+            <ConfirmDialog
+                isOpen={confirmDelete.show}
+                onClose={() => setConfirmDelete({ show: false, id: null })}
+                onConfirm={confirmDeletePhoto}
+                title="Delete Photo"
+                message="Are you sure you want to delete this photo? This action cannot be undone."
+                type="danger"
+                confirmText="Delete Photo"
+            />
         </div>
     );
 }

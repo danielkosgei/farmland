@@ -119,20 +119,6 @@ type FeedRecord struct {
 	CreatedAt    time.Time `json:"createdAt"`
 }
 
-// FeedGrinding represents feed grinding/processing records
-type FeedGrinding struct {
-	ID               int64     `json:"id"`
-	Date             string    `json:"date"`          // YYYY-MM-DD
-	InputMaterial    string    `json:"inputMaterial"` // maize, wheat bran, etc.
-	InputQuantityKg  float64   `json:"inputQuantityKg"`
-	OutputQuantityKg float64   `json:"outputQuantityKg"`
-	GrindingCost     float64   `json:"grindingCost"` // labor + machine cost
-	MachineCost      float64   `json:"machineCost"`  // fuel, maintenance
-	OutputType       string    `json:"outputType"`   // type of feed produced
-	Notes            string    `json:"notes"`
-	CreatedAt        time.Time `json:"createdAt"`
-}
-
 // VetRecord represents health/veterinary records
 type VetRecord struct {
 	ID          int64     `json:"id"`

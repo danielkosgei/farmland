@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, Milk, Beef, Download } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Search, Edit2, Trash2, Milk, Beef, Download, Calendar, Info, Users } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
 import { Modal } from '../components/ui/Modal';
@@ -7,7 +8,9 @@ import { FormGroup, FormRow, Label, Input, Select, Textarea } from '../component
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/Table';
 import { EmptyState } from '../components/ui/EmptyState';
 import { PhotoGallery } from '../components/PhotoGallery';
+import { ConfirmDialog, AlertDialog } from '../components/ui/ConfirmDialog';
 import './Livestock.css';
+import '../components/EntityDetails.css';
 
 const animalTypes = ['cow', 'bull', 'heifer', 'calf'];
 const breeds = ['Friesian', 'Ayrshire', 'Jersey', 'Guernsey', 'Sahiwal', 'Boran', 'Mixed'];
@@ -20,7 +23,11 @@ export function Livestock() {
     const [showMilkModal, setShowMilkModal] = useState(false);
     const [editingAnimal, setEditingAnimal] = useState(null);
     const [selectedAnimal, setSelectedAnimal] = useState(null);
+    const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
+    const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
+    const [alert, setAlert] = useState({ show: false, title: '', message: '', type: 'info' });
+    const [tempPhotoId, setTempPhotoId] = useState(null);
     const [formData, setFormData] = useState({
         tagNumber: '', name: '', type: 'cow', breed: '', dateOfBirth: '',
         gender: 'female', motherId: null, fatherId: null, status: 'active', notes: ''
@@ -48,10 +55,14 @@ export function Livestock() {
             if (editingAnimal) {
                 await window.go.main.LivestockService.UpdateAnimal({ ...animalData, id: editingAnimal.id });
             } else {
-                await window.go.main.LivestockService.AddAnimal(animalData);
+                const newAnimal = await window.go.main.LivestockService.AddAnimal(animalData);
+                if (newAnimal && tempPhotoId) {
+                    await window.go.main.PhotoService.BindPhotos("animal", tempPhotoId, newAnimal.id);
+                }
             }
             setShowModal(false);
             setEditingAnimal(null);
+            setTempPhotoId(null);
             resetForm();
             loadAnimals();
         } catch (err) { console.error(err); }
@@ -73,11 +84,22 @@ export function Livestock() {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this animal?')) {
-            try {
-                await window.go.main.LivestockService.DeleteAnimal(id);
-                loadAnimals();
-            } catch (err) { console.error(err); }
+        setConfirmDelete({ show: true, id });
+    };
+
+    const confirmDeleteAnimal = async () => {
+        try {
+            await window.go.main.LivestockService.DeleteAnimal(confirmDelete.id);
+            setConfirmDelete({ show: false, id: null });
+            loadAnimals();
+        } catch (err) {
+            console.error(err);
+            setAlert({
+                show: true,
+                title: 'Error',
+                message: 'Failed to delete animal record',
+                type: 'danger'
+            });
         }
     };
 
@@ -92,9 +114,14 @@ export function Livestock() {
         setShowModal(true);
     };
 
-    const openMilkRecord = (animal) => {
+    const openMilkRecord = (animal, e) => {
+        if (e) e.stopPropagation();
         setSelectedAnimal(animal);
         setShowMilkModal(true);
+    };
+
+    const handleRowClick = (animal) => {
+        navigate(`/livestock/${animal.id}`);
     };
 
     const resetForm = () => {
@@ -117,11 +144,21 @@ export function Livestock() {
         try {
             const res = await window.go.main.ExportService.ExportAnimalsPDF();
             if (res) {
-                alert(`Exported ${res.records} animals to ${res.path}`);
+                setAlert({
+                    show: true,
+                    title: 'Export Successful',
+                    message: `Exported ${res.records} animals to ${res.path}`,
+                    type: 'success'
+                });
             }
         } catch (err) {
             console.error('Export failed:', err);
-            alert('Failed to export PDF');
+            setAlert({
+                show: true,
+                title: 'Export Failed',
+                message: 'Failed to export animals to PDF. Please try again.',
+                type: 'danger'
+            });
         }
     };
 
@@ -134,7 +171,12 @@ export function Livestock() {
                 </div>
                 <div className="page-actions">
                     <Button variant="outline" icon={Download} onClick={handleExportPDF}>Export PDF</Button>
-                    <Button icon={Plus} onClick={() => { resetForm(); setEditingAnimal(null); setShowModal(true); }}>Add Animal</Button>
+                    <Button icon={Plus} onClick={() => {
+                        resetForm();
+                        setEditingAnimal(null);
+                        setTempPhotoId(Date.now() * -1);
+                        setShowModal(true);
+                    }}>Add Animal</Button>
                 </div>
             </header>
 
@@ -165,7 +207,7 @@ export function Livestock() {
                         </TableHeader>
                         <TableBody>
                             {filteredAnimals.map(animal => (
-                                <TableRow key={animal.id}>
+                                <TableRow key={animal.id} onClick={() => handleRowClick(animal)} className="clickable-row">
                                     <TableCell>
                                         <div className="animal-info">
                                             <span className="animal-name">{animal.name}</span>
@@ -188,10 +230,10 @@ export function Livestock() {
                                     <TableCell>
                                         <div className="action-buttons">
                                             {(animal.gender === 'female' && animal.status === 'active') && (
-                                                <button className="action-btn milk" onClick={() => openMilkRecord(animal)} title="Record Milk"><Milk size={16} /></button>
+                                                <button className="action-btn milk" onClick={(e) => openMilkRecord(animal, e)} title="Record Milk"><Milk size={16} /></button>
                                             )}
-                                            <button className="action-btn edit" onClick={() => openEdit(animal)} title="Edit"><Edit2 size={16} /></button>
-                                            <button className="action-btn delete" onClick={() => handleDelete(animal.id)} title="Delete"><Trash2 size={16} /></button>
+                                            <button className="action-btn edit" onClick={(e) => { e.stopPropagation(); openEdit(animal); }} title="Edit"><Edit2 size={16} /></button>
+                                            <button className="action-btn delete" onClick={(e) => { e.stopPropagation(); handleDelete(animal.id); }} title="Delete"><Trash2 size={16} /></button>
                                         </div>
                                     </TableCell>
                                 </TableRow>
@@ -236,9 +278,10 @@ export function Livestock() {
                     </FormRow>
                     <FormGroup><Label htmlFor="notes">Notes</Label><Textarea id="notes" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Any additional notes..." rows={3} /></FormGroup>
 
-                    {editingAnimal && (
-                        <PhotoGallery entityType="animal" entityId={editingAnimal.id} />
-                    )}
+                    <PhotoGallery
+                        entityType="animal"
+                        entityId={editingAnimal ? editingAnimal.id : tempPhotoId}
+                    />
 
                     <div className="modal-actions"><Button variant="outline" type="button" onClick={() => setShowModal(false)}>Cancel</Button><Button type="submit">{editingAnimal ? 'Update' : 'Add'} Animal</Button></div>
                 </form>
@@ -255,6 +298,24 @@ export function Livestock() {
                     <div className="modal-actions"><Button variant="outline" type="button" onClick={() => setShowMilkModal(false)}>Cancel</Button><Button type="submit">Save Record</Button></div>
                 </form>
             </Modal>
+
+            <ConfirmDialog
+                isOpen={confirmDelete.show}
+                onClose={() => setConfirmDelete({ show: false, id: null })}
+                onConfirm={confirmDeleteAnimal}
+                title="Delete Animal"
+                message="Are you sure you want to delete this animal? This action cannot be undone and all associated records (milk, breeding, health) will be removed."
+                type="danger"
+                confirmText="Delete Animal"
+            />
+
+            <AlertDialog
+                isOpen={alert.show}
+                onClose={() => setAlert({ ...alert, show: false })}
+                title={alert.title}
+                message={alert.message}
+                type={alert.type}
+            />
         </div>
     );
 }
