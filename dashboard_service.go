@@ -24,46 +24,46 @@ func (s *DashboardService) GetDashboardStats() (*DashboardStats, error) {
 	stats := &DashboardStats{}
 
 	// Total animals
-	db.QueryRow(`SELECT COUNT(*) FROM animals WHERE status = 'active'`).Scan(&stats.TotalAnimals)
+	_ = db.QueryRow(`SELECT COUNT(*) FROM animals WHERE status = 'active'`).Scan(&stats.TotalAnimals)
 
 	// Active dairy cows
-	db.QueryRow(`SELECT COUNT(*) FROM animals WHERE status = 'active' AND gender = 'female' AND type IN ('cow', 'heifer')`).Scan(&stats.ActiveCows)
+	_ = db.QueryRow(`SELECT COUNT(*) FROM animals WHERE status = 'active' AND gender = 'female' AND type IN ('cow', 'heifer')`).Scan(&stats.ActiveCows)
 
 	// Today's milk
 	today := time.Now().Format("2006-01-02")
 	var todayMilk sql.NullFloat64
-	db.QueryRow(`SELECT SUM(total_liters) FROM milk_records WHERE date = ?`, today).Scan(&todayMilk)
+	_ = db.QueryRow(`SELECT SUM(total_liters) FROM milk_records WHERE date = ?`, today).Scan(&todayMilk)
 	stats.TodayMilkLiters = todayMilk.Float64
 
 	// Month's milk
 	startOfMonth := time.Now().Format("2006-01") + "-01"
 	var monthMilk sql.NullFloat64
-	db.QueryRow(`SELECT SUM(total_liters) FROM milk_records WHERE date >= ?`, startOfMonth).Scan(&monthMilk)
+	_ = db.QueryRow(`SELECT SUM(total_liters) FROM milk_records WHERE date >= ?`, startOfMonth).Scan(&monthMilk)
 	stats.MonthMilkLiters = monthMilk.Float64
 
 	// Active fields
-	db.QueryRow(`SELECT COUNT(*) FROM fields WHERE status IN ('planted', 'growing', 'ready_harvest')`).Scan(&stats.ActiveFields)
+	_ = db.QueryRow(`SELECT COUNT(*) FROM fields WHERE status IN ('planted', 'growing', 'ready_harvest')`).Scan(&stats.ActiveFields)
 
 	// Total field acres
 	var totalAcres sql.NullFloat64
-	db.QueryRow(`SELECT SUM(size_acres) FROM fields`).Scan(&totalAcres)
+	_ = db.QueryRow(`SELECT SUM(size_acres) FROM fields`).Scan(&totalAcres)
 	stats.TotalFieldsAcres = totalAcres.Float64
 
 	// Month income
 	var monthIncome sql.NullFloat64
-	db.QueryRow(`SELECT SUM(amount) FROM transactions WHERE type = 'income' AND date >= ?`, startOfMonth).Scan(&monthIncome)
+	_ = db.QueryRow(`SELECT SUM(amount) FROM transactions WHERE type = 'income' AND date >= ?`, startOfMonth).Scan(&monthIncome)
 	stats.MonthIncome = monthIncome.Float64
 
 	// Month expenses
 	var monthExpenses sql.NullFloat64
-	db.QueryRow(`SELECT SUM(amount) FROM transactions WHERE type = 'expense' AND date >= ?`, startOfMonth).Scan(&monthExpenses)
+	_ = db.QueryRow(`SELECT SUM(amount) FROM transactions WHERE type = 'expense' AND date >= ?`, startOfMonth).Scan(&monthExpenses)
 	stats.MonthExpenses = monthExpenses.Float64
 
 	// Low stock items
-	db.QueryRow(`SELECT COUNT(*) FROM inventory_items WHERE quantity < minimum_stock`).Scan(&stats.LowStockItems)
+	_ = db.QueryRow(`SELECT COUNT(*) FROM inventory_items WHERE quantity < minimum_stock`).Scan(&stats.LowStockItems)
 
 	// Pending vet visits
-	db.QueryRow(`SELECT COUNT(*) FROM vet_records WHERE next_due_date IS NOT NULL AND next_due_date != '' AND next_due_date >= date('now') AND next_due_date <= date('now', '+30 days')`).Scan(&stats.PendingVetVisits)
+	_ = db.QueryRow(`SELECT COUNT(*) FROM vet_records WHERE next_due_date IS NOT NULL AND next_due_date != '' AND next_due_date >= date('now') AND next_due_date <= date('now', '+30 days')`).Scan(&stats.PendingVetVisits)
 
 	return stats, nil
 }
@@ -78,7 +78,7 @@ func (s *DashboardService) GetRecentActivity() ([]RecentActivity, error) {
 		defer rows.Close()
 		for rows.Next() {
 			var a RecentActivity
-			rows.Scan(&a.Type, &a.Description, &a.Date)
+			_ = rows.Scan(&a.Type, &a.Description, &a.Date)
 			activities = append(activities, a)
 		}
 	}
@@ -89,7 +89,7 @@ func (s *DashboardService) GetRecentActivity() ([]RecentActivity, error) {
 		defer rows2.Close()
 		for rows2.Next() {
 			var a RecentActivity
-			rows2.Scan(&a.Type, &a.Description, &a.Date)
+			_ = rows2.Scan(&a.Type, &a.Description, &a.Date)
 			activities = append(activities, a)
 		}
 	}
@@ -100,7 +100,7 @@ func (s *DashboardService) GetRecentActivity() ([]RecentActivity, error) {
 		defer rows3.Close()
 		for rows3.Next() {
 			var a RecentActivity
-			rows3.Scan(&a.Type, &a.Description, &a.Date)
+			_ = rows3.Scan(&a.Type, &a.Description, &a.Date)
 			activities = append(activities, a)
 		}
 	}
@@ -120,7 +120,7 @@ func (s *DashboardService) GetMilkProductionChart() ([]map[string]interface{}, e
 	for rows.Next() {
 		var date string
 		var total float64
-		rows.Scan(&date, &total)
+		_ = rows.Scan(&date, &total)
 		data = append(data, map[string]interface{}{"date": date, "liters": total})
 	}
 	return data, nil

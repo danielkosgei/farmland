@@ -101,8 +101,8 @@ func (s *FinancialService) GetMonthlyExpenses() (float64, error) {
 func (s *FinancialService) GetFinancialSummary(startDate, endDate string) (*FinancialSummary, error) {
 	summary := &FinancialSummary{IncomeByCategory: make(map[string]float64), ExpenseByCategory: make(map[string]float64)}
 	var income, expenses sql.NullFloat64
-	db.QueryRow(`SELECT SUM(amount) FROM transactions WHERE type = 'income'`).Scan(&income)
-	db.QueryRow(`SELECT SUM(amount) FROM transactions WHERE type = 'expense'`).Scan(&expenses)
+	_ = db.QueryRow(`SELECT SUM(amount) FROM transactions WHERE type = 'income'`).Scan(&income)
+	_ = db.QueryRow(`SELECT SUM(amount) FROM transactions WHERE type = 'expense'`).Scan(&expenses)
 	summary.TotalIncome = income.Float64
 	summary.TotalExpenses = expenses.Float64
 	summary.NetProfit = summary.TotalIncome - summary.TotalExpenses
