@@ -111,6 +111,61 @@
     background: rgba(0, 0, 0, 0.1);
 }
 
+.version-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-2) var(--space-3);
+    margin-bottom: var(--space-3);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-md);
+}
+
+.version-label {
+    font-size: var(--font-size-xs);
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.version-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.check-update-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: var(--radius-full);
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.check-update-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.check-update-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.check-update-btn .spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 .user-info {
     display: flex;
     align-items: center;

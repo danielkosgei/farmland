@@ -37,6 +37,7 @@ func main() {
 			app.Health,
 			app.Financial,
 			app.Dashboard,
+			app.Update,
 		},
 	})
 

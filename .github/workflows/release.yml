@@ -18,7 +18,6 @@ jobs:
           - os: windows-latest
             platform: windows
             arch: amd64
-            ext: .exe
           - os: macos-latest
             platform: darwin
             arch: amd64
@@ -61,60 +60,61 @@ jobs:
 
       - name: Build for Windows
         if: matrix.platform == 'windows'
-        run: wails build -clean -platform windows/amd64
+        run: wails build -clean -platform windows/amd64 -ldflags "-X main.Version=${{ github.ref_name }}"
         shell: bash
 
       - name: Build for macOS (amd64)
         if: matrix.platform == 'darwin' && matrix.arch == 'amd64'
-        run: wails build -clean -platform darwin/amd64
+        run: wails build -clean -platform darwin/amd64 -ldflags "-X main.Version=${{ github.ref_name }}"
 
       - name: Build for macOS (arm64)
         if: matrix.platform == 'darwin' && matrix.arch == 'arm64'
-        run: wails build -clean -platform darwin/arm64
+        run: wails build -clean -platform darwin/arm64 -ldflags "-X main.Version=${{ github.ref_name }}"
 
       - name: Build for Linux
         if: matrix.platform == 'linux'
-        run: wails build -clean -platform linux/amd64
+        run: wails build -clean -platform linux/amd64 -ldflags "-X main.Version=${{ github.ref_name }}"
 
+      # Package with predictable names (no version in filename - version is in the release)
       - name: Package Windows
         if: matrix.platform == 'windows'
         run: |
           cd build/bin
-          7z a -tzip farmland-${{ github.ref_name }}-windows-amd64.zip farmland.exe
+          mv farmland.exe farmland-windows-amd64.exe
         shell: bash
 
       - name: Package macOS
         if: matrix.platform == 'darwin'
         run: |
           cd build/bin
-          zip -r farmland-${{ github.ref_name }}-darwin-${{ matrix.arch }}.zip farmland.app
+          zip -r farmland-${{ matrix.platform }}-${{ matrix.arch }}.zip farmland.app
 
       - name: Package Linux
         if: matrix.platform == 'linux'
         run: |
           cd build/bin
-          tar -czvf farmland-${{ github.ref_name }}-linux-amd64.tar.gz farmland
+          tar -czvf farmland-linux-amd64.tar.gz farmland
 
       - name: Upload Windows artifact
         if: matrix.platform == 'windows'
         uses: actions/upload-artifact@v4
         with:
           name: farmland-windows-amd64
-          path: build/bin/farmland-${{ github.ref_name }}-windows-amd64.zip
+          path: build/bin/farmland-windows-amd64.exe
 
       - name: Upload macOS artifact
         if: matrix.platform == 'darwin'
         uses: actions/upload-artifact@v4
         with:
-          name: farmland-darwin-${{ matrix.arch }}
-          path: build/bin/farmland-${{ github.ref_name }}-darwin-${{ matrix.arch }}.zip
+          name: farmland-${{ matrix.platform }}-${{ matrix.arch }}
+          path: build/bin/farmland-${{ matrix.platform }}-${{ matrix.arch }}.zip
 
       - name: Upload Linux artifact
         if: matrix.platform == 'linux'
         uses: actions/upload-artifact@v4
         with:
           name: farmland-linux-amd64
-          path: build/bin/farmland-${{ github.ref_name }}-linux-amd64.tar.gz
+          path: build/bin/farmland-linux-amd64.tar.gz
 
   release:
     needs: build
@@ -125,10 +125,17 @@ jobs:
         with:
           path: artifacts
 
+      - name: List artifacts
+        run: find artifacts -type f
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: artifacts/**/*
+          files: |
+            artifacts/farmland-windows-amd64/farmland-windows-amd64.exe
+            artifacts/farmland-darwin-amd64/farmland-darwin-amd64.zip
+            artifacts/farmland-darwin-arm64/farmland-darwin-arm64.zip
+            artifacts/farmland-linux-amd64/farmland-linux-amd64.tar.gz
           generate_release_notes: true
           draft: false
           prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
