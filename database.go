@@ -202,6 +202,15 @@ func createTables() error {
 			notes TEXT,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)`,
+		`CREATE TABLE IF NOT EXISTS photos (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			entity_type TEXT NOT NULL,
+			entity_id INTEGER NOT NULL,
+			filename TEXT NOT NULL,
+			path TEXT NOT NULL,
+			notes TEXT,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		)`,
 	}
 
 	for _, table := range tables {
@@ -226,6 +235,7 @@ func createTables() error {
 		`CREATE INDEX IF NOT EXISTS idx_animals_father ON animals(father_id)`,
 		`CREATE INDEX IF NOT EXISTS idx_breeding_female ON breeding_records(female_id)`,
 		`CREATE INDEX IF NOT EXISTS idx_breeding_status ON breeding_records(pregnancy_status)`,
+		`CREATE INDEX IF NOT EXISTS idx_photos_entity ON photos(entity_type, entity_id)`,
 	}
 
 	for _, idx := range indexes {

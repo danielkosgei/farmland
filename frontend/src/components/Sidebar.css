@@ -22,16 +22,13 @@
     gap: var(--space-3);
 }
 
-.logo-icon {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, var(--color-secondary-400) 0%, var(--color-secondary-500) 100%);
-    border-radius: var(--radius-xl);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);
+.logo-img {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-lg);
+    object-fit: contain;
+    background: white;
+    padding: 2px;
 }
 
 .logo-text {

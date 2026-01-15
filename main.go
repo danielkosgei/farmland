@@ -39,6 +39,11 @@ func main() {
 			app.Dashboard,
 			app.Update,
 			app.Breeding,
+			app.Backup,
+			app.Weather,
+			app.Notification,
+			app.Export,
+			app.Photo,
 		},
 	})
 

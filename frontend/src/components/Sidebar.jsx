@@ -12,9 +12,11 @@ import {
   Tractor,
   Download,
   RefreshCw,
-  Baby
+  Baby,
+  Settings
 } from 'lucide-react';
 import { UpdateManager, UpdateBadge } from './UpdateManager';
+import logo from '../assets/logo.png';
 import './Sidebar.css';
 
 const navItems = [
@@ -27,6 +29,7 @@ const navItems = [
   { path: '/feed', icon: Utensils, label: 'Feed Management' },
   { path: '/health', icon: Heart, label: 'Health & Vet' },
   { path: '/finances', icon: DollarSign, label: 'Finances' },
+  { path: '/settings', icon: Settings, label: 'Settings' },
 ];
 
 export function Sidebar() {
@@ -66,9 +69,7 @@ export function Sidebar() {
       <aside className="sidebar">
         <div className="sidebar-header">
           <div className="sidebar-logo">
-            <div className="logo-icon">
-              <Tractor size={28} />
-            </div>
+            <img src={logo} alt="Farmland" className="logo-img" />
             <div className="logo-text">
               <span className="logo-title">Farmland</span>
               <span className="logo-subtitle">Management</span>

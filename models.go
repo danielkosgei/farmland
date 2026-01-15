@@ -216,3 +216,14 @@ type BreedingRecord struct {
 	Notes           string    `json:"notes"`
 	CreatedAt       time.Time `json:"createdAt"`
 }
+
+// Photo represents a photo attachment for an entity
+type Photo struct {
+	ID         int64     `json:"id"`
+	EntityType string    `json:"entityType"` // animal, field, vet, etc.
+	EntityID   int64     `json:"entityId"`
+	Filename   string    `json:"filename"`
+	Path       string    `json:"path"`
+	Notes      string    `json:"notes"`
+	CreatedAt  time.Time `json:"createdAt"`
+}

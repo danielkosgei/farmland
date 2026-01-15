@@ -1,0 +1,206 @@
+.photo-gallery {
+    margin-top: var(--space-6);
+    padding: var(--space-4);
+    background: white;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-neutral-200);
+}
+
+.photo-gallery.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    min-height: 100px;
+    color: var(--color-neutral-500);
+}
+
+.gallery-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-4);
+}
+
+.gallery-header h3 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+    font-size: var(--font-size-lg);
+    color: var(--color-neutral-800);
+}
+
+.upload-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    background: var(--color-primary-600);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.upload-btn:hover:not(:disabled) {
+    background: var(--color-primary-700);
+}
+
+.upload-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.photos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: var(--space-3);
+}
+
+.no-photos {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: var(--space-6);
+    color: var(--color-neutral-400);
+    font-style: italic;
+}
+
+.photo-card {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--color-neutral-100);
+    cursor: pointer;
+    border: 1px solid var(--color-neutral-200);
+}
+
+.photo-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.photo-card:hover img {
+    transform: scale(1.05);
+}
+
+.photo-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: var(--space-2);
+    opacity: 0;
+    transition: all 0.2s;
+}
+
+.photo-card:hover .photo-overlay {
+    background: rgba(0, 0, 0, 0.4);
+    opacity: 1;
+}
+
+.delete-btn {
+    align-self: flex-end;
+    background: var(--color-accent-600);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.delete-btn:hover {
+    background: var(--color-accent-700);
+}
+
+.zoom-icon {
+    align-self: center;
+    color: white;
+    opacity: 0.8;
+}
+
+/* Modal */
+.photo-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: var(--space-4);
+    animation: fadeIn 0.2s;
+}
+
+.modal-content {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-content img {
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: var(--radius-md);
+}
+
+.close-modal {
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 8px;
+}
+
+.photo-info {
+    margin-top: var(--space-3);
+    color: white;
+    text-align: center;
+}
+
+.photo-date {
+    font-size: var(--font-size-sm);
+    opacity: 0.7;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}

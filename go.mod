@@ -3,6 +3,7 @@ module farmland
 go 1.24.0
 
 require (
+	github.com/jung-kurt/gofpdf v1.16.2
 	github.com/wailsapp/wails/v2 v2.11.0
 	modernc.org/sqlite v1.44.0
 )

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, Milk, Beef } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Milk, Beef, Download } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
 import { Modal } from '../components/ui/Modal';
 import { FormGroup, FormRow, Label, Input, Select, Textarea } from '../components/ui/Form';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/Table';
 import { EmptyState } from '../components/ui/EmptyState';
+import { PhotoGallery } from '../components/PhotoGallery';
 import './Livestock.css';
 
 const animalTypes = ['cow', 'bull', 'heifer', 'calf'];
@@ -112,6 +113,18 @@ export function Livestock() {
     const potentialMothers = animals.filter(a => a.gender === 'female' && a.id !== editingAnimal?.id);
     const potentialFathers = animals.filter(a => a.gender === 'male' && a.id !== editingAnimal?.id);
 
+    const handleExportPDF = async () => {
+        try {
+            const res = await window.go.main.ExportService.ExportAnimalsPDF();
+            if (res) {
+                alert(`Exported ${res.records} animals to ${res.path}`);
+            }
+        } catch (err) {
+            console.error('Export failed:', err);
+            alert('Failed to export PDF');
+        }
+    };
+
     return (
         <div className="livestock-page">
             <header className="page-header">
@@ -120,6 +133,7 @@ export function Livestock() {
                     <p>Manage your farm animals and track their records</p>
                 </div>
                 <div className="page-actions">
+                    <Button variant="outline" icon={Download} onClick={handleExportPDF}>Export PDF</Button>
                     <Button icon={Plus} onClick={() => { resetForm(); setEditingAnimal(null); setShowModal(true); }}>Add Animal</Button>
                 </div>
             </header>
@@ -217,8 +231,15 @@ export function Livestock() {
                             </Select>
                         </FormGroup>
                     </FormRow>
-                    <FormGroup><Label htmlFor="status">Status</Label><Select id="status" value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })}>{statuses.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}</Select></FormGroup>
+                    <FormRow>
+                        <FormGroup><Label htmlFor="status">Status</Label><Select id="status" value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })}>{statuses.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}</Select></FormGroup>
+                    </FormRow>
                     <FormGroup><Label htmlFor="notes">Notes</Label><Textarea id="notes" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Any additional notes..." rows={3} /></FormGroup>
+
+                    {editingAnimal && (
+                        <PhotoGallery entityType="animal" entityId={editingAnimal.id} />
+                    )}
+
                     <div className="modal-actions"><Button variant="outline" type="button" onClick={() => setShowModal(false)}>Cancel</Button><Button type="submit">{editingAnimal ? 'Update' : 'Add'} Animal</Button></div>
                 </form>
             </Modal>

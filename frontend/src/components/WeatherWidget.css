@@ -1,0 +1,125 @@
+.weather-widget {
+    background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-700));
+    border-radius: var(--radius-xl);
+    padding: var(--space-4);
+    color: white;
+    min-height: 120px;
+}
+
+.weather-widget.loading,
+.weather-widget.error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    background: var(--color-neutral-100);
+    color: var(--color-neutral-500);
+}
+
+.weather-widget.loading .spin {
+    animation: spin 1s linear infinite;
+}
+
+.weather-widget .retry-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-3);
+    background: var(--color-neutral-200);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-xs);
+    cursor: pointer;
+    color: var(--color-neutral-600);
+}
+
+.weather-widget .retry-btn:hover {
+    background: var(--color-neutral-300);
+}
+
+.weather-current {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+}
+
+.weather-icon {
+    font-size: 2.5rem;
+    line-height: 1;
+}
+
+.weather-temp {
+    flex: 1;
+}
+
+.temp-value {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    line-height: 1;
+}
+
+.temp-desc {
+    display: block;
+    font-size: var(--font-size-sm);
+    opacity: 0.9;
+    margin-top: 2px;
+}
+
+.weather-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.weather-detail {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--font-size-xs);
+    opacity: 0.85;
+}
+
+.weather-forecast {
+    display: flex;
+    justify-content: space-between;
+    padding-top: var(--space-3);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.forecast-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.forecast-name {
+    font-size: var(--font-size-xs);
+    opacity: 0.8;
+}
+
+.forecast-icon {
+    font-size: 1.25rem;
+}
+
+.forecast-temps {
+    display: flex;
+    gap: 4px;
+    font-size: var(--font-size-xs);
+}
+
+.temp-high {
+    font-weight: var(--font-weight-semibold);
+}
+
+.temp-low {
+    opacity: 0.7;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

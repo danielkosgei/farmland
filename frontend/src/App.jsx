@@ -10,6 +10,7 @@ import { Feed } from './pages/Feed';
 import { Health } from './pages/Health';
 import { Finances } from './pages/Finances';
 import { Breeding } from './pages/Breeding';
+import { Settings } from './pages/Settings';
 
 function App() {
     return (
@@ -24,6 +25,7 @@ function App() {
                 <Route path="health" element={<Health />} />
                 <Route path="finances" element={<Finances />} />
                 <Route path="breeding" element={<Breeding />} />
+                <Route path="settings" element={<Settings />} />
             </Route>
         </Routes>
     );

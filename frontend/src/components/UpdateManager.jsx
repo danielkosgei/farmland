@@ -212,12 +212,12 @@ export function UpdateManager({ isOpen, onClose }) {
     );
 }
 
-// Small component to trigger update check from anywhere
+// Small component to show update available badge
 export function UpdateBadge({ hasUpdate, onClick }) {
     if (!hasUpdate) return null;
     return (
-        <button className="update-badge" onClick={onClick} title="Update available">
-            <Download size={14} />
+        <button className="update-badge" onClick={onClick} title="Update available - click to update">
+            New
         </button>
     );
 }

@@ -60,6 +60,22 @@ export namespace main {
 		    return a;
 		}
 	}
+	export class BackupInfo {
+	    path: string;
+	    size: number;
+	    timestamp: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new BackupInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.path = source["path"];
+	        this.size = source["size"];
+	        this.timestamp = source["timestamp"];
+	    }
+	}
 	export class BreedingRecord {
 	    id: number;
 	    femaleId: number;
@@ -180,6 +196,54 @@ export namespace main {
 		    return a;
 		}
 	}
+	export class CurrentWeather {
+	    temperature: number;
+	    feelsLike: number;
+	    humidity: number;
+	    windSpeed: number;
+	    weatherCode: number;
+	    description: string;
+	    icon: string;
+	    isDay: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new CurrentWeather(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.temperature = source["temperature"];
+	        this.feelsLike = source["feelsLike"];
+	        this.humidity = source["humidity"];
+	        this.windSpeed = source["windSpeed"];
+	        this.weatherCode = source["weatherCode"];
+	        this.description = source["description"];
+	        this.icon = source["icon"];
+	        this.isDay = source["isDay"];
+	    }
+	}
+	export class DailyForecast {
+	    date: string;
+	    tempMax: number;
+	    tempMin: number;
+	    weatherCode: number;
+	    description: string;
+	    icon: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DailyForecast(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.date = source["date"];
+	        this.tempMax = source["tempMax"];
+	        this.tempMin = source["tempMin"];
+	        this.weatherCode = source["weatherCode"];
+	        this.description = source["description"];
+	        this.icon = source["icon"];
+	    }
+	}
 	export class DashboardStats {
 	    totalAnimals: number;
 	    activeCows: number;
@@ -226,6 +290,20 @@ export namespace main {
 	        this.isComplete = source["isComplete"];
 	        this.isError = source["isError"];
 	        this.errorMsg = source["errorMsg"];
+	    }
+	}
+	export class ExportResult {
+	    path: string;
+	    records: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new ExportResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.path = source["path"];
+	        this.records = source["records"];
 	    }
 	}
 	export class FeedGrinding {
@@ -562,6 +640,49 @@ export namespace main {
 		    return a;
 		}
 	}
+	export class Photo {
+	    id: number;
+	    entityType: string;
+	    entityId: number;
+	    filename: string;
+	    path: string;
+	    notes: string;
+	    // Go type: time
+	    createdAt: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new Photo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.entityType = source["entityType"];
+	        this.entityId = source["entityId"];
+	        this.filename = source["filename"];
+	        this.path = source["path"];
+	        this.notes = source["notes"];
+	        this.createdAt = this.convertValues(source["createdAt"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class RecentActivity {
 	    id: number;
 	    type: string;
@@ -600,6 +721,36 @@ export namespace main {
 		    }
 		    return a;
 		}
+	}
+	export class Reminder {
+	    id: number;
+	    type: string;
+	    title: string;
+	    description: string;
+	    dueDate: string;
+	    daysUntil: number;
+	    priority: string;
+	    entityType: string;
+	    entityId: number;
+	    entityName: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Reminder(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.type = source["type"];
+	        this.title = source["title"];
+	        this.description = source["description"];
+	        this.dueDate = source["dueDate"];
+	        this.daysUntil = source["daysUntil"];
+	        this.priority = source["priority"];
+	        this.entityType = source["entityType"];
+	        this.entityId = source["entityId"];
+	        this.entityName = source["entityName"];
+	    }
 	}
 	export class Transaction {
 	    id: number;
@@ -715,6 +866,40 @@ export namespace main {
 	        this.nextDueDate = source["nextDueDate"];
 	        this.notes = source["notes"];
 	        this.createdAt = this.convertValues(source["createdAt"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class WeatherData {
+	    current: CurrentWeather;
+	    forecast: DailyForecast[];
+	    location: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new WeatherData(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.current = this.convertValues(source["current"], CurrentWeather);
+	        this.forecast = this.convertValues(source["forecast"], DailyForecast);
+	        this.location = source["location"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

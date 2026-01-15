@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Beef, Milk, Wheat, DollarSign, AlertTriangle, Calendar, TrendingUp, Activity } from 'lucide-react';
+import { Beef, Milk, Wheat, DollarSign, Calendar, TrendingUp, Activity } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { StatCard } from '../components/ui/StatCard';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
+import { WeatherWidget } from '../components/WeatherWidget';
+import { NotificationCenter } from '../components/NotificationCenter';
 import './Dashboard.css';
 
 export function Dashboard() {
@@ -128,36 +130,8 @@ export function Dashboard() {
                 </Card>
 
                 <div className="side-cards">
-                    <Card className="alerts-card">
-                        <CardHeader>
-                            <div className="card-header-row">
-                                <CardTitle>Alerts</CardTitle>
-                                <AlertTriangle size={20} className="text-warning" />
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="alerts-list">
-                                {stats?.lowStockItems > 0 && (
-                                    <div className="alert-item alert-warning">
-                                        <span className="alert-icon">📦</span>
-                                        <span>{stats.lowStockItems} items low in stock</span>
-                                    </div>
-                                )}
-                                {stats?.pendingVetVisits > 0 && (
-                                    <div className="alert-item alert-info">
-                                        <span className="alert-icon">💉</span>
-                                        <span>{stats.pendingVetVisits} upcoming vet visits</span>
-                                    </div>
-                                )}
-                                {(!stats?.lowStockItems && !stats?.pendingVetVisits) && (
-                                    <div className="no-alerts">
-                                        <span>✓</span>
-                                        <p>No alerts at this time</p>
-                                    </div>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
+                    <WeatherWidget />
+                    <NotificationCenter />
 
                     <Card className="activity-card">
                         <CardHeader>
