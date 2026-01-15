@@ -101,30 +101,52 @@
     padding: var(--space-4);
 }
 
-.about-info h3 {
-    margin: 0 0 var(--space-2) 0;
-    font-size: var(--font-size-xl);
-    color: var(--color-primary-600);
+.about-title {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-neutral-900);
+    margin: 0;
 }
 
-.about-info p {
-    margin: var(--space-1) 0;
-    color: var(--color-neutral-600);
-}
-
-.about-info .version {
-    font-family: var(--font-family-mono);
-    font-size: var(--font-size-xs);
+.about-subtitle {
+    font-size: var(--font-size-sm);
     color: var(--color-neutral-500);
+    margin-top: var(--space-1);
 }
 
-.about-info .copyright {
-    margin-top: var(--space-4);
+.version-badge {
+    display: inline-block;
+    padding: var(--space-1) var(--space-3);
+    background: var(--color-neutral-100);
+    border: var(--border-thin);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-neutral-600);
+    font-family: var(--font-family-mono);
+}
+
+.copyright {
     font-size: var(--font-size-xs);
     color: var(--color-neutral-400);
 }
 
 /* Weather Settings Refinements */
+.current-location-pill {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    background: var(--bg-secondary);
+    border: var(--border-thin);
+    border-radius: var(--radius-md);
+    color: var(--color-neutral-900);
+}
+
+.block {
+    display: block;
+}
+
 .location-search {
     display: flex;
     flex-direction: column;
@@ -135,18 +157,24 @@
     position: relative;
     display: flex;
     align-items: center;
-    background: var(--bg-secondary);
+    background: var(--bg-primary);
     border: var(--border-thin);
     border-radius: var(--radius-md);
     padding: 0 var(--space-4);
-    height: 48px;
-    transition: all var(--transition-base);
+    height: 52px;
+    transition: all var(--transition-fast);
+}
+
+.search-input-wrapper:focus-within {
+    border-color: var(--color-primary-400);
+    background: var(--bg-secondary);
+    box-shadow: 0 0 0 3px var(--color-primary-50);
 }
 
 .search-input-wrapper input {
     width: 100%;
     height: 100%;
-    padding: 0;
+    padding: 0 var(--space-4) 0 var(--space-10);
     background: transparent;
     border: none;
     font-size: var(--font-size-sm);
@@ -170,8 +198,7 @@
 }
 
 .search-input-wrapper input:focus {
-    border-color: var(--color-primary-500);
-    background: white;
+    background: transparent;
 }
 
 .search-results {
@@ -188,22 +215,31 @@
 .search-result-item {
     display: flex;
     align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-3) var(--space-4);
-    background: white;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    background: var(--bg-secondary);
     border: var(--border-thin);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     cursor: pointer;
-    transition: all var(--transition-base);
+    transition: all var(--transition-fast);
 }
 
 .search-result-item:hover {
-    border-color: var(--color-primary-400);
-    background: var(--bg-primary);
+    border-color: var(--color-primary-300);
+    background: var(--color-primary-50);
+    transform: translateY(-2px);
 }
 
-.search-result-item svg {
-    color: var(--color-neutral-400);
+.search-result-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-primary);
+    border-radius: var(--radius-md);
+    color: var(--color-primary-500);
+    border: var(--border-thin);
     flex-shrink: 0;
 }
 
@@ -227,11 +263,12 @@
 .res-coords {
     font-size: 10px;
     font-family: var(--font-family-mono);
-    color: var(--color-neutral-400);
-    background: var(--color-neutral-50);
-    padding: 2px 6px;
-    border-radius: 4px;
-    border: 1px solid var(--color-neutral-100);
+    color: var(--color-neutral-500);
+    background: var(--color-neutral-100);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    border: var(--border-thin);
+    font-weight: var(--font-weight-medium);
 }
 
 .settings-note {

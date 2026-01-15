@@ -14,10 +14,12 @@ export function Settings() {
     const [searchResults, setSearchResults] = useState([]);
     const [searching, setSearching] = useState(false);
     const [confirmRestore, setConfirmRestore] = useState(false);
+    const [currentLocation, setCurrentLocation] = useState(null);
 
     useEffect(() => {
         loadDatabaseInfo();
         loadVersion();
+        loadWeatherLocation();
     }, []);
 
     // Debounced search effect
@@ -109,6 +111,18 @@ export function Settings() {
         }
     };
 
+    const loadWeatherLocation = async () => {
+        if (!window.go?.main?.WeatherService) return;
+        try {
+            const weather = await window.go.main.WeatherService.GetWeather();
+            if (weather && weather.location && weather.location !== "Local Area") {
+                setCurrentLocation(weather.location);
+            }
+        } catch (err) {
+            console.error('Failed to get weather location:', err);
+        }
+    };
+
     const handleSearchLocation = async () => {
         if (!searchQuery.trim()) return;
         setSearching(true);
@@ -125,8 +139,10 @@ export function Settings() {
     const handleSaveLocation = async (loc) => {
         setLoading(true);
         try {
-            await window.go.main.WeatherService.SaveWeatherLocation(loc.latitude, loc.longitude, `${loc.name}, ${loc.country}`);
+            const locName = `${loc.name}, ${loc.country}`;
+            await window.go.main.WeatherService.SaveWeatherLocation(loc.latitude, loc.longitude, locName);
             setMessage({ type: 'success', text: `Weather location updated to ${loc.name}` });
+            setCurrentLocation(locName);
             setSearchResults([]);
             setSearchQuery('');
         } catch (err) {
@@ -205,6 +221,15 @@ export function Settings() {
                     </CardHeader>
                     <CardContent>
                         <div className="location-search">
+                            {currentLocation && (
+                                <div className="current-location-display mb-4">
+                                    <span className="data-label block mb-2">Current Location</span>
+                                    <div className="current-location-pill">
+                                        <MapPin size={16} className="text-primary-500" />
+                                        <span className="font-bold text-sm">{currentLocation}</span>
+                                    </div>
+                                </div>
+                            )}
                             <div className="search-input-wrapper">
                                 <Search size={18} className="search-icon" />
                                 <input
@@ -271,10 +296,12 @@ export function Settings() {
                     </CardHeader>
                     <CardContent>
                         <div className="about-info">
-                            <h3 className="font-bold text-lg">Farmland</h3>
-                            <p className="text-sm text-neutral-500">Farm Management System</p>
-                            <p className="version font-mono font-bold text-primary-600 mt-2">Version: {version || 'Loading...'}</p>
-                            <p className="copyright text-xs text-neutral-400 mt-4 italic">© 2026 Daniel Kosgei</p>
+                            <h3 className="about-title">Farmland</h3>
+                            <p className="about-subtitle">Farm Management System</p>
+                            <div className="about-details mt-4">
+                                <span className="version-badge">Version {version || 'Loading...'}</span>
+                                <p className="copyright mt-6">© 2026 Daniel Kosgei • All Rights Reserved</p>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
