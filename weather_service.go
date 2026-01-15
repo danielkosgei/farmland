@@ -67,13 +67,92 @@ type openMeteoResponse struct {
 	} `json:"daily"`
 }
 
+// SearchResult represents a location from the geocoding API
+type SearchResult struct {
+	ID        int     `json:"id"`
+	Name      string  `json:"name"`
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+	Country   string  `json:"country"`
+	Admin1    string  `json:"admin1,omitempty"` // State/Province
+}
+
+// SearchLocations searches for cities/towns using Open-Meteo Geocoding API
+func (s *WeatherService) SearchLocations(query string) ([]SearchResult, error) {
+	if query == "" {
+		return []SearchResult{}, nil
+	}
+
+	url := fmt.Sprintf("https://geocoding-api.open-meteo.com/v1/search?name=%s&count=5&language=en&format=json", query)
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var result struct {
+		Results []SearchResult `json:"results"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	return result.Results, nil
+}
+
+// SaveWeatherLocation saves the selected location to the database
+func (s *WeatherService) SaveWeatherLocation(lat, lng float64, name string) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	settings := map[string]string{
+		"weather_lat":           fmt.Sprintf("%.4f", lat),
+		"weather_lng":           "%.4f",
+		"weather_location_name": name,
+	}
+
+	// Correcting formatting for lng
+	settings["weather_lng"] = fmt.Sprintf("%.4f", lng)
+
+	for k, v := range settings {
+		_, err = tx.Exec(`INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)`, k, v)
+		if err != nil {
+			return err
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	// Clear cache to force refresh
+	s.cacheMutex.Lock()
+	s.cache = nil
+	s.cacheMutex.Unlock()
+
+	return nil
+}
+
 // GetWeather returns current weather and 5-day forecast
-// Default location: Nairobi, Kenya (can be customized later)
-func (s *WeatherService) GetWeather(lat, lng float64) (*WeatherData, error) {
-	// Use default location if not specified
-	if lat == 0 && lng == 0 {
-		lat = -1.2921 // Nairobi, Kenya
+func (s *WeatherService) GetWeather() (*WeatherData, error) {
+	var lat, lng float64
+	var locationName string
+
+	// Try to get from settings
+	err := db.QueryRow(`SELECT value FROM settings WHERE key = 'weather_lat'`).Scan(&lat)
+	if err != nil {
+		lat = -1.2921 // Nairobi
+	}
+	err = db.QueryRow(`SELECT value FROM settings WHERE key = 'weather_lng'`).Scan(&lng)
+	if err != nil {
 		lng = 36.8219
+	}
+	err = db.QueryRow(`SELECT value FROM settings WHERE key = 'weather_location_name'`).Scan(&locationName)
+	if err != nil {
+		locationName = "Local Area"
 	}
 
 	// Check cache (30 minute validity)

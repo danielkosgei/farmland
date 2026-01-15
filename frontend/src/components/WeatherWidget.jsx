@@ -15,8 +15,7 @@ export function WeatherWidget() {
         setLoading(true);
         setError(null);
         try {
-            // Use default location (0,0 means use defaults - Nairobi)
-            const data = await window.go.main.WeatherService.GetWeather(0, 0);
+            const data = await window.go.main.WeatherService.GetWeather();
             setWeather(data);
         } catch (err) {
             setError('Failed to load weather');
@@ -60,6 +59,7 @@ export function WeatherWidget() {
 
     return (
         <div className="weather-widget">
+            <div className="weather-location">{weather.location}</div>
             <div className="weather-current">
                 <div className="weather-icon">{weather.current.icon}</div>
                 <div className="weather-temp">

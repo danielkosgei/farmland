@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Database, Download, Upload, HardDrive, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
+import { Database, Download, Upload, HardDrive, RefreshCw, CheckCircle, AlertCircle, Search, MapPin, Sun } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import './Settings.css';
@@ -9,6 +9,9 @@ export function Settings() {
     const [version, setVersion] = useState('');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [searching, setSearching] = useState(false);
 
     useEffect(() => {
         loadDatabaseInfo();
@@ -89,6 +92,33 @@ export function Settings() {
         }
     };
 
+    const handleSearchLocation = async () => {
+        if (!searchQuery.trim()) return;
+        setSearching(true);
+        try {
+            const results = await window.go.main.WeatherService.SearchLocations(searchQuery);
+            setSearchResults(results || []);
+        } catch (err) {
+            console.error('Search failed:', err);
+        } finally {
+            setSearching(false);
+        }
+    };
+
+    const handleSaveLocation = async (loc) => {
+        setLoading(true);
+        try {
+            await window.go.main.WeatherService.SaveWeatherLocation(loc.latitude, loc.longitude, `${loc.name}, ${loc.country}`);
+            setMessage({ type: 'success', text: `Weather location updated to ${loc.name}` });
+            setSearchResults([]);
+            setSearchQuery('');
+        } catch (err) {
+            setMessage({ type: 'error', text: 'Failed to save location' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="page-container animate-fade-in">
             <div className="page-header">
@@ -136,6 +166,51 @@ export function Settings() {
 
                         <p className="backup-note">
                             Backups include all your farm data. Store backups in a safe location.
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle><Sun size={20} /> Weather Settings</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="location-search">
+                            <div className="search-input-group">
+                                <input
+                                    type="text"
+                                    placeholder="Search for your city/town..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onKeyPress={(e) => e.key === 'Enter' && handleSearchLocation()}
+                                />
+                                <Button
+                                    icon={Search}
+                                    onClick={handleSearchLocation}
+                                    disabled={searching}
+                                    variant="secondary"
+                                >
+                                    {searching ? '...' : 'Search'}
+                                </Button>
+                            </div>
+
+                            {searchResults.length > 0 && (
+                                <div className="search-results">
+                                    {searchResults.map((loc) => (
+                                        <div key={loc.id} className="search-result-item" onClick={() => handleSaveLocation(loc)}>
+                                            <MapPin size={14} />
+                                            <div className="res-details">
+                                                <span className="res-name">{loc.name}</span>
+                                                <span className="res-admin">{loc.admin1}, {loc.country}</span>
+                                            </div>
+                                            <span className="res-coords">{loc.latitude.toFixed(2)}, {loc.longitude.toFixed(2)}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <p className="settings-note">
+                            Set your farm's location to get accurate weather forecasts on the dashboard.
                         </p>
                     </CardContent>
                 </Card>

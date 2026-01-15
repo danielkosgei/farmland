@@ -211,6 +211,11 @@ func createTables() error {
 			notes TEXT,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)`,
+		`CREATE TABLE IF NOT EXISTS settings (
+			key TEXT PRIMARY KEY,
+			value TEXT NOT NULL,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		)`,
 	}
 
 	for _, table := range tables {
@@ -256,6 +261,17 @@ func runMigrations() {
 
 	for _, m := range migrations {
 		_, _ = db.Exec(m) // Ignore errors (column may already exist)
+	}
+
+	// Initialize default settings
+	defaultSettings := map[string]string{
+		"weather_lat":           "-1.2921",
+		"weather_lng":           "36.8219",
+		"weather_location_name": "Nairobi, Kenya",
+	}
+
+	for k, v := range defaultSettings {
+		_, _ = db.Exec(`INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)`, k, v)
 	}
 }
 

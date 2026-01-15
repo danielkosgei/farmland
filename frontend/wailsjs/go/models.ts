@@ -752,6 +752,28 @@ export namespace main {
 	        this.entityName = source["entityName"];
 	    }
 	}
+	export class SearchResult {
+	    id: number;
+	    name: string;
+	    latitude: number;
+	    longitude: number;
+	    country: string;
+	    admin1?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new SearchResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	        this.latitude = source["latitude"];
+	        this.longitude = source["longitude"];
+	        this.country = source["country"];
+	        this.admin1 = source["admin1"];
+	    }
+	}
 	export class Transaction {
 	    id: number;
 	    date: string;
