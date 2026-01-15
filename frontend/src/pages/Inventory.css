@@ -1,0 +1,200 @@
+.inventory-page {
+    animation: fadeIn var(--transition-base) ease-out;
+}
+
+.low-stock-alert {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-6);
+    background: var(--color-secondary-50);
+    border: 1px solid var(--color-secondary-200);
+    border-radius: var(--radius-lg);
+    color: var(--color-secondary-800);
+    font-weight: var(--font-weight-medium);
+    margin-bottom: var(--space-6);
+}
+
+.inventory-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-4) var(--space-6);
+    border-bottom: 1px solid var(--color-neutral-100);
+    background: var(--color-neutral-50);
+    overflow-x: auto;
+}
+
+.category-filters {
+    display: flex;
+    gap: var(--space-2);
+}
+
+.filter-btn {
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--color-neutral-200);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-neutral-600);
+    cursor: pointer;
+    text-transform: capitalize;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+}
+
+.filter-btn:hover {
+    border-color: var(--color-primary-300);
+    color: var(--color-primary-600);
+}
+
+.filter-btn.active {
+    background: var(--color-primary-500);
+    border-color: var(--color-primary-500);
+    color: white;
+}
+
+.item-count {
+    font-size: var(--font-size-sm);
+    color: var(--color-neutral-500);
+    white-space: nowrap;
+}
+
+.item-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.item-name {
+    font-weight: var(--font-weight-medium);
+}
+
+.item-supplier {
+    font-size: var(--font-size-xs);
+    color: var(--color-neutral-500);
+}
+
+.category-badge {
+    display: inline-block;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    text-transform: capitalize;
+}
+
+.cat-feed {
+    background: var(--color-secondary-100);
+    color: var(--color-secondary-800);
+}
+
+.cat-equipment {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.cat-supplies {
+    background: var(--color-neutral-100);
+    color: var(--color-neutral-700);
+}
+
+.cat-seeds {
+    background: var(--color-primary-100);
+    color: var(--color-primary-700);
+}
+
+.cat-fertilizer {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.cat-medicine {
+    background: #fce7f3;
+    color: #9d174d;
+}
+
+.cat-tools {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.cat-fuel {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.stock-status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+}
+
+.stock-status.ok {
+    background: var(--color-primary-100);
+    color: var(--color-primary-700);
+}
+
+.stock-status.low {
+    background: var(--color-accent-100);
+    color: var(--color-accent-700);
+}
+
+.low-stock-row {
+    background: var(--color-accent-50) !important;
+}
+
+.loading-container {
+    display: flex;
+    justify-content: center;
+    padding: var(--space-16);
+}
+
+.action-buttons {
+    display: flex;
+    gap: var(--space-2);
+}
+
+.action-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.action-btn.edit {
+    background: var(--color-neutral-100);
+    color: var(--color-neutral-600);
+}
+
+.action-btn.edit:hover {
+    background: var(--color-neutral-200);
+}
+
+.action-btn.delete {
+    background: var(--color-accent-50);
+    color: var(--color-accent-600);
+}
+
+.action-btn.delete:hover {
+    background: var(--color-accent-100);
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-neutral-100);
+}

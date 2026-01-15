@@ -2,26 +2,50 @@ package main
 
 import (
 	"context"
-	"fmt"
 )
 
 // App struct
 type App struct {
-	ctx context.Context
+	ctx       context.Context
+	Livestock *LivestockService
+	Crops     *CropsService
+	Inventory *InventoryService
+	Feed      *FeedService
+	Health    *HealthService
+	Financial *FinancialService
+	Dashboard *DashboardService
 }
 
 // NewApp creates a new App application struct
 func NewApp() *App {
-	return &App{}
+	livestock := NewLivestockService()
+	crops := NewCropsService()
+	inventory := NewInventoryService()
+	feed := NewFeedService()
+	health := NewHealthService()
+	financial := NewFinancialService()
+	dashboard := NewDashboardService(livestock, crops, inventory, health, financial)
+
+	return &App{
+		Livestock: livestock,
+		Crops:     crops,
+		Inventory: inventory,
+		Feed:      feed,
+		Health:    health,
+		Financial: financial,
+		Dashboard: dashboard,
+	}
 }
 
-// startup is called when the app starts. The context is saved
-// so we can call the runtime methods
+// startup is called when the app starts
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	if err := InitDatabase(); err != nil {
+		println("Database initialization error:", err.Error())
+	}
 }
 
-// Greet returns a greeting for the given name
-func (a *App) Greet(name string) string {
-	return fmt.Sprintf("Hello %s, It's show time!", name)
+// shutdown is called when the app is closing
+func (a *App) shutdown(ctx context.Context) {
+	CloseDatabase()
 }

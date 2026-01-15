@@ -1,0 +1,149 @@
+.crops-page {
+    animation: fadeIn var(--transition-base) ease-out;
+}
+
+.fields-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-6);
+}
+
+.field-card {
+    padding: var(--space-6);
+}
+
+.field-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-4);
+}
+
+.field-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--color-primary-100) 0%, var(--color-primary-50) 100%);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-primary-600);
+}
+
+.field-actions {
+    display: flex;
+    gap: var(--space-2);
+}
+
+.action-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: var(--color-neutral-100);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-neutral-500);
+    transition: all var(--transition-fast);
+}
+
+.action-btn:hover {
+    background: var(--color-neutral-200);
+    color: var(--color-neutral-700);
+}
+
+.action-btn.delete:hover {
+    background: var(--color-accent-100);
+    color: var(--color-accent-600);
+}
+
+.field-name {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-neutral-900);
+    margin: 0 0 var(--space-1) 0;
+}
+
+.field-location {
+    font-size: var(--font-size-sm);
+    color: var(--color-neutral-500);
+    margin: 0 0 var(--space-3) 0;
+}
+
+.field-meta {
+    display: flex;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+}
+
+.field-size {
+    font-size: var(--font-size-sm);
+    color: var(--color-neutral-600);
+    background: var(--color-neutral-100);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+}
+
+.field-status {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-full);
+    text-transform: capitalize;
+}
+
+.status-fallow {
+    background: var(--color-neutral-100);
+    color: var(--color-neutral-600);
+}
+
+.status-planted {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.status-growing {
+    background: var(--color-primary-100);
+    color: var(--color-primary-700);
+}
+
+.status-harvest {
+    background: var(--color-secondary-100);
+    color: var(--color-secondary-800);
+}
+
+.current-crop {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--font-size-sm);
+    color: var(--color-primary-600);
+    font-weight: var(--font-weight-medium);
+    margin-bottom: var(--space-4);
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-primary-50);
+    border-radius: var(--radius-md);
+}
+
+.field-footer {
+    border-top: 1px solid var(--color-neutral-100);
+    padding-top: var(--space-4);
+    margin-top: var(--space-2);
+}
+
+.loading-container {
+    display: flex;
+    justify-content: center;
+    padding: var(--space-16);
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-neutral-100);
+}

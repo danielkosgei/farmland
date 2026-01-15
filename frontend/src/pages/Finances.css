@@ -1,0 +1,181 @@
+.finances-page {
+    animation: fadeIn var(--transition-base) ease-out;
+}
+
+.finance-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-6);
+    margin-bottom: var(--space-8);
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-6) !important;
+}
+
+.stat-card.income .stat-icon {
+    background: var(--color-primary-100);
+    color: var(--color-primary-600);
+}
+
+.stat-card.expense .stat-icon {
+    background: var(--color-accent-100);
+    color: var(--color-accent-600);
+}
+
+.stat-card.profit .stat-icon {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.stat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stat-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-value {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-neutral-900);
+}
+
+.stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-neutral-500);
+}
+
+.finance-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: var(--space-6);
+}
+
+.chart-card {
+    height: fit-content;
+}
+
+.chart-container {
+    height: 250px;
+}
+
+.transactions-toolbar {
+    padding: var(--space-4) var(--space-6);
+    border-bottom: 1px solid var(--color-neutral-100);
+    background: var(--color-neutral-50);
+}
+
+.type-filters {
+    display: flex;
+    gap: var(--space-2);
+}
+
+.filter-btn {
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--color-neutral-200);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-neutral-600);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.filter-btn:hover {
+    border-color: var(--color-neutral-400);
+}
+
+.filter-btn.active {
+    background: var(--color-neutral-800);
+    border-color: var(--color-neutral-800);
+    color: white;
+}
+
+.filter-btn.income.active {
+    background: var(--color-primary-500);
+    border-color: var(--color-primary-500);
+}
+
+.filter-btn.expense.active {
+    background: var(--color-accent-500);
+    border-color: var(--color-accent-500);
+}
+
+.cat-badge {
+    display: inline-block;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    text-transform: capitalize;
+}
+
+.cat-badge.cat-income {
+    background: var(--color-primary-100);
+    color: var(--color-primary-700);
+}
+
+.cat-badge.cat-expense {
+    background: var(--color-accent-100);
+    color: var(--color-accent-700);
+}
+
+.amount {
+    font-weight: var(--font-weight-semibold);
+}
+
+.amount.income {
+    color: var(--color-primary-600);
+}
+
+.amount.expense {
+    color: var(--color-accent-600);
+}
+
+.loading-container {
+    display: flex;
+    justify-content: center;
+    padding: var(--space-16);
+}
+
+.action-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.action-btn.delete {
+    background: var(--color-accent-50);
+    color: var(--color-accent-600);
+}
+
+.action-btn.delete:hover {
+    background: var(--color-accent-100);
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-neutral-100);
+}

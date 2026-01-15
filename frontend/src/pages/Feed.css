@@ -1,0 +1,81 @@
+.feed-page {
+    animation: fadeIn var(--transition-base) ease-out;
+}
+
+.feed-grid {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: var(--space-6);
+    margin-bottom: var(--space-6);
+}
+
+.feed-types-card {
+    height: fit-content;
+}
+
+.feed-types-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.feed-type-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-3);
+    background: var(--color-neutral-50);
+    border-radius: var(--radius-md);
+}
+
+.feed-type-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.feed-type-name {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-neutral-900);
+}
+
+.feed-type-category {
+    font-size: var(--font-size-xs);
+    color: var(--color-neutral-500);
+    text-transform: capitalize;
+}
+
+.feed-type-cost {
+    font-size: var(--font-size-xs);
+    color: var(--color-primary-600);
+    font-weight: var(--font-weight-medium);
+}
+
+.card-header-bar {
+    padding: var(--space-4) var(--space-6);
+    border-bottom: 1px solid var(--color-neutral-100);
+    background: var(--color-neutral-50);
+}
+
+.card-header-bar h3 {
+    margin: 0;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+}
+
+.grinding-card {
+    margin-top: var(--space-6);
+}
+
+.capitalize {
+    text-transform: capitalize;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-neutral-100);
+}

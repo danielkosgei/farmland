@@ -1,0 +1,114 @@
+.stat-card {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+}
+
+.stat-card--primary::before {
+    background: linear-gradient(90deg, var(--color-primary-400), var(--color-primary-600));
+}
+
+.stat-card--secondary::before {
+    background: linear-gradient(90deg, var(--color-secondary-400), var(--color-secondary-600));
+}
+
+.stat-card--accent::before {
+    background: linear-gradient(90deg, var(--color-accent-400), var(--color-accent-600));
+}
+
+.stat-card--info::before {
+    background: linear-gradient(90deg, #60a5fa, #3b82f6);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-4);
+}
+
+.stat-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stat-card--primary .stat-card-icon {
+    background: var(--color-primary-100);
+    color: var(--color-primary-600);
+}
+
+.stat-card--secondary .stat-card-icon {
+    background: var(--color-secondary-100);
+    color: var(--color-secondary-700);
+}
+
+.stat-card--accent .stat-card-icon {
+    background: var(--color-accent-100);
+    color: var(--color-accent-600);
+}
+
+.stat-card--info .stat-card-icon {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.stat-card-trend {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-full);
+}
+
+.stat-card-trend.trend-up {
+    background: var(--color-primary-100);
+    color: var(--color-primary-700);
+}
+
+.stat-card-trend.trend-down {
+    background: var(--color-accent-100);
+    color: var(--color-accent-700);
+}
+
+.stat-card-value {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-neutral-900);
+    margin: 0 0 var(--space-1) 0;
+    line-height: 1;
+}
+
+.stat-card-title {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-neutral-600);
+    margin: 0;
+}
+
+.stat-card-subtitle {
+    font-size: var(--font-size-xs);
+    color: var(--color-neutral-400);
+    margin: var(--space-1) 0 0 0;
+}

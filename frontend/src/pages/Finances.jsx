@@ -1,0 +1,194 @@
+import React, { useState, useEffect } from 'react';
+import { Plus, DollarSign, TrendingUp, TrendingDown, Edit2, Trash2 } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { Button } from '../components/ui/Button';
+import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
+import { Modal } from '../components/ui/Modal';
+import { FormGroup, FormRow, Label, Input, Select, Textarea } from '../components/ui/Form';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/Table';
+import { EmptyState } from '../components/ui/EmptyState';
+import './Finances.css';
+
+const incomeCategories = ['milk_sales', 'crop_sales', 'livestock_sales', 'other_income'];
+const expenseCategories = ['feed', 'veterinary', 'labor', 'equipment', 'seeds', 'fertilizer', 'fuel', 'maintenance', 'transport', 'utilities', 'other_expense'];
+const paymentMethods = ['cash', 'mpesa', 'bank'];
+
+export function Finances() {
+    const [transactions, setTransactions] = useState([]);
+    const [summary, setSummary] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [showModal, setShowModal] = useState(false);
+    const [filterType, setFilterType] = useState('all');
+    const [formData, setFormData] = useState({ date: new Date().toISOString().split('T')[0], type: 'income', category: 'milk_sales', description: '', amount: '', paymentMethod: 'cash', relatedEntity: '', notes: '' });
+
+    useEffect(() => { loadData(); }, []);
+
+    const loadData = async () => {
+        try {
+            const [trans, sum] = await Promise.all([
+                window.go.main.FinancialService.GetTransactions('', '', '', ''),
+                window.go.main.FinancialService.GetFinancialSummary('', '')
+            ]);
+            setTransactions(trans || []);
+            setSummary(sum);
+        } catch (err) { console.error(err); }
+        finally { setLoading(false); }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await window.go.main.FinancialService.AddTransaction({
+                date: formData.date,
+                type: formData.type,
+                category: formData.category,
+                description: formData.description,
+                amount: parseFloat(formData.amount) || 0,
+                paymentMethod: formData.paymentMethod,
+                relatedEntity: formData.relatedEntity,
+                notes: formData.notes
+            });
+            setShowModal(false);
+            resetForm();
+            loadData();
+        } catch (err) { console.error(err); }
+    };
+
+    const handleDelete = async (id) => {
+        if (window.confirm('Delete this transaction?')) {
+            try {
+                await window.go.main.FinancialService.DeleteTransaction(id);
+                loadData();
+            } catch (err) { console.error(err); }
+        }
+    };
+
+    const resetForm = () => setFormData({ date: new Date().toISOString().split('T')[0], type: 'income', category: 'milk_sales', description: '', amount: '', paymentMethod: 'cash', relatedEntity: '', notes: '' });
+
+    const formatCurrency = (amt) => new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(amt || 0);
+
+    const filteredTransactions = filterType === 'all' ? transactions : transactions.filter(t => t.type === filterType);
+
+    const chartData = [
+        { name: 'Income', value: summary?.totalIncome || 0, fill: '#22c55e' },
+        { name: 'Expenses', value: summary?.totalExpenses || 0, fill: '#ef4444' }
+    ];
+
+    return (
+        <div className="finances-page">
+            <header className="page-header">
+                <div className="page-header-content">
+                    <h1>Finances</h1>
+                    <p>Track income, expenses, and financial reports</p>
+                </div>
+                <Button icon={Plus} onClick={() => { resetForm(); setShowModal(true); }}>Add Transaction</Button>
+            </header>
+
+            <div className="finance-stats">
+                <Card className="stat-card income">
+                    <div className="stat-icon"><TrendingUp size={24} /></div>
+                    <div className="stat-content">
+                        <span className="stat-value">{formatCurrency(summary?.totalIncome)}</span>
+                        <span className="stat-label">Total Income</span>
+                    </div>
+                </Card>
+                <Card className="stat-card expense">
+                    <div className="stat-icon"><TrendingDown size={24} /></div>
+                    <div className="stat-content">
+                        <span className="stat-value">{formatCurrency(summary?.totalExpenses)}</span>
+                        <span className="stat-label">Total Expenses</span>
+                    </div>
+                </Card>
+                <Card className="stat-card profit">
+                    <div className="stat-icon"><DollarSign size={24} /></div>
+                    <div className="stat-content">
+                        <span className="stat-value">{formatCurrency(summary?.netProfit)}</span>
+                        <span className="stat-label">Net Profit</span>
+                    </div>
+                </Card>
+            </div>
+
+            <div className="finance-grid">
+                <Card className="chart-card">
+                    <CardHeader><CardTitle>Income vs Expenses</CardTitle></CardHeader>
+                    <CardContent>
+                        <div className="chart-container">
+                            <ResponsiveContainer width="100%" height={250}>
+                                <BarChart data={chartData} layout="vertical">
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis type="number" tickFormatter={(val) => `${(val / 1000).toFixed(0)}K`} />
+                                    <YAxis type="category" dataKey="name" width={80} />
+                                    <Tooltip formatter={(value) => formatCurrency(value)} />
+                                    <Bar dataKey="value" radius={[0, 8, 8, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card padding="none" className="transactions-card">
+                    <div className="transactions-toolbar">
+                        <div className="type-filters">
+                            <button className={`filter-btn ${filterType === 'all' ? 'active' : ''}`} onClick={() => setFilterType('all')}>All</button>
+                            <button className={`filter-btn income ${filterType === 'income' ? 'active' : ''}`} onClick={() => setFilterType('income')}>Income</button>
+                            <button className={`filter-btn expense ${filterType === 'expense' ? 'active' : ''}`} onClick={() => setFilterType('expense')}>Expenses</button>
+                        </div>
+                    </div>
+
+                    {loading ? (
+                        <div className="loading-container"><div className="loading-spinner"></div></div>
+                    ) : transactions.length === 0 ? (
+                        <EmptyState icon={DollarSign} title="No transactions" description="Start recording your income and expenses" action={<Button icon={Plus} onClick={() => setShowModal(true)}>Add Transaction</Button>} />
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead>Description</TableHead>
+                                    <TableHead>Category</TableHead>
+                                    <TableHead>Amount</TableHead>
+                                    <TableHead>Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredTransactions.slice(0, 15).map(trans => (
+                                    <TableRow key={trans.id}>
+                                        <TableCell>{new Date(trans.date).toLocaleDateString('en-KE')}</TableCell>
+                                        <TableCell>{trans.description || '-'}</TableCell>
+                                        <TableCell><span className={`cat-badge cat-${trans.type}`}>{trans.category.replace('_', ' ')}</span></TableCell>
+                                        <TableCell className={`amount ${trans.type}`}>
+                                            {trans.type === 'income' ? '+' : '-'}{formatCurrency(trans.amount)}
+                                        </TableCell>
+                                        <TableCell>
+                                            <button className="action-btn delete" onClick={() => handleDelete(trans.id)}><Trash2 size={16} /></button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    )}
+                </Card>
+            </div>
+
+            <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Add Transaction" size="md">
+                <form onSubmit={handleSubmit}>
+                    <FormRow>
+                        <FormGroup><Label htmlFor="transDate" required>Date</Label><Input id="transDate" type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} required /></FormGroup>
+                        <FormGroup><Label htmlFor="transType">Type</Label><Select id="transType" value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value, category: e.target.value === 'income' ? 'milk_sales' : 'feed' })}><option value="income">Income</option><option value="expense">Expense</option></Select></FormGroup>
+                    </FormRow>
+                    <FormRow>
+                        <FormGroup><Label htmlFor="transCat">Category</Label><Select id="transCat" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })}>{(formData.type === 'income' ? incomeCategories : expenseCategories).map(c => <option key={c} value={c}>{c.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}</Select></FormGroup>
+                        <FormGroup><Label htmlFor="transAmt" required>Amount (KES)</Label><Input id="transAmt" type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} required /></FormGroup>
+                    </FormRow>
+                    <FormGroup><Label htmlFor="transDesc">Description</Label><Input id="transDesc" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="e.g., Sold 50 liters milk" /></FormGroup>
+                    <FormRow>
+                        <FormGroup><Label htmlFor="payMethod">Payment Method</Label><Select id="payMethod" value={formData.paymentMethod} onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}>{paymentMethods.map(p => <option key={p} value={p}>{p.toUpperCase()}</option>)}</Select></FormGroup>
+                        <FormGroup><Label htmlFor="relEntity">Related To</Label><Input id="relEntity" value={formData.relatedEntity} onChange={(e) => setFormData({ ...formData, relatedEntity: e.target.value })} placeholder="e.g., Cow: Daisy" /></FormGroup>
+                    </FormRow>
+                    <FormGroup><Label htmlFor="transNotes">Notes</Label><Textarea id="transNotes" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} rows={2} /></FormGroup>
+                    <div className="modal-actions"><Button variant="outline" type="button" onClick={() => setShowModal(false)}>Cancel</Button><Button type="submit">Save Transaction</Button></div>
+                </form>
+            </Modal>
+        </div>
+    );
+}

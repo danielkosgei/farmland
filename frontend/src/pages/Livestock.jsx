@@ -1,0 +1,194 @@
+import React, { useState, useEffect } from 'react';
+import { Plus, Search, Edit2, Trash2, Milk, Beef } from 'lucide-react';
+import { Button } from '../components/ui/Button';
+import { Card, CardContent } from '../components/ui/Card';
+import { Modal } from '../components/ui/Modal';
+import { FormGroup, FormRow, Label, Input, Select, Textarea } from '../components/ui/Form';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/Table';
+import { EmptyState } from '../components/ui/EmptyState';
+import './Livestock.css';
+
+const animalTypes = ['cow', 'bull', 'heifer', 'calf'];
+const breeds = ['Friesian', 'Ayrshire', 'Jersey', 'Guernsey', 'Sahiwal', 'Boran', 'Mixed'];
+const statuses = ['active', 'sold', 'deceased'];
+
+export function Livestock() {
+    const [animals, setAnimals] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [showModal, setShowModal] = useState(false);
+    const [showMilkModal, setShowMilkModal] = useState(false);
+    const [editingAnimal, setEditingAnimal] = useState(null);
+    const [selectedAnimal, setSelectedAnimal] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [formData, setFormData] = useState({ tagNumber: '', name: '', type: 'cow', breed: '', dateOfBirth: '', gender: 'female', status: 'active', notes: '' });
+    const [milkForm, setMilkForm] = useState({ date: new Date().toISOString().split('T')[0], morningLiters: '', eveningLiters: '', notes: '' });
+
+    useEffect(() => { loadAnimals(); }, []);
+
+    const loadAnimals = async () => {
+        try {
+            const data = await window.go.main.LivestockService.GetAllAnimals();
+            setAnimals(data || []);
+        } catch (err) { console.error(err); }
+        finally { setLoading(false); }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            if (editingAnimal) {
+                await window.go.main.LivestockService.UpdateAnimal({ ...formData, id: editingAnimal.id });
+            } else {
+                await window.go.main.LivestockService.AddAnimal(formData);
+            }
+            setShowModal(false);
+            setEditingAnimal(null);
+            resetForm();
+            loadAnimals();
+        } catch (err) { console.error(err); }
+    };
+
+    const handleMilkSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await window.go.main.LivestockService.AddMilkRecord({
+                animalId: selectedAnimal.id,
+                date: milkForm.date,
+                morningLiters: parseFloat(milkForm.morningLiters) || 0,
+                eveningLiters: parseFloat(milkForm.eveningLiters) || 0,
+                notes: milkForm.notes
+            });
+            setShowMilkModal(false);
+            setMilkForm({ date: new Date().toISOString().split('T')[0], morningLiters: '', eveningLiters: '', notes: '' });
+        } catch (err) { console.error(err); }
+    };
+
+    const handleDelete = async (id) => {
+        if (window.confirm('Are you sure you want to delete this animal?')) {
+            try {
+                await window.go.main.LivestockService.DeleteAnimal(id);
+                loadAnimals();
+            } catch (err) { console.error(err); }
+        }
+    };
+
+    const openEdit = (animal) => {
+        setEditingAnimal(animal);
+        setFormData({ tagNumber: animal.tagNumber, name: animal.name, type: animal.type, breed: animal.breed, dateOfBirth: animal.dateOfBirth, gender: animal.gender, status: animal.status, notes: animal.notes });
+        setShowModal(true);
+    };
+
+    const openMilkRecord = (animal) => {
+        setSelectedAnimal(animal);
+        setShowMilkModal(true);
+    };
+
+    const resetForm = () => {
+        setFormData({ tagNumber: '', name: '', type: 'cow', breed: '', dateOfBirth: '', gender: 'female', status: 'active', notes: '' });
+    };
+
+    const filteredAnimals = animals.filter(a =>
+        a.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        a.tagNumber?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    return (
+        <div className="livestock-page">
+            <header className="page-header">
+                <div className="page-header-content">
+                    <h1>Livestock</h1>
+                    <p>Manage your farm animals and track their records</p>
+                </div>
+                <div className="page-actions">
+                    <Button icon={Plus} onClick={() => { resetForm(); setEditingAnimal(null); setShowModal(true); }}>Add Animal</Button>
+                </div>
+            </header>
+
+            <Card padding="none" className="livestock-card">
+                <div className="livestock-toolbar">
+                    <div className="search-box">
+                        <Search size={18} />
+                        <input type="text" placeholder="Search by name or tag..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                    </div>
+                    <div className="livestock-count">{filteredAnimals.length} animals</div>
+                </div>
+
+                {loading ? (
+                    <div className="loading-container"><div className="loading-spinner"></div></div>
+                ) : filteredAnimals.length === 0 ? (
+                    <EmptyState icon={Beef} title="No animals yet" description="Start by adding your first animal to the farm" action={<Button icon={Plus} onClick={() => setShowModal(true)}>Add Animal</Button>} />
+                ) : (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Tag / Name</TableHead>
+                                <TableHead>Type</TableHead>
+                                <TableHead>Breed</TableHead>
+                                <TableHead>Gender</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead>Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {filteredAnimals.map(animal => (
+                                <TableRow key={animal.id}>
+                                    <TableCell>
+                                        <div className="animal-info">
+                                            <span className="animal-name">{animal.name}</span>
+                                            {animal.tagNumber && <span className="animal-tag">#{animal.tagNumber}</span>}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell><span className={`type-badge type-${animal.type}`}>{animal.type}</span></TableCell>
+                                    <TableCell>{animal.breed || '-'}</TableCell>
+                                    <TableCell>{animal.gender || '-'}</TableCell>
+                                    <TableCell><span className={`status-badge status-${animal.status}`}>{animal.status}</span></TableCell>
+                                    <TableCell>
+                                        <div className="action-buttons">
+                                            {(animal.gender === 'female' && animal.status === 'active') && (
+                                                <button className="action-btn milk" onClick={() => openMilkRecord(animal)} title="Record Milk"><Milk size={16} /></button>
+                                            )}
+                                            <button className="action-btn edit" onClick={() => openEdit(animal)} title="Edit"><Edit2 size={16} /></button>
+                                            <button className="action-btn delete" onClick={() => handleDelete(animal.id)} title="Delete"><Trash2 size={16} /></button>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                )}
+            </Card>
+
+            <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editingAnimal ? 'Edit Animal' : 'Add New Animal'} size="md">
+                <form onSubmit={handleSubmit}>
+                    <FormRow>
+                        <FormGroup><Label htmlFor="tagNumber">Tag Number</Label><Input id="tagNumber" value={formData.tagNumber} onChange={(e) => setFormData({ ...formData, tagNumber: e.target.value })} placeholder="e.g., A001" /></FormGroup>
+                        <FormGroup><Label htmlFor="name" required>Name</Label><Input id="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Enter name" required /></FormGroup>
+                    </FormRow>
+                    <FormRow>
+                        <FormGroup><Label htmlFor="type">Type</Label><Select id="type" value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })}>{animalTypes.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}</Select></FormGroup>
+                        <FormGroup><Label htmlFor="breed">Breed</Label><Select id="breed" value={formData.breed} onChange={(e) => setFormData({ ...formData, breed: e.target.value })}><option value="">Select breed</option>{breeds.map(b => <option key={b} value={b}>{b}</option>)}</Select></FormGroup>
+                    </FormRow>
+                    <FormRow>
+                        <FormGroup><Label htmlFor="gender">Gender</Label><Select id="gender" value={formData.gender} onChange={(e) => setFormData({ ...formData, gender: e.target.value })}><option value="female">Female</option><option value="male">Male</option></Select></FormGroup>
+                        <FormGroup><Label htmlFor="dateOfBirth">Date of Birth</Label><Input id="dateOfBirth" type="date" value={formData.dateOfBirth} onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })} /></FormGroup>
+                    </FormRow>
+                    <FormGroup><Label htmlFor="status">Status</Label><Select id="status" value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })}>{statuses.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}</Select></FormGroup>
+                    <FormGroup><Label htmlFor="notes">Notes</Label><Textarea id="notes" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Any additional notes..." rows={3} /></FormGroup>
+                    <div className="modal-actions"><Button variant="outline" type="button" onClick={() => setShowModal(false)}>Cancel</Button><Button type="submit">{editingAnimal ? 'Update' : 'Add'} Animal</Button></div>
+                </form>
+            </Modal>
+
+            <Modal isOpen={showMilkModal} onClose={() => setShowMilkModal(false)} title={`Record Milk - ${selectedAnimal?.name}`} size="sm">
+                <form onSubmit={handleMilkSubmit}>
+                    <FormGroup><Label htmlFor="milkDate" required>Date</Label><Input id="milkDate" type="date" value={milkForm.date} onChange={(e) => setMilkForm({ ...milkForm, date: e.target.value })} required /></FormGroup>
+                    <FormRow>
+                        <FormGroup><Label htmlFor="morning">Morning (L)</Label><Input id="morning" type="number" step="0.1" value={milkForm.morningLiters} onChange={(e) => setMilkForm({ ...milkForm, morningLiters: e.target.value })} placeholder="0.0" /></FormGroup>
+                        <FormGroup><Label htmlFor="evening">Evening (L)</Label><Input id="evening" type="number" step="0.1" value={milkForm.eveningLiters} onChange={(e) => setMilkForm({ ...milkForm, eveningLiters: e.target.value })} placeholder="0.0" /></FormGroup>
+                    </FormRow>
+                    <FormGroup><Label htmlFor="milkNotes">Notes</Label><Textarea id="milkNotes" value={milkForm.notes} onChange={(e) => setMilkForm({ ...milkForm, notes: e.target.value })} rows={2} /></FormGroup>
+                    <div className="modal-actions"><Button variant="outline" type="button" onClick={() => setShowMilkModal(false)}>Cancel</Button><Button type="submit">Save Record</Button></div>
+                </form>
+            </Modal>
+        </div>
+    );
+}

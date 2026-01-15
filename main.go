@@ -17,16 +17,26 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:  "farmland",
-		Width:  1024,
-		Height: 768,
+		Title:     "Farmland - Farm Management",
+		Width:     1400,
+		Height:    900,
+		MinWidth:  1024,
+		MinHeight: 768,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
-		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
+		BackgroundColour: &options.RGBA{R: 250, G: 248, B: 245, A: 1},
 		OnStartup:        app.startup,
+		OnShutdown:       app.shutdown,
 		Bind: []interface{}{
 			app,
+			app.Livestock,
+			app.Crops,
+			app.Inventory,
+			app.Feed,
+			app.Health,
+			app.Financial,
+			app.Dashboard,
 		},
 	})
 

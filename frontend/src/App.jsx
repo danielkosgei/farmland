@@ -1,28 +1,30 @@
-import {useState} from 'react';
-import logo from './assets/images/logo-universal.png';
-import './App.css';
-import {Greet} from "../wailsjs/go/main/App";
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { Layout } from './components/Layout';
+import { Dashboard } from './pages/Dashboard';
+import { Livestock } from './pages/Livestock';
+import { MilkSales } from './pages/MilkSales';
+import { Crops } from './pages/Crops';
+import { Inventory } from './pages/Inventory';
+import { Feed } from './pages/Feed';
+import { Health } from './pages/Health';
+import { Finances } from './pages/Finances';
 
 function App() {
-    const [resultText, setResultText] = useState("Please enter your name below 👇");
-    const [name, setName] = useState('');
-    const updateName = (e) => setName(e.target.value);
-    const updateResultText = (result) => setResultText(result);
-
-    function greet() {
-        Greet(name).then(updateResultText);
-    }
-
     return (
-        <div id="App">
-            <img src={logo} id="logo" alt="logo"/>
-            <div id="result" className="result">{resultText}</div>
-            <div id="input" className="input-box">
-                <input id="name" className="input" onChange={updateName} autoComplete="off" name="input" type="text"/>
-                <button className="btn" onClick={greet}>Greet</button>
-            </div>
-        </div>
-    )
+        <Routes>
+            <Route path="/" element={<Layout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="livestock" element={<Livestock />} />
+                <Route path="milk-sales" element={<MilkSales />} />
+                <Route path="crops" element={<Crops />} />
+                <Route path="inventory" element={<Inventory />} />
+                <Route path="feed" element={<Feed />} />
+                <Route path="health" element={<Health />} />
+                <Route path="finances" element={<Finances />} />
+            </Route>
+        </Routes>
+    );
 }
 
-export default App
+export default App;
