@@ -112,15 +112,6 @@ export function Sidebar() {
               </button>
             </div>
           </div>
-          <div className="user-info">
-            <div className="user-avatar">
-              <span>F</span>
-            </div>
-            <div className="user-details">
-              <span className="user-name">Farm Manager</span>
-              <span className="user-role">Administrator</span>
-            </div>
-          </div>
         </div>
       </aside>
 
