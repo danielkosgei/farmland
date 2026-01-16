@@ -30,9 +30,10 @@ export function Finances() {
 
     const loadData = async () => {
         try {
+            const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
             const [trans, sum] = await Promise.all([
                 window.go.main.FinancialService.GetTransactions('', '', '', ''),
-                window.go.main.FinancialService.GetFinancialSummary('', '')
+                window.go.main.FinancialService.GetFinancialSummary(startOfMonth, '')
             ]);
             setTransactions(trans || []);
             setSummary(sum);
@@ -98,7 +99,7 @@ export function Finances() {
                         {summary?.netProfit !== undefined && (
                             <div className={`profit-badge ${summary.netProfit >= 0 ? 'positive' : 'negative'}`}>
                                 <DollarSign size={14} />
-                                <span>Net Profit: {formatCurrency(summary.netProfit)}</span>
+                                <span>Monthly Profit: {formatCurrency(summary.netProfit)}</span>
                             </div>
                         )}
                     </div>

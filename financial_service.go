@@ -100,12 +100,64 @@ func (s *FinancialService) GetMonthlyExpenses() (float64, error) {
 // GetFinancialSummary returns a summary of income and expenses
 func (s *FinancialService) GetFinancialSummary(startDate, endDate string) (*FinancialSummary, error) {
 	summary := &FinancialSummary{IncomeByCategory: make(map[string]float64), ExpenseByCategory: make(map[string]float64)}
+
+	incomeQuery := "SELECT SUM(amount) FROM transactions WHERE type = 'income'"
+	expenseQuery := "SELECT SUM(amount) FROM transactions WHERE type = 'expense'"
+	incomeByCatQuery := "SELECT category, SUM(amount) FROM transactions WHERE type = 'income'"
+	expenseByCatQuery := "SELECT category, SUM(amount) FROM transactions WHERE type = 'expense'"
+	args := []interface{}{}
+
+	if startDate != "" {
+		incomeQuery += " AND date >= ?"
+		expenseQuery += " AND date >= ?"
+		incomeByCatQuery += " AND date >= ?"
+		expenseByCatQuery += " AND date >= ?"
+		args = append(args, startDate)
+	}
+	if endDate != "" {
+		incomeQuery += " AND date <= ?"
+		expenseQuery += " AND date <= ?"
+		incomeByCatQuery += " AND date <= ?"
+		expenseByCatQuery += " AND date <= ?"
+		args = append(args, endDate)
+	}
+
+	incomeByCatQuery += " GROUP BY category"
+	expenseByCatQuery += " GROUP BY category"
+
 	var income, expenses sql.NullFloat64
-	_ = db.QueryRow(`SELECT SUM(amount) FROM transactions WHERE type = 'income'`).Scan(&income)
-	_ = db.QueryRow(`SELECT SUM(amount) FROM transactions WHERE type = 'expense'`).Scan(&expenses)
+	_ = db.QueryRow(incomeQuery, args...).Scan(&income)
+	_ = db.QueryRow(expenseQuery, args...).Scan(&expenses)
+
 	summary.TotalIncome = income.Float64
 	summary.TotalExpenses = expenses.Float64
 	summary.NetProfit = summary.TotalIncome - summary.TotalExpenses
+
+	// Populate categories
+	rows, _ := db.Query(incomeByCatQuery, args...)
+	if rows != nil {
+		for rows.Next() {
+			var cat string
+			var amt float64
+			if err := rows.Scan(&cat, &amt); err == nil {
+				summary.IncomeByCategory[cat] = amt
+			}
+		}
+		rows.Close()
+	}
+
+	rows, _ = db.Query(expenseByCatQuery, args...)
+	if rows != nil {
+		for rows.Next() {
+			var cat string
+			var amt float64
+			if err := rows.Scan(&cat, &amt); err == nil {
+				summary.ExpenseByCategory[cat] = amt
+			}
+		}
+		rows.Close()
+	}
+
 	return summary, nil
 }
 
