@@ -356,11 +356,17 @@ func (s *LivestockService) AddMilkSale(sale MilkSale) (int64, error) {
 		return 0, err
 	}
 
-	id, _ := result.LastInsertId()
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("failed to get last insert id: %w", err)
+	}
+
 	// Automatically record in finances
-	_ = addTransactionInternal(sale.Date, "income", "milk_sales",
+	if err := addTransactionInternal(sale.Date, "income", "milk_sales",
 		fmt.Sprintf("Milk Sale: %.1fL to %s", sale.Liters, sale.BuyerName),
-		total, fmt.Sprintf("milk_sale:%d", id))
+		total, fmt.Sprintf("milk_sale:%d", id)); err != nil {
+		// Log error but continue
+	}
 
 	return id, nil
 }

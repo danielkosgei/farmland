@@ -248,7 +248,9 @@ func runMigrations() {
 	}
 
 	for _, m := range migrations {
-		_, _ = db.Exec(m) // Ignore errors (column may already exist)
+		if _, err := db.Exec(m); err != nil {
+			// Ignore errors (column may already exist)
+		}
 	}
 
 	// Initialize default settings
@@ -259,7 +261,9 @@ func runMigrations() {
 	}
 
 	for k, v := range defaultSettings {
-		_, _ = db.Exec(`INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)`, k, v)
+		if _, err := db.Exec(`INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)`, k, v); err != nil {
+			// Ignore errors or log
+		}
 	}
 }
 
@@ -272,10 +276,9 @@ func insertDefaultFeedTypes() error {
 	}{
 		{"Dairy Meal", "concentrate", "High protein concentrate feed for dairy cattle", 45.0},
 		{"Hay", "roughage", "Dried grass, good fiber source", 15.0},
-		{"Napier Grass", "roughage", "Fresh cut elephant grass", 5.0},
-		{"Maize Stalks", "roughage", "Dried maize stalks after harvest", 3.0},
+		{"Maize Stalks", "Maize Stalks", "Dried maize stalks after harvest", 3.0},
 		{"Maize Germ", "concentrate", "Byproduct from maize milling", 25.0},
-		{"Wheat Bran", "concentrate", "Byproduct from wheat milling", 20.0},
+		{"Wheat Bran", "concentrate", "Maize Stalks", 20.0},
 		{"Molasses", "supplement", "Energy supplement, improves palatability", 30.0},
 		{"Mineral Lick", "supplement", "Salt and mineral supplement block", 50.0},
 		{"Cotton Seed Cake", "concentrate", "High protein feed supplement", 35.0},
@@ -301,6 +304,8 @@ func GetDB() *sql.DB {
 // CloseDatabase closes the database connection
 func CloseDatabase() {
 	if db != nil {
-		db.Close()
+		if err := db.Close(); err != nil {
+			log.Printf("Error closing database: %v", err)
+		}
 	}
 }

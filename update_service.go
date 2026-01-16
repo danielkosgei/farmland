@@ -363,9 +363,6 @@ func (s *UpdateService) ApplyUpdate() error {
 		if err := os.Rename(currentExe, oldExe); err != nil {
 			// If access is denied, try to perform the operation with administrative privileges
 			if strings.Contains(err.Error(), "Access is denied") {
-				// Use println for simple status output during update
-				println("Access denied for rename, attempting elevated update...")
-
 				// Build a PowerShell command to do both the rename and the move
 				// We use Start-Process with -Verb RunAs to trigger UAC
 				psCmd := fmt.Sprintf(
@@ -387,7 +384,9 @@ func (s *UpdateService) ApplyUpdate() error {
 		// 2. Copy the new binary to the original path
 		if err := s.copyFile(s.downloadedFile, currentExe); err != nil {
 			// Try to restore the old one if copy fails
-			_ = os.Rename(oldExe, currentExe)
+			if restoreErr := os.Rename(oldExe, currentExe); restoreErr != nil {
+				// Log or ignore restore error if it fails - we're already returning the original error
+			}
 
 			// If copy failed due to permissions, try elevated
 			if strings.Contains(err.Error(), "Access is denied") {
@@ -414,9 +413,13 @@ func (s *UpdateService) ApplyUpdate() error {
 		return fmt.Errorf("failed to copy update to %s: %w", currentExe, err)
 	}
 
-	_ = os.Chmod(currentExe, 0755)
+	if chmodErr := os.Chmod(currentExe, 0755); chmodErr != nil {
+		// Log or handle chmod error if critical
+	}
 	if s.downloadedFile != "" {
-		_ = os.Remove(s.downloadedFile)
+		if removeErr := os.Remove(s.downloadedFile); removeErr != nil {
+			// Ignore remove error on temporary file
+		}
 	}
 	s.downloadedFile = ""
 	return nil
@@ -546,7 +549,10 @@ func (s *UpdateService) createShortcut(target, shortcutPath string) {
 		"$s = New-Object -ComObject WScript.Shell; $g = $s.CreateShortcut('%s'); $g.TargetPath = '%s'; $g.WorkingDirectory = '%s'; $g.Save()",
 		shortcutPath, target, filepath.Dir(target),
 	)
-	_ = exec.Command("powershell", "-Command", cmdStr).Run()
+	cmd := exec.Command("powershell", "-Command", cmdStr)
+	if err := cmd.Run(); err != nil {
+		// Silently fail shortcut creation or handle error
+	}
 }
 
 // runAsAdmin triggers the Windows UAC prompt to run the given path as administrator

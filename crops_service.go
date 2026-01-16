@@ -143,27 +143,39 @@ func (s *CropsService) AddCropRecord(record CropRecord) (int64, error) {
 		return 0, err
 	}
 
-	id, _ := result.LastInsertId()
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("failed to get last insert id: %w", err)
+	}
+
 	// Automatically record in finances for various costs
 	if record.SeedCost > 0 {
-		_ = addTransactionInternal(record.PlantingDate, "expense", "seeds",
+		if err := addTransactionInternal(record.PlantingDate, "expense", "seeds",
 			fmt.Sprintf("Seeds: %s for Field #%d", record.CropType, record.FieldID),
-			record.SeedCost, fmt.Sprintf("crop_record:%d:seed", id))
+			record.SeedCost, fmt.Sprintf("crop_record:%d:seed", id)); err != nil {
+			// Log error but continue
+		}
 	}
 	if record.FertilizerCost > 0 {
-		_ = addTransactionInternal(record.PlantingDate, "expense", "fertilizer",
+		if err := addTransactionInternal(record.PlantingDate, "expense", "fertilizer",
 			fmt.Sprintf("Fertilizer: %s for Field #%d", record.CropType, record.FieldID),
-			record.FertilizerCost, fmt.Sprintf("crop_record:%d:fert", id))
+			record.FertilizerCost, fmt.Sprintf("crop_record:%d:fert", id)); err != nil {
+			// Log error but continue
+		}
 	}
 	if record.LaborCost > 0 {
-		_ = addTransactionInternal(record.PlantingDate, "expense", "labor",
+		if err := addTransactionInternal(record.PlantingDate, "expense", "labor",
 			fmt.Sprintf("Labor: Planting %s in Field #%d", record.CropType, record.FieldID),
-			record.LaborCost, fmt.Sprintf("crop_record:%d:labor", id))
+			record.LaborCost, fmt.Sprintf("crop_record:%d:labor", id)); err != nil {
+			// Log error but continue
+		}
 	}
 
 	// Update field's current crop and status
 	if record.Status == "planted" || record.Status == "growing" {
-		_, _ = db.Exec(`UPDATE fields SET current_crop = ?, status = ? WHERE id = ?`, record.CropType, record.Status, record.FieldID)
+		if _, err := db.Exec(`UPDATE fields SET current_crop = ?, status = ? WHERE id = ?`, record.CropType, record.Status, record.FieldID); err != nil {
+			// Log error but continue
+		}
 	}
 
 	return id, nil

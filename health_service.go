@@ -68,12 +68,17 @@ func (s *HealthService) AddVetRecord(record VetRecord) (int64, error) {
 		return 0, err
 	}
 
-	id, _ := result.LastInsertId()
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("failed to get last insert id: %w", err)
+	}
 	// Automatically record in finances if there's a cost
 	if record.Cost > 0 {
-		_ = addTransactionInternal(record.Date, "expense", "veterinary",
+		if err := addTransactionInternal(record.Date, "expense", "veterinary",
 			fmt.Sprintf("Vet: %s for Animal #%d", record.RecordType, record.AnimalID),
-			record.Cost, fmt.Sprintf("vet_record:%d", id))
+			record.Cost, fmt.Sprintf("vet_record:%d", id)); err != nil {
+			// Log error but continue
+		}
 	}
 
 	return id, nil

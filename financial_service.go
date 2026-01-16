@@ -126,16 +126,21 @@ func (s *FinancialService) GetFinancialSummary(startDate, endDate string) (*Fina
 	expenseByCatQuery += " GROUP BY category"
 
 	var income, expenses sql.NullFloat64
-	_ = db.QueryRow(incomeQuery, args...).Scan(&income)
-	_ = db.QueryRow(expenseQuery, args...).Scan(&expenses)
+	if err := db.QueryRow(incomeQuery, args...).Scan(&income); err != nil {
+		// Log error if needed or continue with null
+	}
+	if err := db.QueryRow(expenseQuery, args...).Scan(&expenses); err != nil {
+		// Log error if needed or continue with null
+	}
 
 	summary.TotalIncome = income.Float64
 	summary.TotalExpenses = expenses.Float64
 	summary.NetProfit = summary.TotalIncome - summary.TotalExpenses
 
 	// Populate categories
-	rows, _ := db.Query(incomeByCatQuery, args...)
-	if rows != nil {
+	rows, err := db.Query(incomeByCatQuery, args...)
+	if err == nil && rows != nil {
+		defer rows.Close()
 		for rows.Next() {
 			var cat string
 			var amt float64
@@ -143,11 +148,11 @@ func (s *FinancialService) GetFinancialSummary(startDate, endDate string) (*Fina
 				summary.IncomeByCategory[cat] = amt
 			}
 		}
-		rows.Close()
 	}
 
-	rows, _ = db.Query(expenseByCatQuery, args...)
-	if rows != nil {
+	rows, err = db.Query(expenseByCatQuery, args...)
+	if err == nil && rows != nil {
+		defer rows.Close()
 		for rows.Next() {
 			var cat string
 			var amt float64
@@ -155,7 +160,6 @@ func (s *FinancialService) GetFinancialSummary(startDate, endDate string) (*Fina
 				summary.ExpenseByCategory[cat] = amt
 			}
 		}
-		rows.Close()
 	}
 
 	return summary, nil

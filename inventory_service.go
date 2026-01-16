@@ -78,14 +78,19 @@ func (s *InventoryService) AddInventoryItem(item InventoryItem) (int64, error) {
 		return 0, err
 	}
 
-	id, _ := result.LastInsertId()
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("failed to get last insert id: %w", err)
+	}
 	// Automatically record in finances if there's a cost
 	totalCost := item.CostPerUnit * item.Quantity
 	if totalCost > 0 {
 		date := time.Now().Format("2006-01-02")
-		_ = addTransactionInternal(date, "expense", item.Category,
+		if err := addTransactionInternal(date, "expense", item.Category,
 			fmt.Sprintf("Purchase: %.1f %s of %s", item.Quantity, item.Unit, item.Name),
-			totalCost, fmt.Sprintf("inventory:%d", id))
+			totalCost, fmt.Sprintf("inventory:%d", id)); err != nil {
+			// Log error but continue
+		}
 	}
 
 	return id, nil

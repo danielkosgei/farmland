@@ -46,7 +46,10 @@ func (s *PhotoService) UploadPhoto(entityType string, entityID int64, notes stri
 		return nil, nil // User cancelled
 	}
 
-	homeDir, _ := os.UserHomeDir()
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get home directory: %w", err)
+	}
 	photoDir := filepath.Join(homeDir, ".farmland", "photos")
 	if err := os.MkdirAll(photoDir, 0755); err != nil {
 		return nil, fmt.Errorf("failed to create photo directory: %w", err)
@@ -68,7 +71,10 @@ func (s *PhotoService) UploadPhoto(entityType string, entityID int64, notes stri
 		return nil, fmt.Errorf("failed to save photo record: %w", err)
 	}
 
-	id, _ := res.LastInsertId()
+	id, err := res.LastInsertId()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get last insert id: %w", err)
+	}
 
 	return &Photo{
 		ID:         id,
@@ -101,7 +107,9 @@ func (s *PhotoService) GetPhotos(entityType string, entityID int64) ([]Photo, er
 		if err := rows.Scan(&p.ID, &p.EntityType, &p.EntityID, &p.Filename, &p.Path, &p.Notes, &createdAt); err != nil {
 			continue
 		}
-		p.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)
+		if t, err := time.Parse(time.RFC3339, createdAt); err == nil {
+			p.CreatedAt = t
+		}
 		photos = append(photos, p)
 	}
 
@@ -131,7 +139,9 @@ func (s *PhotoService) DeletePhoto(id int64) error {
 		return err
 	}
 
-	_ = os.Remove(path)
+	if err := os.Remove(path); err != nil {
+		// Log or ignore remove error
+	}
 	return nil
 }
 
@@ -175,7 +185,9 @@ func (s *PhotoService) copyFile(src, dst string) error {
 	if err != nil {
 		return err
 	}
-	defer out.Close()
+	defer func() {
+		_ = out.Close()
+	}()
 
 	_, err = io.Copy(out, in)
 	return err

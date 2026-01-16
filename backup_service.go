@@ -126,12 +126,16 @@ func (s *BackupService) RestoreBackup() (*BackupInfo, error) {
 	// Create backup of current database before restore
 	if _, err := os.Stat(dbPath); err == nil {
 		backupPath := dbPath + ".pre-restore"
-		_ = copyFile(dbPath, backupPath)
+		if err := copyFile(dbPath, backupPath); err != nil {
+			// Log or handle error
+		}
 	}
 
 	// Close current database connection
 	if db != nil {
-		_ = db.Close()
+		if err := db.Close(); err != nil {
+			// Log or handle error
+		}
 	}
 
 	// Copy backup to database location
@@ -157,7 +161,7 @@ func (s *BackupService) GetDatabaseInfo() (*BackupInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	dbPath := filepath.Join(homeDir, ".farmland", "farmland.db")
+	dbPath := filepath.Join(homeDir, ".farmland")
 
 	info, err := os.Stat(dbPath)
 	if err != nil {

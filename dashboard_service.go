@@ -24,53 +24,75 @@ func (s *DashboardService) GetDashboardStats() (*DashboardStats, error) {
 	stats := &DashboardStats{}
 
 	// Total animals
-	_ = db.QueryRow(`SELECT COUNT(*) FROM animals WHERE status = 'active'`).Scan(&stats.TotalAnimals)
+	if err := db.QueryRow(`SELECT COUNT(*) FROM animals WHERE status = 'active'`).Scan(&stats.TotalAnimals); err != nil {
+		// Log error or continue
+	}
 
 	// Active dairy cows
-	_ = db.QueryRow(`SELECT COUNT(*) FROM animals WHERE status = 'active' AND gender = 'female' AND type IN ('cow', 'heifer')`).Scan(&stats.ActiveCows)
+	if err := db.QueryRow(`SELECT COUNT(*) FROM animals WHERE status = 'active' AND gender = 'female' AND type IN ('cow', 'heifer')`).Scan(&stats.ActiveCows); err != nil {
+		// Log error or continue
+	}
 
 	// Today's milk
 	today := time.Now().Format("2006-01-02")
 	var todayMilk sql.NullFloat64
-	_ = db.QueryRow(`SELECT SUM(total_liters) FROM milk_records WHERE date = ?`, today).Scan(&todayMilk)
+	if err := db.QueryRow(`SELECT SUM(total_liters) FROM milk_records WHERE date = ?`, today).Scan(&todayMilk); err != nil {
+		// Log error or continue
+	}
 	stats.TodayMilkLiters = todayMilk.Float64
 
 	// Month's milk
 	startOfMonth := time.Now().Format("2006-01") + "-01"
 	var monthMilk sql.NullFloat64
-	_ = db.QueryRow(`SELECT SUM(total_liters) FROM milk_records WHERE date >= ?`, startOfMonth).Scan(&monthMilk)
+	if err := db.QueryRow(`SELECT SUM(total_liters) FROM milk_records WHERE date >= ?`, startOfMonth).Scan(&monthMilk); err != nil {
+		// Log error or continue
+	}
 	stats.MonthMilkLiters = monthMilk.Float64
 
 	// Active fields
-	_ = db.QueryRow(`SELECT COUNT(*) FROM fields WHERE status IN ('planted', 'growing', 'ready_harvest')`).Scan(&stats.ActiveFields)
+	if err := db.QueryRow(`SELECT COUNT(*) FROM fields WHERE status IN ('planted', 'growing', 'ready_harvest')`).Scan(&stats.ActiveFields); err != nil {
+		// Log error or continue
+	}
 
 	// Total field acres
 	var totalAcres sql.NullFloat64
-	_ = db.QueryRow(`SELECT SUM(size_acres) FROM fields`).Scan(&totalAcres)
+	if err := db.QueryRow(`SELECT SUM(size_acres) FROM fields`).Scan(&totalAcres); err != nil {
+		// Log error or continue
+	}
 	stats.TotalFieldsAcres = totalAcres.Float64
 
 	// Month income
 	var monthIncome sql.NullFloat64
-	_ = db.QueryRow(`SELECT SUM(amount) FROM transactions WHERE type = 'income' AND date >= ?`, startOfMonth).Scan(&monthIncome)
+	if err := db.QueryRow(`SELECT SUM(amount) FROM transactions WHERE type = 'income' AND date >= ?`, startOfMonth).Scan(&monthIncome); err != nil {
+		// Log error or continue
+	}
 	stats.MonthIncome = monthIncome.Float64
 
 	// Last month income
 	lastMonthStart := time.Now().AddDate(0, -1, 0)
 	lastMonthStartStr := lastMonthStart.Format("2006-01") + "-01"
 	var lastMonthIncome sql.NullFloat64
-	_ = db.QueryRow(`SELECT SUM(amount) FROM transactions WHERE type = 'income' AND date >= ? AND date < ?`, lastMonthStartStr, startOfMonth).Scan(&lastMonthIncome)
+	if err := db.QueryRow(`SELECT SUM(amount) FROM transactions WHERE type = 'income' AND date >= ? AND date < ?`, lastMonthStartStr, startOfMonth).Scan(&lastMonthIncome); err != nil {
+		// Log error or continue
+	}
 	stats.LastMonthIncome = lastMonthIncome.Float64
 
 	// Month expenses
 	var monthExpenses sql.NullFloat64
-	_ = db.QueryRow(`SELECT SUM(amount) FROM transactions WHERE type = 'expense' AND date >= ?`, startOfMonth).Scan(&monthExpenses)
+	if err := db.QueryRow(`SELECT SUM(amount) FROM transactions WHERE type = 'expense' AND date >= ?`, startOfMonth).Scan(&monthExpenses); err != nil {
+		// Log error or continue
+	}
 	stats.MonthExpenses = monthExpenses.Float64
 
 	// Low stock items
-	_ = db.QueryRow(`SELECT COUNT(*) FROM inventory_items WHERE quantity < minimum_stock`).Scan(&stats.LowStockItems)
+	if err := db.QueryRow(`SELECT COUNT(*) FROM inventory_items WHERE quantity < minimum_stock`).Scan(&stats.LowStockItems); err != nil {
+		// Log error or continue
+	}
 
 	// Pending vet visits
-	_ = db.QueryRow(`SELECT COUNT(*) FROM vet_records WHERE next_due_date IS NOT NULL AND next_due_date != '' AND next_due_date >= date('now') AND next_due_date <= date('now', '+30 days')`).Scan(&stats.PendingVetVisits)
+	if err := db.QueryRow(`SELECT COUNT(*) FROM vet_records WHERE next_due_date IS NOT NULL AND next_due_date != '' AND next_due_date >= date('now') AND next_due_date <= date('now', '+30 days')`).Scan(&stats.PendingVetVisits); err != nil {
+		// Log error or continue
+	}
 
 	return stats, nil
 }
@@ -80,35 +102,38 @@ func (s *DashboardService) GetRecentActivity() ([]RecentActivity, error) {
 	var activities []RecentActivity
 
 	// Recent milk records
-	rows, _ := db.Query(`SELECT 'milk' as type, a.name || ' produced ' || mr.total_liters || ' liters' as description, mr.created_at FROM milk_records mr JOIN animals a ON mr.animal_id = a.id ORDER BY mr.created_at DESC LIMIT 3`)
-	if rows != nil {
+	rows, err := db.Query(`SELECT 'milk' as type, a.name || ' produced ' || mr.total_liters || ' liters' as description, mr.created_at FROM milk_records mr JOIN animals a ON mr.animal_id = a.id ORDER BY mr.created_at DESC LIMIT 3`)
+	if err == nil && rows != nil {
 		defer rows.Close()
 		for rows.Next() {
 			var a RecentActivity
-			_ = rows.Scan(&a.Type, &a.Description, &a.Date)
-			activities = append(activities, a)
+			if err := rows.Scan(&a.Type, &a.Description, &a.Date); err == nil {
+				activities = append(activities, a)
+			}
 		}
 	}
 
 	// Recent milk sales
-	rows2, _ := db.Query(`SELECT 'sale' as type, 'Sold ' || liters || ' liters to ' || COALESCE(buyer_name, 'customer') as description, created_at FROM milk_sales ORDER BY created_at DESC LIMIT 3`)
-	if rows2 != nil {
+	rows2, err := db.Query(`SELECT 'sale' as type, 'Sold ' || liters || ' liters to ' || COALESCE(buyer_name, 'customer') as description, created_at FROM milk_sales ORDER BY created_at DESC LIMIT 3`)
+	if err == nil && rows2 != nil {
 		defer rows2.Close()
 		for rows2.Next() {
 			var a RecentActivity
-			_ = rows2.Scan(&a.Type, &a.Description, &a.Date)
-			activities = append(activities, a)
+			if err := rows2.Scan(&a.Type, &a.Description, &a.Date); err == nil {
+				activities = append(activities, a)
+			}
 		}
 	}
 
 	// Recent vet records
-	rows3, _ := db.Query(`SELECT 'vet' as type, vr.record_type || ' for ' || a.name as description, vr.created_at FROM vet_records vr JOIN animals a ON vr.animal_id = a.id ORDER BY vr.created_at DESC LIMIT 3`)
-	if rows3 != nil {
+	rows3, err := db.Query(`SELECT 'vet' as type, vr.record_type || ' for ' || a.name as description, vr.created_at FROM vet_records vr JOIN animals a ON vr.animal_id = a.id ORDER BY vr.created_at DESC LIMIT 3`)
+	if err == nil && rows3 != nil {
 		defer rows3.Close()
 		for rows3.Next() {
 			var a RecentActivity
-			_ = rows3.Scan(&a.Type, &a.Description, &a.Date)
-			activities = append(activities, a)
+			if err := rows3.Scan(&a.Type, &a.Description, &a.Date); err == nil {
+				activities = append(activities, a)
+			}
 		}
 	}
 
@@ -137,7 +162,9 @@ func (s *DashboardService) GetMilkProductionChart(timeframe string) ([]map[strin
 	for rows.Next() {
 		var label string
 		var total float64
-		_ = rows.Scan(&label, &total)
+		if err := rows.Scan(&label, &total); err != nil {
+			// Log or continue
+		}
 		data = append(data, map[string]interface{}{"date": label, "liters": total})
 	}
 
