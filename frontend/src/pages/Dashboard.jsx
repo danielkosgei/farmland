@@ -48,8 +48,8 @@ export function Dashboard() {
                     </div>
                 </header>
 
-                <div className="stats-grid">
-                    {[1, 2, 3].map(i => (
+                <div className="stats-grid stats-grid--two">
+                    {[1, 2].map(i => (
                         <Card key={i} className="stat-card-skeleton">
                             <CardContent>
                                 <div className="flex justify-between items-start">
@@ -109,27 +109,20 @@ export function Dashboard() {
                 </div>
             </header>
 
-            <div className="stats-grid">
-                <StatCard
-                    title="Total Livestock"
-                    value={stats?.totalAnimals || 0}
-                    subtitle={`${stats?.activeCows || 0} dairy cows`}
-                    icon={Beef}
-                    color="primary"
-                />
+            <div className="stats-grid stats-grid--two">
                 <StatCard
                     title="Today's Milk"
                     value={`${(stats?.todayMilkLiters || 0).toFixed(1)} L`}
                     subtitle={`${(stats?.monthMilkLiters || 0).toFixed(0)} L this month`}
                     icon={Milk}
-                    color="secondary"
+                    color="primary"
                 />
                 <StatCard
-                    title="Active Fields"
-                    value={stats?.activeFields || 0}
-                    subtitle={`${(stats?.totalFieldsAcres || 0).toFixed(1)} total acres`}
-                    icon={Wheat}
-                    color="info"
+                    title="Monthly Revenue"
+                    value={formatCurrency(stats?.monthIncome || 0)}
+                    subtitle={`vs ${formatCurrency(stats?.monthExpenses || 0)} expenses`}
+                    icon={DollarSign}
+                    color="secondary"
                 />
             </div>
 

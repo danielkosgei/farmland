@@ -41,6 +41,10 @@
     margin-bottom: var(--space-6);
 }
 
+.stats-grid--two {
+    grid-template-columns: repeat(2, 1fr);
+}
+
 .dashboard-grid {
     display: grid;
     grid-template-columns: 2fr 1fr;
