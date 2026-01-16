@@ -24,12 +24,9 @@ export function Modal({ isOpen, onClose, title, children, size = 'md', footer })
 
     if (!isOpen) return null;
 
-    const handleBackdropClick = (e) => {
-        if (e.target === e.currentTarget) onClose();
-    };
 
     return (
-        <div className="modal-backdrop" onClick={handleBackdropClick}>
+        <div className="modal-backdrop">
             <div className={`modal modal--${size}`} ref={modalRef}>
                 <div className="modal-header">
                     <h2 className="modal-title">{title}</h2>
