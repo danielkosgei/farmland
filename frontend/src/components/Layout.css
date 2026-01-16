@@ -21,17 +21,17 @@
 .page-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: var(--space-6);
+    align-items: center;
+    margin-bottom: var(--space-5);
     animation: slideUp var(--transition-slow) ease-out;
 }
 
 .page-header-content h1 {
-    font-size: var(--font-size-4xl);
+    font-size: var(--font-size-2xl);
     font-weight: var(--font-weight-bold);
     color: var(--color-neutral-900);
-    margin-bottom: var(--space-1);
-    letter-spacing: -0.04em;
+    margin: 0;
+    letter-spacing: -0.02em;
 }
 
 .page-header-content p {

@@ -139,6 +139,57 @@
     opacity: 0.7;
 }
 
+/* Minimal Variant */
+.weather-widget--minimal {
+    flex-direction: row;
+    align-items: center;
+    background: var(--bg-secondary);
+    padding: var(--space-1) var(--space-3);
+    min-height: auto;
+    gap: var(--space-2);
+    border-radius: var(--radius-md);
+    border: var(--border-thin);
+}
+
+.weather-widget--minimal .weather-icon {
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.weather-widget--minimal .weather-temp {
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-neutral-800);
+}
+
+.weather-widget--minimal .weather-desc {
+    font-size: var(--font-size-xs);
+    color: var(--color-neutral-500);
+}
+
+.weather-widget--minimal .weather-divider {
+    width: 1px;
+    height: 12px;
+    background: var(--color-neutral-200);
+}
+
+.weather-widget--minimal .weather-location {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.weather-widget--minimal .weather-location span {
+    font-size: var(--font-size-xs);
+    color: var(--color-neutral-500);
+}
+
+.weather-widget--minimal.loading {
+    padding: var(--space-2) var(--space-4);
+}
+
 @keyframes spin {
     to {
         transform: rotate(360deg);

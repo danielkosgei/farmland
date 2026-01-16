@@ -58,7 +58,6 @@ export function Dashboard() {
                 <header className="page-header">
                     <div className="page-header-content">
                         <Skeleton variant="text" width="200px" height="2.5rem" />
-                        <Skeleton variant="text" width="350px" height="1rem" className="mt-2" />
                     </div>
                 </header>
 
@@ -115,11 +114,13 @@ export function Dashboard() {
             <header className="page-header">
                 <div className="page-header-content">
                     <h1>Dashboard</h1>
-                    <p>Welcome back! Here's what's happening on your farm today.</p>
                 </div>
-                <div className="dashboard-date">
-                    <Calendar size={18} />
-                    <span>{new Date().toLocaleDateString('en-KE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                <div className="header-actions">
+                    <WeatherWidget variant="minimal" />
+                    <div className="dashboard-date">
+                        <Calendar size={18} />
+                        <span>{new Date().toLocaleDateString('en-KE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                    </div>
                 </div>
             </header>
 
@@ -237,8 +238,6 @@ export function Dashboard() {
                 </Card>
 
                 <div className="side-cards">
-                    <WeatherWidget />
-
                     <Card className="activity-card">
                         <CardHeader>
                             <div className="card-header-row">

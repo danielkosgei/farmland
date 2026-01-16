@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Cloud, Droplets, Wind, RefreshCw, MapPin } from 'lucide-react';
 import './WeatherWidget.css';
 
-export function WeatherWidget() {
+export function WeatherWidget({ variant = 'card' }) {
     const [weather, setWeather] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -38,14 +38,15 @@ export function WeatherWidget() {
 
     if (loading) {
         return (
-            <div className="weather-widget loading">
-                <RefreshCw className="spin" size={24} />
-                <span>Loading weather...</span>
+            <div className={`weather-widget loading weather-widget--${variant}`}>
+                <RefreshCw className="spin" size={variant === 'minimal' ? 14 : 24} />
+                {variant !== 'minimal' && <span>Loading weather...</span>}
             </div>
         );
     }
 
     if (error || !weather) {
+        if (variant === 'minimal') return null; // Hide in header if error
         return (
             <div className="weather-widget error">
                 <Cloud size={24} />
@@ -53,6 +54,21 @@ export function WeatherWidget() {
                 <button onClick={fetchWeather} className="retry-btn">
                     <RefreshCw size={14} /> Retry
                 </button>
+            </div>
+        );
+    }
+
+    if (variant === 'minimal') {
+        return (
+            <div className="weather-widget weather-widget--minimal">
+                <span className="weather-icon">{weather.current.icon}</span>
+                <span className="weather-temp">{Math.round(weather.current.temperature)}°</span>
+                <span className="weather-desc">{weather.current.description}</span>
+                <div className="weather-divider"></div>
+                <div className="weather-location">
+                    <MapPin size={12} />
+                    <span>{weather.location}</span>
+                </div>
             </div>
         );
     }
