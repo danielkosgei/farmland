@@ -328,22 +328,34 @@ func (s *UpdateService) ApplyUpdate() error {
 	}
 
 	// On Windows, if it's an INSTALLER, we execute it.
-	// We check the filename to be sure.
-	if runtime.GOOS == "windows" && strings.Contains(strings.ToLower(s.downloadedFile), "installer") {
-		// Launch installer as a separate process
-		cmd := exec.Command(s.downloadedFile)
-		if err := cmd.Start(); err != nil {
-			return fmt.Errorf("failed to launch installer: %w", err)
+	if runtime.GOOS == "windows" {
+		if strings.Contains(strings.ToLower(s.downloadedFile), "installer") {
+			cmd := exec.Command(s.downloadedFile)
+			if err := cmd.Start(); err != nil {
+				return fmt.Errorf("failed to launch installer: %w", err)
+			}
+			return nil
 		}
-		// The app will be closed by RestartApp (which the UI calls)
-		// but we can also just return nil here as the installer will handle replacement
+
+		// Non-installer Windows update: Use rename strategy to bypass file lock
+		oldExe := currentExe + ".old"
+		_ = os.Remove(oldExe) // Remove old backup if it exists
+
+		if err := os.Rename(currentExe, oldExe); err != nil {
+			return fmt.Errorf("failed to rename current executable: %w", err)
+		}
+
+		if err := s.copyFile(s.downloadedFile, currentExe); err != nil {
+			// Try to restore if copy fails
+			_ = os.Rename(oldExe, currentExe)
+			return fmt.Errorf("failed to install new version: %w", err)
+		}
+
+		_ = os.Remove(s.downloadedFile)
 		return nil
 	}
 
-	// For Linux/macOS, we need to extract the binary from the archive first.
-	// [TODO] Add tar.gz/zip extraction logic here.
-	// For now, we'll try to find the binary if it's already extracted or just raw copy if not.
-
+	// For Linux/macOS
 	if err := s.copyFile(s.downloadedFile, currentExe); err != nil {
 		return fmt.Errorf("failed to install update: %w", err)
 	}
@@ -359,18 +371,21 @@ func (s *UpdateService) ApplyUpdate() error {
 func (s *UpdateService) copyFile(src, dst string) error {
 	in, err := os.Open(src)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open source: %w", err)
 	}
 	defer in.Close()
 
 	out, err := os.Create(dst)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create destination: %w", err)
 	}
 	defer out.Close()
 
 	_, err = io.Copy(out, in)
-	return err
+	if err != nil {
+		return fmt.Errorf("failed to copy content: %w", err)
+	}
+	return nil
 }
 
 // RestartApp restarts the application
