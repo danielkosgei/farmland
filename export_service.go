@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/jung-kurt/gofpdf"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -31,91 +30,6 @@ func (s *ExportService) SetContext(ctx context.Context) {
 type ExportResult struct {
 	Path    string `json:"path"`
 	Records int    `json:"records"`
-}
-
-// ExportAnimalsCSV exports all animals to a CSV file
-func (s *ExportService) ExportAnimalsCSV() (*ExportResult, error) {
-	if s.ctx == nil {
-		return nil, fmt.Errorf("context not set")
-	}
-
-	// Generate filename
-	timestamp := time.Now().Format("2006-01-02")
-	filename := fmt.Sprintf("farmland-animals-%s.csv", timestamp)
-
-	savePath, err := runtime.SaveFileDialog(s.ctx, runtime.SaveDialogOptions{
-		Title:           "Export Animals to CSV",
-		DefaultFilename: filename,
-		Filters: []runtime.FileFilter{
-			{DisplayName: "CSV Files", Pattern: "*.csv"},
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-	if savePath == "" {
-		return nil, nil // Cancelled
-	}
-
-	// Query animals
-	rows, err := db.Query(`
-		SELECT a.id, a.tag_number, a.name, a.type, a.breed, a.date_of_birth, a.gender,
-			   m.name, f.name, a.status, a.notes, a.created_at
-		FROM animals a
-		LEFT JOIN animals m ON a.mother_id = m.id
-		LEFT JOIN animals f ON a.father_id = f.id
-		ORDER BY a.name
-	`)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	// Create file
-	file, err := os.Create(savePath)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	writer := csv.NewWriter(file)
-	defer writer.Flush()
-
-	// Write header
-	header := []string{"ID", "Tag Number", "Name", "Type", "Breed", "Date of Birth", "Gender", "Mother", "Father", "Status", "Notes", "Created At"}
-	if err := writer.Write(header); err != nil {
-		return nil, err
-	}
-
-	count := 0
-	for rows.Next() {
-		var id int64
-		var tagNumber, name, animalType, breed, dob, gender, motherName, fatherName, status, notes, createdAt interface{}
-		if err := rows.Scan(&id, &tagNumber, &name, &animalType, &breed, &dob, &gender, &motherName, &fatherName, &status, &notes, &createdAt); err != nil {
-			continue
-		}
-
-		record := []string{
-			fmt.Sprintf("%d", id),
-			toString(tagNumber),
-			toString(name),
-			toString(animalType),
-			toString(breed),
-			toString(dob),
-			toString(gender),
-			toString(motherName),
-			toString(fatherName),
-			toString(status),
-			toString(notes),
-			toString(createdAt),
-		}
-		if err := writer.Write(record); err != nil {
-			continue
-		}
-		count++
-	}
-
-	return &ExportResult{Path: savePath, Records: count}, nil
 }
 
 // ExportMilkRecordsCSV exports milk records to CSV
@@ -285,20 +199,20 @@ func (s *ExportService) ExportFinancesCSV(startDate, endDate string) (*ExportRes
 	return &ExportResult{Path: savePath, Records: count}, nil
 }
 
-// ExportAnimalsPDF exports all animals to a PDF file
-func (s *ExportService) ExportAnimalsPDF() (*ExportResult, error) {
+func (s *ExportService) ExportAnimalsCSV() (*ExportResult, error) {
 	if s.ctx == nil {
 		return nil, fmt.Errorf("context not set")
 	}
 
+	// Generate filename
 	timestamp := time.Now().Format("2006-01-02")
-	filename := fmt.Sprintf("farmland-animals-%s.pdf", timestamp)
+	filename := fmt.Sprintf("farmland-livestock-inventory-%s.csv", timestamp)
 
 	savePath, err := runtime.SaveFileDialog(s.ctx, runtime.SaveDialogOptions{
-		Title:           "Export Animals to PDF",
+		Title:           "Export Comprehensive Livestock Inventory",
 		DefaultFilename: filename,
 		Filters: []runtime.FileFilter{
-			{DisplayName: "PDF Files", Pattern: "*.pdf"},
+			{DisplayName: "CSV Files", Pattern: "*.csv"},
 		},
 	})
 	if err != nil {
@@ -308,66 +222,85 @@ func (s *ExportService) ExportAnimalsPDF() (*ExportResult, error) {
 		return nil, nil // Cancelled
 	}
 
-	// Query animals
+	// Query animals with production and health aggregate metrics
 	rows, err := db.Query(`
-		SELECT tag_number, name, type, breed, gender, status
-		FROM animals
-		ORDER BY name
+		SELECT 
+			a.id, a.tag_number, a.name, a.type, a.breed, a.date_of_birth, a.gender,
+			m.name as mother_name, f.name as father_name, a.status, a.notes, a.created_at,
+			(SELECT COUNT(*) FROM milk_records WHERE animal_id = a.id) as milk_count,
+			(SELECT COALESCE(SUM(total_liters), 0) FROM milk_records WHERE animal_id = a.id) as milk_total,
+			(SELECT MAX(date) FROM vet_records WHERE animal_id = a.id) as last_vet,
+			(SELECT COALESCE(SUM(cost), 0) FROM vet_records WHERE animal_id = a.id) as vet_total_cost
+		FROM animals a
+		LEFT JOIN animals m ON a.mother_id = m.id
+		LEFT JOIN animals f ON a.father_id = f.id
+		ORDER BY a.name
 	`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	// Create PDF
-	pdf := gofpdf.New("P", "mm", "A4", "")
-	pdf.AddPage()
-
-	// Header
-	pdf.SetFont("Arial", "B", 20)
-	pdf.SetTextColor(22, 101, 52) // Dark green (#166534)
-	pdf.Cell(0, 15, "Farmland - Animal Inventory")
-	pdf.Ln(12)
-
-	pdf.SetFont("Arial", "", 10)
-	pdf.SetTextColor(100, 100, 100)
-	pdf.Cell(0, 5, fmt.Sprintf("Generated on: %s", time.Now().Format("Jan 02, 2006 15:04")))
-	pdf.Ln(10)
-
-	// Table Header
-	pdf.SetFillColor(240, 240, 240)
-	pdf.SetFont("Arial", "B", 10)
-	pdf.SetTextColor(0, 0, 0)
-	cols := []float64{30, 40, 30, 30, 25, 30}
-	headers := []string{"Tag", "Name", "Type", "Breed", "Gender", "Status"}
-
-	for i, h := range headers {
-		pdf.CellFormat(cols[i], 10, h, "1", 0, "C", true, 0, "")
+	// Create file
+	file, err := os.Create(savePath)
+	if err != nil {
+		return nil, err
 	}
-	pdf.Ln(-1)
+	defer file.Close()
 
-	// Table Data
-	pdf.SetFont("Arial", "", 10)
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	// Write rich header
+	header := []string{
+		"System ID", "Tag Number", "Name", "Type", "Breed", "Gender", "Date of Birth", "Status",
+		"Mother", "Father", "Milk Records Count", "Total Production (Liters)",
+		"Last Vet Visit", "Total Vet Cost (KES)", "Notes", "Registry Date",
+	}
+	if err := writer.Write(header); err != nil {
+		return nil, err
+	}
+
 	count := 0
 	for rows.Next() {
-		var tag, name, aType, breed, gender, status interface{}
-		if err := rows.Scan(&tag, &name, &aType, &breed, &gender, &status); err != nil {
+		var id int64
+		var tagNumber, name, animalType, breed, dob, gender, motherName, fatherName, status, notes, createdAt interface{}
+		var milkCount int
+		var milkTotal float64
+		var lastVet interface{}
+		var vetTotal float64
+
+		err := rows.Scan(
+			&id, &tagNumber, &name, &animalType, &breed, &dob, &gender,
+			&motherName, &fatherName, &status, &notes, &createdAt,
+			&milkCount, &milkTotal, &lastVet, &vetTotal,
+		)
+		if err != nil {
 			continue
 		}
 
-		pdf.CellFormat(cols[0], 8, toString(tag), "1", 0, "L", false, 0, "")
-		pdf.CellFormat(cols[1], 8, toString(name), "1", 0, "L", false, 0, "")
-		pdf.CellFormat(cols[2], 8, toString(aType), "1", 0, "C", false, 0, "")
-		pdf.CellFormat(cols[3], 8, toString(breed), "1", 0, "L", false, 0, "")
-		pdf.CellFormat(cols[4], 8, toString(gender), "1", 0, "C", false, 0, "")
-		pdf.CellFormat(cols[5], 8, toString(status), "1", 0, "C", false, 0, "")
-		pdf.Ln(-1)
+		record := []string{
+			fmt.Sprintf("%d", id),
+			toString(tagNumber),
+			toString(name),
+			toString(animalType),
+			toString(breed),
+			toString(gender),
+			toString(dob),
+			toString(status),
+			toString(motherName),
+			toString(fatherName),
+			fmt.Sprintf("%d", milkCount),
+			fmt.Sprintf("%.2f", milkTotal),
+			toString(lastVet),
+			fmt.Sprintf("%.2f", vetTotal),
+			toString(notes),
+			toString(createdAt),
+		}
+		if err := writer.Write(record); err != nil {
+			continue
+		}
 		count++
-	}
-
-	err = pdf.OutputFileAndClose(savePath)
-	if err != nil {
-		return nil, err
 	}
 
 	return &ExportResult{Path: savePath, Records: count}, nil

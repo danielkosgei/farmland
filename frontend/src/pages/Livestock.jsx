@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Edit2, Trash2, Milk, Beef, Download, Calendar, Info, Users } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Milk, Beef, FileSpreadsheet, Calendar, Info, Users } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
 import { Modal } from '../components/ui/Modal';
@@ -149,19 +149,19 @@ export function Livestock() {
     const potentialMothers = animals.filter(a => a.gender === 'female' && a.id !== editingAnimal?.id);
     const potentialFathers = animals.filter(a => a.gender === 'male' && a.id !== editingAnimal?.id);
 
-    const handleExportPDF = async () => {
-        const loadingToast = toast.loading('Generating inventory PDF...');
+    const handleExportCSV = async () => {
+        const loadingToast = toast.loading('Generating rich inventory CSV...');
         try {
-            const res = await window.go.main.ExportService.ExportAnimalsPDF();
+            const res = await window.go.main.ExportService.ExportAnimalsCSV();
             if (res) {
-                toast.success(`Exported ${res.records} animals to PDF`, {
+                toast.success(`Exported ${res.records} animals to CSV`, {
                     id: loadingToast,
                     description: `File saved to ${res.path}`
                 });
             }
         } catch (err) {
             console.error('Export failed:', err);
-            toast.error('Failed to export PDF', { id: loadingToast });
+            toast.error('Failed to export CSV', { id: loadingToast });
         }
     };
 
@@ -173,7 +173,7 @@ export function Livestock() {
                     <p>Manage your farm animals and track their records</p>
                 </div>
                 <div className="page-actions">
-                    <Button variant="outline" icon={Download} onClick={handleExportPDF} title="Generate animal inventory report">Export PDF</Button>
+                    <Button variant="outline" icon={FileSpreadsheet} onClick={handleExportCSV} title="Generate comprehensive livestock CSV report">Export CSV</Button>
                     <Button icon={Plus} onClick={() => {
                         resetForm();
                         setEditingAnimal(null);

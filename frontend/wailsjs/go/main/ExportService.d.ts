@@ -5,12 +5,6 @@ import {context} from '../models';
 
 export function ExportAnimalsCSV():Promise<main.ExportResult>;
 
-export function ExportAnimalsPDF():Promise<main.ExportResult>;
-
-export function ExportFinancesCSV(arg1:string,arg2:string):Promise<main.ExportResult>;
-
-export function ExportMilkRecordsCSV(arg1:string,arg2:string):Promise<main.ExportResult>;
-
 export function GetExportDirectory():Promise<string>;
 
 export function SetContext(arg1:context.Context):Promise<void>;
