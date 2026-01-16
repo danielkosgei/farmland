@@ -54,6 +54,13 @@ func (s *DashboardService) GetDashboardStats() (*DashboardStats, error) {
 	_ = db.QueryRow(`SELECT SUM(amount) FROM transactions WHERE type = 'income' AND date >= ?`, startOfMonth).Scan(&monthIncome)
 	stats.MonthIncome = monthIncome.Float64
 
+	// Last month income
+	lastMonthStart := time.Now().AddDate(0, -1, 0)
+	lastMonthStartStr := lastMonthStart.Format("2006-01") + "-01"
+	var lastMonthIncome sql.NullFloat64
+	_ = db.QueryRow(`SELECT SUM(amount) FROM transactions WHERE type = 'income' AND date >= ? AND date < ?`, lastMonthStartStr, startOfMonth).Scan(&lastMonthIncome)
+	stats.LastMonthIncome = lastMonthIncome.Float64
+
 	// Month expenses
 	var monthExpenses sql.NullFloat64
 	_ = db.QueryRow(`SELECT SUM(amount) FROM transactions WHERE type = 'expense' AND date >= ?`, startOfMonth).Scan(&monthExpenses)

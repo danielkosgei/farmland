@@ -252,6 +252,7 @@ export namespace main {
 	    activeFields: number;
 	    totalFieldsAcres: number;
 	    monthIncome: number;
+	    lastMonthIncome: number;
 	    monthExpenses: number;
 	    lowStockItems: number;
 	    pendingVetVisits: number;
@@ -269,6 +270,7 @@ export namespace main {
 	        this.activeFields = source["activeFields"];
 	        this.totalFieldsAcres = source["totalFieldsAcres"];
 	        this.monthIncome = source["monthIncome"];
+	        this.lastMonthIncome = source["lastMonthIncome"];
 	        this.monthExpenses = source["monthExpenses"];
 	        this.lowStockItems = source["lowStockItems"];
 	        this.pendingVetVisits = source["pendingVetVisits"];

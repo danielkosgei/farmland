@@ -92,6 +92,11 @@
     color: var(--color-accent-700);
 }
 
+.stat-card-trend.trend-neutral {
+    background: var(--color-neutral-100);
+    color: var(--color-neutral-600);
+}
+
 .stat-card-value {
     font-family: var(--font-family-mono);
     font-size: var(--font-size-2xl);

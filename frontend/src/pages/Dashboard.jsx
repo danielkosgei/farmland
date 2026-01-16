@@ -134,8 +134,9 @@ export function Dashboard() {
                 <StatCard
                     title="Monthly Revenue"
                     value={formatCurrency(stats?.monthIncome || 0)}
-                    subtitle={`vs ${formatCurrency(stats?.monthExpenses || 0)} expenses`}
+                    subtitle={`vs ${formatCurrency(stats?.lastMonthIncome || 0)} for last month`}
                     icon={DollarSign}
+                    trend={stats?.lastMonthIncome > 0 ? parseFloat((((stats.monthIncome - stats.lastMonthIncome) / stats.lastMonthIncome) * 100).toFixed(1)) : (stats?.monthIncome > 0 ? 100 : 0)}
                     color="secondary"
                 />
             </div>

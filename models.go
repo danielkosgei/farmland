@@ -161,6 +161,7 @@ type DashboardStats struct {
 	ActiveFields     int     `json:"activeFields"`
 	TotalFieldsAcres float64 `json:"totalFieldsAcres"`
 	MonthIncome      float64 `json:"monthIncome"`
+	LastMonthIncome  float64 `json:"lastMonthIncome"`
 	MonthExpenses    float64 `json:"monthExpenses"`
 	LowStockItems    int     `json:"lowStockItems"`
 	PendingVetVisits int     `json:"pendingVetVisits"`

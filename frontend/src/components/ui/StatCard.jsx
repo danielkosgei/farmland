@@ -9,8 +9,8 @@ export function StatCard({ title, value, subtitle, icon: Icon, trend, trendUp, c
                     {Icon && <Icon size={24} />}
                 </div>
                 {trend !== undefined && (
-                    <div className={`stat-card-trend ${trendUp ? 'trend-up' : 'trend-down'}`}>
-                        {trendUp ? '↑' : '↓'} {trend}%
+                    <div className={`stat-card-trend ${trend > 0 ? 'trend-up' : trend < 0 ? 'trend-down' : 'trend-neutral'}`}>
+                        {trend > 0 ? '↑' : trend < 0 ? '↓' : '→'} {Math.abs(trend)}%
                     </div>
                 )}
             </div>
