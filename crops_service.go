@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 )
 
 // CropsService handles field and crop-related operations
@@ -142,12 +143,30 @@ func (s *CropsService) AddCropRecord(record CropRecord) (int64, error) {
 		return 0, err
 	}
 
+	id, _ := result.LastInsertId()
+	// Automatically record in finances for various costs
+	if record.SeedCost > 0 {
+		_ = addTransactionInternal(record.PlantingDate, "expense", "seeds",
+			fmt.Sprintf("Seeds: %s for Field #%d", record.CropType, record.FieldID),
+			record.SeedCost, fmt.Sprintf("crop_record:%d:seed", id))
+	}
+	if record.FertilizerCost > 0 {
+		_ = addTransactionInternal(record.PlantingDate, "expense", "fertilizer",
+			fmt.Sprintf("Fertilizer: %s for Field #%d", record.CropType, record.FieldID),
+			record.FertilizerCost, fmt.Sprintf("crop_record:%d:fert", id))
+	}
+	if record.LaborCost > 0 {
+		_ = addTransactionInternal(record.PlantingDate, "expense", "labor",
+			fmt.Sprintf("Labor: Planting %s in Field #%d", record.CropType, record.FieldID),
+			record.LaborCost, fmt.Sprintf("crop_record:%d:labor", id))
+	}
+
 	// Update field's current crop and status
 	if record.Status == "planted" || record.Status == "growing" {
 		_, _ = db.Exec(`UPDATE fields SET current_crop = ?, status = ? WHERE id = ?`, record.CropType, record.Status, record.FieldID)
 	}
 
-	return result.LastInsertId()
+	return id, nil
 }
 
 // UpdateCropRecord updates an existing crop record

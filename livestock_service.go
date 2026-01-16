@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 )
 
@@ -354,7 +355,14 @@ func (s *LivestockService) AddMilkSale(sale MilkSale) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return result.LastInsertId()
+
+	id, _ := result.LastInsertId()
+	// Automatically record in finances
+	_ = addTransactionInternal(sale.Date, "income", "milk_sales",
+		fmt.Sprintf("Milk Sale: %.1fL to %s", sale.Liters, sale.BuyerName),
+		total, fmt.Sprintf("milk_sale:%d", id))
+
+	return id, nil
 }
 
 // UpdateMilkSale updates an existing milk sale

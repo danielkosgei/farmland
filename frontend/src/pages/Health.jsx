@@ -8,6 +8,7 @@ import { FormGroup, FormRow, Label, Input, Select, Textarea } from '../component
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/Table';
 import { EmptyState } from '../components/ui/EmptyState';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { toast } from 'sonner';
 import './Health.css';
 
 const recordTypes = ['treatment', 'vaccination', 'checkup', 'deworming', 'artificial_insemination', 'pregnancy_check', 'hoof_trimming'];
@@ -43,7 +44,9 @@ export function Health() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const loadingToast = toast.loading('Saving health record...');
         try {
+            const cost = parseFloat(formData.cost) || 0;
             await window.go.main.HealthService.AddVetRecord({
                 animalId: parseInt(formData.animalId),
                 date: formData.date,
@@ -54,14 +57,21 @@ export function Health() {
                 medicine: formData.medicine,
                 dosage: formData.dosage,
                 vetName: formData.vetName,
-                cost: parseFloat(formData.cost) || 0,
+                cost: cost,
                 nextDueDate: formData.nextDueDate,
                 notes: formData.notes
             });
+
+            const financialMsg = cost > 0 ? ' & added to Finances' : '';
+            toast.success(`Health record saved${financialMsg}`, { id: loadingToast });
+
             setShowModal(false);
             resetForm();
             loadData();
-        } catch (err) { console.error(err); }
+        } catch (err) {
+            console.error(err);
+            toast.error('Failed to save health record', { id: loadingToast });
+        }
     };
 
     const handleDelete = async (id) => {

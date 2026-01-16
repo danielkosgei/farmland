@@ -2,6 +2,8 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
+	"time"
 )
 
 // InventoryService handles inventory-related operations
@@ -75,7 +77,18 @@ func (s *InventoryService) AddInventoryItem(item InventoryItem) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return result.LastInsertId()
+
+	id, _ := result.LastInsertId()
+	// Automatically record in finances if there's a cost
+	totalCost := item.CostPerUnit * item.Quantity
+	if totalCost > 0 {
+		date := time.Now().Format("2006-01-02")
+		_ = addTransactionInternal(date, "expense", item.Category,
+			fmt.Sprintf("Purchase: %.1f %s of %s", item.Quantity, item.Unit, item.Name),
+			totalCost, fmt.Sprintf("inventory:%d", id))
+	}
+
+	return id, nil
 }
 
 // UpdateInventoryItem updates an existing inventory item

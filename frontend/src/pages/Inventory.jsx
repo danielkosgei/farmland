@@ -8,6 +8,7 @@ import { FormGroup, FormRow, Label, Input, Select, Textarea } from '../component
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/Table';
 import { EmptyState } from '../components/ui/EmptyState';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { toast } from 'sonner';
 import './Inventory.css';
 
 const categories = ['feed', 'equipment', 'supplies', 'seeds', 'fertilizer', 'medicine', 'tools', 'fuel'];
@@ -35,18 +36,32 @@ export function Inventory() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const loadingToast = toast.loading(editingItem ? 'Updating item...' : 'Adding item...');
         try {
-            const data = { ...formData, quantity: parseFloat(formData.quantity) || 0, minimumStock: parseFloat(formData.minimumStock) || 0, costPerUnit: parseFloat(formData.costPerUnit) || 0 };
+            const data = {
+                ...formData,
+                quantity: parseFloat(formData.quantity) || 0,
+                minimumStock: parseFloat(formData.minimumStock) || 0,
+                costPerUnit: parseFloat(formData.costPerUnit) || 0
+            };
             if (editingItem) {
                 await window.go.main.InventoryService.UpdateInventoryItem({ ...data, id: editingItem.id });
+                toast.success('Inventory item updated', { id: loadingToast });
             } else {
                 await window.go.main.InventoryService.AddInventoryItem(data);
+                const financialMsg = (data.costPerUnit * data.quantity) > 0
+                    ? ' & added to Finances'
+                    : '';
+                toast.success(`Item added${financialMsg}`, { id: loadingToast });
             }
             setShowModal(false);
             setEditingItem(null);
             resetForm();
             loadItems();
-        } catch (err) { console.error(err); }
+        } catch (err) {
+            console.error(err);
+            toast.error('Failed to save inventory item', { id: loadingToast });
+        }
     };
 
     const handleDelete = async (id) => {

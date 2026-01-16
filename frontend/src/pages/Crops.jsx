@@ -10,6 +10,7 @@ import { Modal } from '../components/ui/Modal';
 import { FormGroup, FormRow, Label, Input, Select, Textarea } from '../components/ui/Form';
 import { EmptyState } from '../components/ui/EmptyState';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { toast } from 'sonner';
 import './Crops.css';
 
 const cropTypes = ['Maize', 'Beans', 'Sukuma Wiki (Kale)', 'Spinach', 'Cabbage', 'Tomatoes', 'Onions', 'Potatoes', 'Sweet Potatoes', 'Sorghum', 'Millet', 'Groundnuts', 'Cowpeas', 'Green Grams', 'Napier Grass'];
@@ -71,22 +72,33 @@ export function Crops() {
 
     const handleCropSubmit = async (e) => {
         e.preventDefault();
+        const loadingToast = toast.loading('Recording planting record...');
         try {
+            const seedCost = parseFloat(cropForm.seedCost) || 0;
+            const fertCost = parseFloat(cropForm.fertilizerCost) || 0;
+
             await window.go.main.CropsService.AddCropRecord({
                 fieldId: selectedField.id,
                 cropType: cropForm.cropType,
                 variety: cropForm.variety,
                 plantingDate: cropForm.plantingDate,
                 expectedHarvest: cropForm.expectedHarvest,
-                seedCost: parseFloat(cropForm.seedCost) || 0,
-                fertilizerCost: parseFloat(cropForm.fertilizerCost) || 0,
+                seedCost: seedCost,
+                fertilizerCost: fertCost,
                 status: 'planted',
                 notes: cropForm.notes
             });
+
+            const financialMsg = (seedCost + fertCost) > 0 ? ' & expenses added to Finances' : '';
+            toast.success(`Crop planted${financialMsg}`, { id: loadingToast });
+
             setShowCropModal(false);
             setCropForm({ cropType: '', variety: '', plantingDate: new Date().toISOString().split('T')[0], expectedHarvest: '', seedCost: '', fertilizerCost: '', notes: '' });
             loadFields();
-        } catch (err) { console.error(err); }
+        } catch (err) {
+            console.error(err);
+            toast.error('Failed to record crop planting', { id: loadingToast });
+        }
     };
 
     const handleDelete = async (id) => {

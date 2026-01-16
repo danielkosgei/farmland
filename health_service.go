@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 )
 
 // HealthService handles veterinary/health-related operations
@@ -66,7 +67,16 @@ func (s *HealthService) AddVetRecord(record VetRecord) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return result.LastInsertId()
+
+	id, _ := result.LastInsertId()
+	// Automatically record in finances if there's a cost
+	if record.Cost > 0 {
+		_ = addTransactionInternal(record.Date, "expense", "veterinary",
+			fmt.Sprintf("Vet: %s for Animal #%d", record.RecordType, record.AnimalID),
+			record.Cost, fmt.Sprintf("vet_record:%d", id))
+	}
+
+	return id, nil
 }
 
 // UpdateVetRecord updates an existing vet record

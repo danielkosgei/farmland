@@ -170,3 +170,15 @@ func (s *FinancialService) GetIncomeCategories() []string {
 func (s *FinancialService) GetExpenseCategories() []string {
 	return []string{"feed", "veterinary", "labor", "equipment", "seeds", "fertilizer", "fuel", "maintenance", "transport", "utilities", "other_expense"}
 }
+
+// addTransactionInternal is a helper for other services to record transactions
+func addTransactionInternal(date, tType, category, description string, amount float64, relatedEntity string) error {
+	if amount <= 0 {
+		return nil
+	}
+	_, err := db.Exec(`
+		INSERT INTO transactions (date, type, category, description, amount, payment_method, related_entity) 
+		VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		date, tType, category, description, amount, "automatic", relatedEntity)
+	return err
+}

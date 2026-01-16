@@ -9,6 +9,7 @@ import { FormGroup, FormRow, Label, Input, Textarea, Checkbox } from '../compone
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/Table';
 import { EmptyState } from '../components/ui/EmptyState';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { toast } from 'sonner';
 import './MilkSales.css';
 
 export function MilkSales() {
@@ -35,6 +36,7 @@ export function MilkSales() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const loadingToast = toast.loading(editingSale ? 'Updating sale...' : 'Recording sale...');
         try {
             const saleData = {
                 date: formData.date,
@@ -46,14 +48,19 @@ export function MilkSales() {
             };
             if (editingSale) {
                 await window.go.main.LivestockService.UpdateMilkSale({ ...saleData, id: editingSale.id });
+                toast.success('Sale record updated', { id: loadingToast });
             } else {
                 await window.go.main.LivestockService.AddMilkSale(saleData);
+                toast.success('Sale recorded and added to Finances', { id: loadingToast });
             }
             setShowModal(false);
             setEditingSale(null);
             resetForm();
             loadSales();
-        } catch (err) { console.error(err); }
+        } catch (err) {
+            console.error(err);
+            toast.error('Failed to save sale record', { id: loadingToast });
+        }
     };
 
     const handleDelete = async (id) => {
