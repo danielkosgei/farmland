@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, MapPin, Wheat, Sprout, Edit2, Info, Droplets, Maximize, Camera, Trash2 } from 'lucide-react';
 import { PhotoGallery } from '../components/PhotoGallery';
+import { Pagination } from '../components/ui/Pagination';
 import '../components/EntityDetails.css';
 import { Button } from '../components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
@@ -28,8 +29,17 @@ export function Crops() {
     const [tempPhotoId, setTempPhotoId] = useState(null);
     const [fieldForm, setFieldForm] = useState({ name: '', sizeAcres: '', location: '', soilType: '', status: 'fallow', notes: '' });
     const [cropForm, setCropForm] = useState({ cropType: '', variety: '', plantingDate: new Date().toISOString().split('T')[0], expectedHarvest: '', seedCost: '', fertilizerCost: '', notes: '' });
+    const [currentPage, setCurrentPage] = useState(1);
+
+    const itemsPerPage = 8; // Grid items slightly less than table items for visual balance
+    const filteredFields = fields.filter(f => f.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    const paginatedFields = filteredFields.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     useEffect(() => { loadFields(); }, []);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
 
     const loadFields = async () => {
         try {
@@ -136,29 +146,37 @@ export function Crops() {
             ) : fields.length === 0 ? (
                 <Card><EmptyState icon={Wheat} title="No fields registered" description="Add your farm fields to start tracking crops" action={<Button icon={Plus} onClick={() => setShowFieldModal(true)}>Add Field</Button>} /></Card>
             ) : (
-                <div className="fields-grid">
-                    {fields.map(field => (
-                        <Card key={field.id} className="field-card clickable-card" hover onClick={() => handleCardClick(field)}>
-                            <div className="field-header">
-                                <div className="field-icon"><Sprout size={24} /></div>
-                                <div className="field-actions">
-                                    <button className="action-btn" title="View/Edit Photos" onClick={(e) => { e.stopPropagation(); openEditField(field); }}><Camera size={16} /></button>
-                                    <button className="action-btn" onClick={(e) => { e.stopPropagation(); openEditField(field); }}><Edit2 size={16} /></button>
-                                    <button className="action-btn delete" onClick={(e) => { e.stopPropagation(); handleDelete(field.id); }}><Trash2 size={16} /></button>
+                <div className="fields-container">
+                    <div className="fields-grid">
+                        {paginatedFields.map(field => (
+                            <Card key={field.id} className="field-card clickable-card" hover onClick={() => handleCardClick(field)}>
+                                <div className="field-header">
+                                    <div className="field-icon"><Sprout size={24} /></div>
+                                    <div className="field-actions">
+                                        <button className="action-btn" title="View/Edit Photos" onClick={(e) => { e.stopPropagation(); openEditField(field); }}><Camera size={16} /></button>
+                                        <button className="action-btn" onClick={(e) => { e.stopPropagation(); openEditField(field); }}><Edit2 size={16} /></button>
+                                        <button className="action-btn delete" onClick={(e) => { e.stopPropagation(); handleDelete(field.id); }}><Trash2 size={16} /></button>
+                                    </div>
                                 </div>
-                            </div>
-                            <h3 className="field-name">{field.name}</h3>
-                            <p className="field-location">{field.location || 'No location set'}</p>
-                            <div className="field-meta">
-                                <span className="field-size">{field.sizeAcres} acres</span>
-                                <span className={`field-status ${getStatusColor(field.status)}`}>{field.status?.replace('_', ' ') || '-'}</span>
-                            </div>
-                            {field.currentCrop && <div className="current-crop"><Wheat size={14} /> {field.currentCrop}</div>}
-                            <div className="field-footer">
-                                <Button variant="outline" size="sm" icon={Sprout} onClick={(e) => openPlantCrop(field, e)} fullWidth>Plant Crop</Button>
-                            </div>
-                        </Card>
-                    ))}
+                                <h3 className="field-name">{field.name}</h3>
+                                <p className="field-location">{field.location || 'No location set'}</p>
+                                <div className="field-meta">
+                                    <span className="field-size">{field.sizeAcres} acres</span>
+                                    <span className={`field-status ${getStatusColor(field.status)}`}>{field.status?.replace('_', ' ') || '-'}</span>
+                                </div>
+                                {field.currentCrop && <div className="current-crop"><Wheat size={14} /> {field.currentCrop}</div>}
+                                <div className="field-footer">
+                                    <Button variant="outline" size="sm" icon={Sprout} onClick={(e) => openPlantCrop(field, e)} fullWidth>Plant Crop</Button>
+                                </div>
+                            </Card>
+                        ))}
+                    </div>
+                    <Pagination
+                        totalItems={filteredFields.length}
+                        itemsPerPage={itemsPerPage}
+                        currentPage={currentPage}
+                        onPageChange={setCurrentPage}
+                    />
                 </div>
             )}
 
@@ -170,7 +188,7 @@ export function Crops() {
                     </FormRow>
                     <FormRow>
                         <FormGroup><Label htmlFor="location">Location</Label><Input id="location" value={fieldForm.location} onChange={(e) => setFieldForm({ ...fieldForm, location: e.target.value })} placeholder="e.g., Near the river" /></FormGroup>
-                        <FormGroup><Label htmlFor="soil">Soil Type</Label><Select id="soil" value={fieldForm.soilType} onChange={(e) => setFieldForm({ ...fieldForm, soilType: e.target.value })}><option value="">Select soil type</option>{soilTypes.map(s => <option key={s} value={s}>{s}</option>)}</Select></FormGroup>
+                        <FormGroup><Label htmlFor="soil">Soil Type</Label><Select id="soil" value={fieldForm.soilType} onChange={(e) => setFieldForm({ ...soilTypes, soilType: e.target.value })}><option value="">Select soil type</option>{soilTypes.map(s => <option key={s} value={s}>{s}</option>)}</Select></FormGroup>
                     </FormRow>
                     <FormGroup><Label htmlFor="fieldStatus">Status</Label><Select id="fieldStatus" value={fieldForm.status} onChange={(e) => setFieldForm({ ...fieldForm, status: e.target.value })}>{fieldStatuses.map(s => <option key={s} value={s}>{s?.replace('_', ' ').charAt(0).toUpperCase() + s?.replace('_', ' ').slice(1)}</option>)}</Select></FormGroup>
                     <FormGroup><Label htmlFor="fieldNotes">Notes</Label><Textarea id="fieldNotes" value={fieldForm.notes} onChange={(e) => setFieldForm({ ...fieldForm, notes: e.target.value })} rows={2} /></FormGroup>

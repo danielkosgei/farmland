@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Trash2, CheckCircle, Milk } from 'lucide-react';
+import { Pagination } from '../components/ui/Pagination';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Modal } from '../components/ui/Modal';
@@ -16,6 +17,10 @@ export function MilkSales() {
     const [editingSale, setEditingSale] = useState(null);
     const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
     const [formData, setFormData] = useState({ date: new Date().toISOString().split('T')[0], buyerName: '', liters: '', pricePerLiter: '60', isPaid: true, notes: '' });
+    const [currentPage, setCurrentPage] = useState(1);
+
+    const itemsPerPage = 10;
+    const paginatedSales = sales.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     useEffect(() => { loadSales(); }, []);
 
@@ -114,41 +119,49 @@ export function MilkSales() {
                 ) : sales.length === 0 ? (
                     <EmptyState icon={Milk} title="No sales recorded" description="Start recording your milk sales" action={<Button icon={Plus} onClick={() => setShowModal(true)}>Record Sale</Button>} />
                 ) : (
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Date</TableHead>
-                                <TableHead>Buyer</TableHead>
-                                <TableHead>Liters</TableHead>
-                                <TableHead>Price/L</TableHead>
-                                <TableHead>Total</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {sales.map(sale => (
-                                <TableRow key={sale.id}>
-                                    <TableCell className="font-mono">{new Date(sale.date).toLocaleDateString('en-KE')}</TableCell>
-                                    <TableCell><span className="font-bold text-neutral-900">{sale.buyerName || 'Walk-in'}</span></TableCell>
-                                    <TableCell className="font-mono">{sale.liters.toFixed(1)} L</TableCell>
-                                    <TableCell className="font-mono text-neutral-500">{formatCurrency(sale.pricePerLiter)}</TableCell>
-                                    <TableCell className="font-mono font-bold text-primary-600">{formatCurrency(sale.totalAmount)}</TableCell>
-                                    <TableCell>
-                                        <span className={`payment-badge ${sale.isPaid ? 'paid' : 'pending'}`}>
-                                            {sale.isPaid ? <><CheckCircle size={14} /> Paid</> : 'Pending'}
-                                        </span>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="action-buttons">
-                                            <button className="action-btn edit" onClick={() => openEdit(sale)}><Edit2 size={16} /></button>
-                                            <button className="action-btn delete" onClick={() => handleDelete(sale.id)}><Trash2 size={16} /></button>
-                                        </div>
-                                    </TableCell>
+                    <div className="table-wrapper">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead>Buyer</TableHead>
+                                    <TableHead>Liters</TableHead>
+                                    <TableHead>Price/L</TableHead>
+                                    <TableHead>Total</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Actions</TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {paginatedSales.map(sale => (
+                                    <TableRow key={sale.id}>
+                                        <TableCell className="font-mono">{new Date(sale.date).toLocaleDateString('en-KE')}</TableCell>
+                                        <TableCell><span className="font-bold text-neutral-900">{sale.buyerName || 'Walk-in'}</span></TableCell>
+                                        <TableCell className="font-mono">{sale.liters.toFixed(1)} L</TableCell>
+                                        <TableCell className="font-mono text-neutral-500">{formatCurrency(sale.pricePerLiter)}</TableCell>
+                                        <TableCell className="font-mono font-bold text-primary-600">{formatCurrency(sale.totalAmount)}</TableCell>
+                                        <TableCell>
+                                            <span className={`payment-badge ${sale.isPaid ? 'paid' : 'pending'}`}>
+                                                {sale.isPaid ? <><CheckCircle size={14} /> Paid</> : 'Pending'}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="action-buttons">
+                                                <button className="action-btn edit" onClick={() => openEdit(sale)}><Edit2 size={16} /></button>
+                                                <button className="action-btn delete" onClick={() => handleDelete(sale.id)}><Trash2 size={16} /></button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                        <Pagination
+                            totalItems={sales.length}
+                            itemsPerPage={itemsPerPage}
+                            currentPage={currentPage}
+                            onPageChange={setCurrentPage}
+                        />
+                    </div>
                 )}
             </Card>
 

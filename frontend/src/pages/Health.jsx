@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Heart, Syringe, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Heart, Activity, Calendar, AlertCircle, Syringe } from 'lucide-react';
+import { Pagination } from '../components/ui/Pagination';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Modal } from '../components/ui/Modal';
@@ -19,6 +20,10 @@ export function Health() {
     const [showModal, setShowModal] = useState(false);
     const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
     const [formData, setFormData] = useState({ animalId: '', date: new Date().toISOString().split('T')[0], recordType: 'treatment', description: '', diagnosis: '', treatment: '', medicine: '', dosage: '', vetName: '', cost: '', nextDueDate: '', notes: '' });
+    const [currentPage, setCurrentPage] = useState(1);
+
+    const itemsPerPage = 10;
+    const paginatedRecords = records.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     useEffect(() => { loadData(); }, []);
 
@@ -124,7 +129,7 @@ export function Health() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {records.map(record => (
+                            {paginatedRecords.map(record => (
                                 <TableRow key={record.id}>
                                     <TableCell className="font-mono">{new Date(record.date).toLocaleDateString('en-KE')}</TableCell>
                                     <TableCell className="font-medium">{record.animalName}</TableCell>
@@ -143,6 +148,14 @@ export function Health() {
                             ))}
                         </TableBody>
                     </Table>
+                )}
+                {!loading && records.length > 0 && (
+                    <Pagination
+                        totalItems={records.length}
+                        itemsPerPage={itemsPerPage}
+                        currentPage={currentPage}
+                        onPageChange={setCurrentPage}
+                    />
                 )}
             </Card>
 

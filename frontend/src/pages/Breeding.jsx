@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Baby, Calendar, Heart, AlertCircle } from 'lucide-react';
+import { Pagination } from '../components/ui/Pagination';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
@@ -35,6 +36,10 @@ export function Breeding() {
         offspringId: '',
         actualBirthDate: new Date().toISOString().split('T')[0]
     });
+    const [currentPage, setCurrentPage] = useState(1);
+
+    const itemsPerPage = 10;
+    const paginatedRecords = records.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     useEffect(() => {
         loadData();
@@ -248,43 +253,51 @@ export function Breeding() {
                             action={<Button icon={Plus} onClick={() => setShowAddModal(true)}>Record First Breeding</Button>}
                         />
                     ) : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Female</TableHead>
-                                    <TableHead>Male/Sire</TableHead>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead>Method</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Due Date</TableHead>
-                                    <TableHead>Offspring</TableHead>
-                                    <TableHead>Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {records.map(record => (
-                                    <TableRow key={record.id}>
-                                        <TableCell><span className="font-bold text-neutral-900">{record.femaleName}</span></TableCell>
-                                        <TableCell>{record.maleName || record.sireSource || '-'}</TableCell>
-                                        <TableCell className="font-mono">{record.breedingDate}</TableCell>
-                                        <TableCell>{record.breedingMethod === 'artificial_insemination' ? 'AI' : 'Natural'}</TableCell>
-                                        <TableCell>{getStatusBadge(record.pregnancyStatus)}</TableCell>
-                                        <TableCell className="font-mono">{record.expectedDueDate || '-'}</TableCell>
-                                        <TableCell>{record.offspringName || '-'}</TableCell>
-                                        <TableCell>
-                                            <div className="action-buttons">
-                                                <button className="icon-btn" onClick={() => openEditModal(record)} title="Edit">
-                                                    <Edit2 size={16} />
-                                                </button>
-                                                <button className="icon-btn danger" onClick={() => handleDelete(record.id)} title="Delete">
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        </TableCell>
+                        <div className="table-wrapper">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Female</TableHead>
+                                        <TableHead>Male/Sire</TableHead>
+                                        <TableHead>Date</TableHead>
+                                        <TableHead>Method</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead>Due Date</TableHead>
+                                        <TableHead>Offspring</TableHead>
+                                        <TableHead>Actions</TableHead>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                                </TableHeader>
+                                <TableBody>
+                                    {paginatedRecords.map(record => (
+                                        <TableRow key={record.id}>
+                                            <TableCell><span className="font-bold text-neutral-900">{record.femaleName}</span></TableCell>
+                                            <TableCell>{record.maleName || record.sireSource || '-'}</TableCell>
+                                            <TableCell className="font-mono">{record.breedingDate}</TableCell>
+                                            <TableCell>{record.breedingMethod === 'artificial_insemination' ? 'AI' : 'Natural'}</TableCell>
+                                            <TableCell>{getStatusBadge(record.pregnancyStatus)}</TableCell>
+                                            <TableCell className="font-mono">{record.expectedDueDate || '-'}</TableCell>
+                                            <TableCell>{record.offspringName || '-'}</TableCell>
+                                            <TableCell>
+                                                <div className="action-buttons">
+                                                    <button className="icon-btn" onClick={() => openEditModal(record)} title="Edit">
+                                                        <Edit2 size={16} />
+                                                    </button>
+                                                    <button className="icon-btn danger" onClick={() => handleDelete(record.id)} title="Delete">
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                            <Pagination
+                                totalItems={records.length}
+                                itemsPerPage={itemsPerPage}
+                                currentPage={currentPage}
+                                onPageChange={setCurrentPage}
+                            />
+                        </div>
                     )}
                 </CardContent>
             </Card>

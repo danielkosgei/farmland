@@ -6,6 +6,14 @@ export function ExportAnimalsCSV() {
   return window['go']['main']['ExportService']['ExportAnimalsCSV']();
 }
 
+export function ExportFinancesCSV(arg1, arg2) {
+  return window['go']['main']['ExportService']['ExportFinancesCSV'](arg1, arg2);
+}
+
+export function ExportMilkRecordsCSV(arg1, arg2) {
+  return window['go']['main']['ExportService']['ExportMilkRecordsCSV'](arg1, arg2);
+}
+
 export function GetExportDirectory() {
   return window['go']['main']['ExportService']['GetExportDirectory']();
 }

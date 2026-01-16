@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Package, AlertTriangle } from 'lucide-react';
+import { Pagination } from '../components/ui/Pagination';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Modal } from '../components/ui/Modal';
@@ -18,6 +19,7 @@ export function Inventory() {
     const [showModal, setShowModal] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
     const [filterCategory, setFilterCategory] = useState('all');
+    const [currentPage, setCurrentPage] = useState(1);
     const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
     const [formData, setFormData] = useState({ name: '', category: 'supplies', quantity: '', unit: 'kg', minimumStock: '', costPerUnit: '', supplier: '', notes: '' });
 
@@ -68,6 +70,13 @@ export function Inventory() {
     const resetForm = () => setFormData({ name: '', category: 'supplies', quantity: '', unit: 'kg', minimumStock: '', costPerUnit: '', supplier: '', notes: '' });
 
     const filteredItems = filterCategory === 'all' ? items : items.filter(i => i.category === filterCategory);
+    const itemsPerPage = 10;
+    const paginatedItems = filteredItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filterCategory]);
+
     const lowStockCount = items.filter(i => i.quantity < i.minimumStock).length;
 
     return (
@@ -116,7 +125,7 @@ export function Inventory() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredItems.map(item => (
+                            {paginatedItems.map(item => (
                                 <TableRow key={item.id} className={item.quantity < item.minimumStock ? 'low-stock-row' : ''}>
                                     <TableCell>
                                         <div className="item-info">
@@ -137,6 +146,14 @@ export function Inventory() {
                             ))}
                         </TableBody>
                     </Table>
+                )}
+                {!loading && filteredItems.length > 0 && (
+                    <Pagination
+                        totalItems={filteredItems.length}
+                        itemsPerPage={itemsPerPage}
+                        currentPage={currentPage}
+                        onPageChange={setCurrentPage}
+                    />
                 )}
             </Card>
 

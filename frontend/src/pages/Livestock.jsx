@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Edit2, Trash2, Milk, Beef, FileSpreadsheet, Calendar, Info, Users } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Milk, Beef, FileSpreadsheet, Calendar, Info, Users, Droplets } from 'lucide-react';
+import { Pagination } from '../components/ui/Pagination';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
 import { Modal } from '../components/ui/Modal';
@@ -27,6 +28,7 @@ export function Livestock() {
     const [selectedAnimal, setSelectedAnimal] = useState(null);
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
     const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
     const [alert, setAlert] = useState({ show: false, title: '', message: '', type: 'info' });
     const [tempPhotoId, setTempPhotoId] = useState(null);
@@ -141,16 +143,23 @@ export function Livestock() {
         });
     };
 
-    const filteredAnimals = animals.filter(a =>
-        a.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        a.tagNumber?.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredAnimals = animals.filter(animal =>
+        animal.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        animal.tagNumber?.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const itemsPerPage = 10;
+    const paginatedAnimals = filteredAnimals.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
 
     const potentialMothers = animals.filter(a => a.gender === 'female' && a.id !== editingAnimal?.id);
     const potentialFathers = animals.filter(a => a.gender === 'male' && a.id !== editingAnimal?.id);
 
     const handleExportCSV = async () => {
-        const loadingToast = toast.loading('Generating rich inventory CSV...');
+        const loadingToast = toast.loading('Generating comprehensive livestock CSV...');
         try {
             const res = await window.go.main.ExportService.ExportAnimalsCSV();
             if (res) {
@@ -229,7 +238,7 @@ export function Livestock() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredAnimals.map(animal => (
+                            {paginatedAnimals.map((animal) => (
                                 <TableRow key={animal.id} onClick={() => handleRowClick(animal)} className="clickable-row">
                                     <TableCell>
                                         <div className="animal-info">
@@ -253,6 +262,14 @@ export function Livestock() {
                             ))}
                         </TableBody>
                     </Table>
+                )}
+                {!loading && filteredAnimals.length > 0 && (
+                    <Pagination
+                        totalItems={filteredAnimals.length}
+                        itemsPerPage={itemsPerPage}
+                        currentPage={currentPage}
+                        onPageChange={setCurrentPage}
+                    />
                 )}
             </Card>
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, DollarSign, TrendingUp, TrendingDown, Edit2, Trash2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { Pagination } from '../components/ui/Pagination';
 import { Button } from '../components/ui/Button';
 import { StatCard } from '../components/ui/StatCard';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
@@ -23,6 +24,7 @@ export function Finances() {
     const [filterType, setFilterType] = useState('all');
     const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
     const [formData, setFormData] = useState({ date: new Date().toISOString().split('T')[0], type: 'income', category: 'milk_sales', description: '', amount: '', paymentMethod: 'cash', relatedEntity: '', notes: '' });
+    const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => { loadData(); }, []);
 
@@ -74,6 +76,13 @@ export function Finances() {
     const formatCurrency = (amt) => new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(amt || 0);
 
     const filteredTransactions = filterType === 'all' ? transactions : transactions.filter(t => t.type === filterType);
+
+    const itemsPerPage = 10;
+    const paginatedTransactions = filteredTransactions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filterType]);
 
     const chartData = [
         { name: 'Income', value: summary?.totalIncome || 0, fill: '#22c55e' },
@@ -137,35 +146,43 @@ export function Finances() {
 
                     {loading ? (
                         <div className="loading-container"><div className="loading-spinner"></div></div>
-                    ) : transactions.length === 0 ? (
+                    ) : filteredTransactions.length === 0 ? (
                         <EmptyState icon={DollarSign} title="No transactions" description="Start recording your income and expenses" action={<Button icon={Plus} onClick={() => setShowModal(true)}>Add Transaction</Button>} />
                     ) : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead>Description</TableHead>
-                                    <TableHead>Category</TableHead>
-                                    <TableHead>Amount</TableHead>
-                                    <TableHead>Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {filteredTransactions.slice(0, 15).map(trans => (
-                                    <TableRow key={trans.id}>
-                                        <TableCell className="font-mono">{new Date(trans.date).toLocaleDateString('en-KE')}</TableCell>
-                                        <TableCell><span className="font-bold text-neutral-900">{trans.description || '-'}</span></TableCell>
-                                        <TableCell><span className={`cat-badge cat-${trans.type}`}>{trans.category?.replace('_', ' ') || '-'}</span></TableCell>
-                                        <TableCell className={`amount font-mono font-bold ${trans.type}`}>
-                                            {trans.type === 'income' ? '+' : '-'}{formatCurrency(trans.amount)}
-                                        </TableCell>
-                                        <TableCell>
-                                            <button className="action-btn delete" onClick={() => handleDelete(trans.id)}><Trash2 size={16} /></button>
-                                        </TableCell>
+                        <div className="table-wrapper">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Date</TableHead>
+                                        <TableHead>Description</TableHead>
+                                        <TableHead>Category</TableHead>
+                                        <TableHead>Amount</TableHead>
+                                        <TableHead>Actions</TableHead>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                                </TableHeader>
+                                <TableBody>
+                                    {paginatedTransactions.map(trans => (
+                                        <TableRow key={trans.id}>
+                                            <TableCell className="font-mono">{new Date(trans.date).toLocaleDateString('en-KE')}</TableCell>
+                                            <TableCell><span className="font-bold text-neutral-900">{trans.description || '-'}</span></TableCell>
+                                            <TableCell><span className={`cat-badge cat-${trans.type}`}>{trans.category?.replace('_', ' ') || '-'}</span></TableCell>
+                                            <TableCell className={`amount font-mono font-bold ${trans.type}`}>
+                                                {trans.type === 'income' ? '+' : '-'}{formatCurrency(trans.amount)}
+                                            </TableCell>
+                                            <TableCell>
+                                                <button className="action-btn delete" onClick={() => handleDelete(trans.id)}><Trash2 size={16} /></button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                            <Pagination
+                                totalItems={filteredTransactions.length}
+                                itemsPerPage={itemsPerPage}
+                                currentPage={currentPage}
+                                onPageChange={setCurrentPage}
+                            />
+                        </div>
                     )}
                 </Card>
             </div>
