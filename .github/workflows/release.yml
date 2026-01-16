@@ -193,16 +193,20 @@ jobs:
         if: matrix.platform == 'windows'
         run: |
           Get-ChildItem build\bin
+          
+          # Handle raw binary
+          if (Test-Path build\bin\farmland.exe) {
+            Copy-Item build\bin\farmland.exe build\bin\farmland-windows-amd64.exe -Force
+            Write-Host "Binary packaged: build\bin\farmland-windows-amd64.exe"
+          }
+
+          # Handle installer
           $installer = Get-ChildItem build\bin\*installer.exe | Select-Object -First 1
           if ($installer) {
             Move-Item $installer.FullName build\bin\farmland-windows-amd64-installer.exe -Force
             Write-Host "Installer packaged: build\bin\farmland-windows-amd64-installer.exe"
           } else {
             Write-Warning "No installer found! This build may have failed to trigger NSIS."
-            # Fallback for debugging: if only exe exists, rename it (though it's not an installer)
-            if (Test-Path build\bin\farmland.exe) {
-              Write-Host "Found farmland.exe, but no installer."
-            }
             exit 1
           }
         shell: pwsh
@@ -260,8 +264,10 @@ jobs:
         if: matrix.platform == 'windows'
         uses: actions/upload-artifact@v4
         with:
-          name: farmland-windows-amd64-installer
-          path: build/bin/farmland-windows-amd64-installer.exe
+          name: farmland-windows-amd64
+          path: |
+            build/bin/farmland-windows-amd64-installer.exe
+            build/bin/farmland-windows-amd64.exe
 
       - name: Upload macOS artifact
         if: matrix.platform == 'darwin'
@@ -297,7 +303,8 @@ jobs:
         with:
           body: ${{ needs.changelog.outputs.changelog }}
           files: |
-            artifacts/farmland-windows-amd64-installer/farmland-windows-amd64-installer.exe
+            artifacts/farmland-windows-amd64/farmland-windows-amd64-installer.exe
+            artifacts/farmland-windows-amd64/farmland-windows-amd64.exe
             artifacts/farmland-darwin-amd64/farmland-darwin-amd64.zip
             artifacts/farmland-darwin-arm64/farmland-darwin-arm64.zip
             artifacts/farmland-linux-amd64/farmland-linux-amd64.tar.gz

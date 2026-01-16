@@ -64,11 +64,14 @@ export function UpdateManager({ isOpen, onClose }) {
     };
 
     const applyUpdate = async () => {
+        setStatus('installing');
+        setError(null);
         try {
             await window.go.main.UpdateService.ApplyUpdate();
             await window.go.main.UpdateService.RestartApp();
         } catch (err) {
-            setError(err.message || 'Failed to apply update');
+            console.error('Update apply error:', err);
+            setError(typeof err === 'string' ? err : (err.message || JSON.stringify(err)));
             setStatus('error');
         }
     };
@@ -181,6 +184,14 @@ export function UpdateManager({ isOpen, onClose }) {
                             <span className="progress-text">{Math.round(progress)}%</span>
                         </div>
                         <p className="download-note">Please don't close the application.</p>
+                    </div>
+                )}
+
+                {status === 'installing' && (
+                    <div className="update-status installing">
+                        <RefreshCw size={48} className="spin" />
+                        <h3>Installing Update...</h3>
+                        <p>Preparing the new version. The app will restart automatically.</p>
                     </div>
                 )}
 

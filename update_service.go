@@ -24,6 +24,7 @@ type UpdateService struct {
 	downloadedFile   string
 	isDownloading    bool
 	downloadError    string
+	latestAssetName  string
 }
 
 // NewUpdateService creates a new UpdateService
@@ -66,6 +67,15 @@ func (s *UpdateService) GetCurrentVersion() string {
 
 // CheckForUpdates checks GitHub releases for a newer version
 func (s *UpdateService) CheckForUpdates() (*UpdateInfo, error) {
+	// Disable update checks in dev mode to prevent lock issues and unhelpful prompts
+	if Version == "dev" {
+		return &UpdateInfo{
+			CurrentVersion: Version,
+			LatestVersion:  Version,
+			HasUpdate:      false,
+		}, nil
+	}
+
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/releases/latest", GitHubOwner, GitHubRepo)
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -123,8 +133,20 @@ func (s *UpdateService) CheckForUpdates() (*UpdateInfo, error) {
 		basePattern = strings.TrimSuffix(basePattern, ".zip")
 		basePattern = strings.TrimSuffix(basePattern, ".tar.gz")
 
+		isInstallerPattern := strings.Contains(strings.ToLower(pattern), "installer")
+
 		for _, asset := range release.Assets {
-			if strings.Contains(strings.ToLower(asset.Name), strings.ToLower(basePattern)) {
+			assetNameLower := strings.ToLower(asset.Name)
+			patternLower := strings.ToLower(basePattern)
+
+			// If lookin for a binary, strictly ignore installers.
+			// If looking for an installer, strictly ignore non-installers.
+			isAssetInstaller := strings.Contains(assetNameLower, "installer")
+			if isInstallerPattern != isAssetInstaller {
+				continue
+			}
+
+			if strings.Contains(assetNameLower, patternLower) {
 				foundAsset = asset
 				goto found
 			}
@@ -156,8 +178,8 @@ func (s *UpdateService) getAssetPatterns() []string {
 	switch runtime.GOOS {
 	case "windows":
 		return []string{
-			"farmland-windows-amd64-installer.exe",
 			"farmland-windows-amd64.exe",
+			"farmland-windows-amd64-installer.exe",
 			"farmland.exe",
 		}
 	case "darwin":
@@ -237,6 +259,7 @@ func (s *UpdateService) StartDownload(url string) {
 	s.isDownloading = true
 	s.downloadError = ""
 	s.downloadedFile = ""
+	s.latestAssetName = filepath.Base(url)
 
 	go func() {
 		defer func() { s.isDownloading = false }()
@@ -319,50 +342,61 @@ func (s *UpdateService) getExtension(filename string) string {
 // ApplyUpdate replaces the current executable with the downloaded one
 func (s *UpdateService) ApplyUpdate() error {
 	if s.downloadedFile == "" {
-		return fmt.Errorf("no update downloaded")
+		return fmt.Errorf("no update file found - please download again")
+	}
+
+	// Verify update file exists
+	if _, err := os.Stat(s.downloadedFile); err != nil {
+		return fmt.Errorf("update file is missing or inaccessible: %w", err)
 	}
 
 	currentExe, err := os.Executable()
 	if err != nil {
-		return fmt.Errorf("failed to get current executable: %w", err)
+		return fmt.Errorf("could not determine current application path: %w", err)
 	}
 
 	// On Windows, if it's an INSTALLER, we execute it.
 	if runtime.GOOS == "windows" {
-		if strings.Contains(strings.ToLower(s.downloadedFile), "installer") {
-			cmd := exec.Command(s.downloadedFile)
-			if err := cmd.Start(); err != nil {
-				return fmt.Errorf("failed to launch installer: %w", err)
+		isInstaller := strings.Contains(strings.ToLower(s.downloadedFile), "installer") ||
+			strings.Contains(strings.ToLower(s.latestAssetName), "installer")
+
+		if isInstaller {
+			// Trigger UAC elevation for installer to resolve "elevation required" issue
+			if err := s.runAsAdmin(s.downloadedFile); err != nil {
+				return fmt.Errorf("failed to launch installer with administrative privileges: %w (did you decline the prompt?)", err)
 			}
 			return nil
 		}
 
 		// Non-installer Windows update: Use rename strategy to bypass file lock
-		oldExe := currentExe + ".old"
-		_ = os.Remove(oldExe) // Remove old backup if it exists
+		// Use a unique name for the old exe to avoid conflicts
+		oldExe := currentExe + "." + time.Now().Format("20060102150405") + ".old"
 
+		// 1. Rename current executable to .old
 		if err := os.Rename(currentExe, oldExe); err != nil {
-			return fmt.Errorf("failed to rename current executable: %w", err)
+			return fmt.Errorf("failed to move current version to %s: %w (check permissions)", filepath.Base(oldExe), err)
 		}
 
+		// 2. Copy the new binary to the original path
 		if err := s.copyFile(s.downloadedFile, currentExe); err != nil {
-			// Try to restore if copy fails
+			// Try to restore the old one if copy fails
 			_ = os.Rename(oldExe, currentExe)
-			return fmt.Errorf("failed to install new version: %w", err)
+			return fmt.Errorf("failed to install new binary: %w", err)
 		}
 
+		// Success - cleanup
 		_ = os.Remove(s.downloadedFile)
+		s.downloadedFile = ""
 		return nil
 	}
 
 	// For Linux/macOS
 	if err := s.copyFile(s.downloadedFile, currentExe); err != nil {
-		return fmt.Errorf("failed to install update: %w", err)
+		return fmt.Errorf("failed to copy update to %s: %w", currentExe, err)
 	}
 
 	_ = os.Chmod(currentExe, 0755)
 	_ = os.Remove(s.downloadedFile)
-
 	s.downloadedFile = ""
 	return nil
 }
@@ -412,4 +446,17 @@ func (s *UpdateService) GetPlatformInfo() map[string]string {
 		"os":   runtime.GOOS,
 		"arch": runtime.GOARCH,
 	}
+}
+
+// runAsAdmin triggers the Windows UAC prompt to run the given path as administrator
+func (s *UpdateService) runAsAdmin(path string) error {
+	// Use PowerShell to start the process with 'RunAs' verb (elevation)
+	// We wrap the path in single quotes to handle spaces correctly
+	cmd := exec.Command("powershell", "-Command",
+		fmt.Sprintf("Start-Process -FilePath '%s' -Verb RunAs", path))
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("elevation failed: %w (did you decline the prompt?)", err)
+	}
+	return nil
 }
