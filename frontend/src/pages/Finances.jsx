@@ -93,29 +93,20 @@ export function Finances() {
         <div className="finances-page">
             <header className="page-header">
                 <div className="page-header-content">
-                    <h1>Finances</h1>
+                    <div className="title-with-badge">
+                        <h1>Finances</h1>
+                        {summary?.netProfit !== undefined && (
+                            <div className={`profit-badge ${summary.netProfit >= 0 ? 'positive' : 'negative'}`}>
+                                <DollarSign size={14} />
+                                <span>Net Profit: {formatCurrency(summary.netProfit)}</span>
+                            </div>
+                        )}
+                    </div>
                     <p>Track income, expenses, and financial reports</p>
                 </div>
                 <Button icon={Plus} onClick={() => { resetForm(); setShowModal(true); }}>Add Transaction</Button>
             </header>
 
-            <div className="finance-stats">
-                <StatCard
-                    title="Total Income"
-                    value={formatCurrency(summary?.totalIncome)}
-                    icon={TrendingUp}
-                />
-                <StatCard
-                    title="Total Expenses"
-                    value={formatCurrency(summary?.totalExpenses)}
-                    icon={TrendingDown}
-                />
-                <StatCard
-                    title="Net Profit"
-                    value={formatCurrency(summary?.netProfit)}
-                    icon={DollarSign}
-                />
-            </div>
 
             <div className="finance-grid">
                 <Card className="chart-card">
