@@ -228,7 +228,7 @@ export function FieldDetails() {
                         <ImageIcon size={28} className="text-primary" />
                         Plot History & Visuals
                     </h2>
-                    <PhotoGallery entityType="field" entityId={field.id} />
+                    <PhotoGallery entityType="field" entityId={field.id} hideHeader={true} />
                 </div>
             </div>
 

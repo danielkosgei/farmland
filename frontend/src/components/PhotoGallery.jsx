@@ -3,7 +3,7 @@ import { Camera, Trash2, X, Maximize2, Loader2, Plus } from 'lucide-react';
 import { ConfirmDialog } from './ui/ConfirmDialog';
 import './PhotoGallery.css';
 
-export function PhotoGallery({ entityType, entityId }) {
+export function PhotoGallery({ entityType, entityId, allowUpload = true, hideHeader = false }) {
     const [photos, setPhotos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
@@ -38,6 +38,7 @@ export function PhotoGallery({ entityType, entityId }) {
     };
 
     const handleUpload = async () => {
+        if (uploading) return;
         setUploading(true);
         try {
             const photo = await window.go.main.PhotoService.UploadPhoto(entityType, entityId, "");
@@ -83,20 +84,27 @@ export function PhotoGallery({ entityType, entityId }) {
 
     return (
         <div className="photo-gallery">
-            <div className="gallery-header">
-                <h3><Camera size={18} /> Photos</h3>
-                <button
-                    className="upload-btn"
-                    onClick={handleUpload}
-                    disabled={uploading}
-                >
-                    {uploading ? <Loader2 className="animate-spin" size={14} /> : <Plus size={14} />}
-                    Add Photo
-                </button>
-            </div>
+            {!hideHeader && (
+                <div className="gallery-header">
+                    <h3><Camera size={18} /> Gallery</h3>
+                </div>
+            )}
 
             <div className="photos-grid">
-                {photos.length === 0 ? (
+                {allowUpload && (
+                    <button
+                        className={`upload-card ${uploading ? 'uploading' : ''}`}
+                        onClick={handleUpload}
+                        disabled={uploading}
+                        type="button"
+                        title="Add Photo"
+                    >
+                        {uploading ? <Loader2 className="animate-spin" size={24} /> : <Plus size={24} />}
+                        <span className="upload-label">Add Photo</span>
+                    </button>
+                )}
+
+                {photos.length === 0 && !allowUpload ? (
                     <div className="no-photos">
                         <p>No photos attached yet.</p>
                     </div>

@@ -246,7 +246,7 @@ export function AnimalDetails() {
                             <h3 className="section-title">Gallery</h3>
                         </div>
                         <div className="section-content">
-                            <PhotoGallery entityType="animal" entityId={animal.id} />
+                            <PhotoGallery entityType="animal" entityId={animal.id} hideHeader={true} />
                         </div>
                     </div>
                 </div>
