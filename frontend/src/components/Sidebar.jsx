@@ -125,7 +125,7 @@ export function Sidebar() {
                         `nav-item ${isActive ? 'active' : ''}`
                       }
                     >
-                      <item.icon size={20} className="nav-icon" />
+                      <item.icon size={18} className="nav-icon" />
                       <span className="nav-label">{item.label}</span>
                     </NavLink>
                   </li>
