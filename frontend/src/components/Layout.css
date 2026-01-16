@@ -11,8 +11,8 @@
 }
 
 .page-container {
-    padding: var(--space-4) var(--space-6) var(--space-8);
-    max-width: 1400px;
+    padding: var(--space-2) var(--space-3) var(--space-6);
+    max-width: 1300px;
     margin: 0 auto;
     animation: fadeIn var(--transition-base) ease-out;
 }

@@ -15,13 +15,13 @@
 }
 
 .table-head {
-    padding: var(--space-4) var(--space-5);
+    padding: var(--space-2) var(--space-3);
     text-align: left;
-    font-size: 0.6875rem;
+    font-size: 0.65rem;
     font-weight: var(--font-weight-bold);
     color: var(--color-neutral-500);
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.05em;
     border-bottom: var(--border-thin);
 }
 
@@ -46,10 +46,11 @@
 }
 
 .table-cell {
-    padding: var(--space-5);
-    font-size: var(--font-size-sm);
+    padding: var(--space-2) var(--space-3);
+    font-size: 13px;
     color: var(--color-neutral-700);
     font-variant-numeric: tabular-nums;
+    line-height: var(--line-height-tight);
 }
 
 .table-cell--mono {
@@ -59,4 +60,7 @@
 .table-cell:first-child {
     font-weight: var(--font-weight-medium);
     color: var(--color-neutral-900);
+    max-width: 200px;
+    white-space: normal;
+    word-break: break-all;
 }

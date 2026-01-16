@@ -74,7 +74,10 @@ export function Inventory() {
         <div className="inventory-page">
             <header className="page-header">
                 <div className="page-header-content">
-                    <h1>Inventory</h1>
+                    <div className="flex items-center gap-3">
+                        <h1>Inventory</h1>
+                        <span className="item-count-badge">{filteredItems.length} items</span>
+                    </div>
                     <p>Track farm supplies, equipment, and stock levels</p>
                 </div>
                 <Button icon={Plus} onClick={() => { resetForm(); setEditingItem(null); setShowModal(true); }}>Add Item</Button>
@@ -95,7 +98,6 @@ export function Inventory() {
                             <button key={cat} className={`filter-btn ${filterCategory === cat ? 'active' : ''}`} onClick={() => setFilterCategory(cat)}>{cat}</button>
                         ))}
                     </div>
-                    <span className="item-count">{filteredItems.length} items</span>
                 </div>
 
                 {loading ? (
@@ -110,7 +112,6 @@ export function Inventory() {
                                 <TableHead>Category</TableHead>
                                 <TableHead>Quantity</TableHead>
                                 <TableHead>Cost/Unit</TableHead>
-                                <TableHead>Status</TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -126,13 +127,6 @@ export function Inventory() {
                                     <TableCell><span className={`category-badge cat-${item.category}`}>{item.category}</span></TableCell>
                                     <TableCell className="font-mono">{item.quantity} {item.unit}</TableCell>
                                     <TableCell className="font-mono">KES {item.costPerUnit}</TableCell>
-                                    <TableCell>
-                                        {item.quantity < item.minimumStock ? (
-                                            <span className="stock-status low"><AlertTriangle size={14} /> Low</span>
-                                        ) : (
-                                            <span className="stock-status ok">In Stock</span>
-                                        )}
-                                    </TableCell>
                                     <TableCell>
                                         <div className="action-buttons">
                                             <button className="action-btn edit" onClick={() => openEdit(item)}><Edit2 size={16} /></button>

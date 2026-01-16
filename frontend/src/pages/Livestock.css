@@ -10,9 +10,10 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: var(--space-3) var(--space-5);
+    padding: var(--space-3) var(--space-4);
     border-bottom: var(--border-thin);
     background: var(--bg-secondary);
+    gap: var(--space-3);
 }
 
 .search-box {
@@ -23,8 +24,8 @@
     background: var(--bg-primary);
     border: var(--border-thin);
     border-radius: var(--radius-md);
-    width: 340px;
-    height: 48px;
+    width: 260px;
+    height: 40px;
     transition: all var(--transition-base);
 }
 
