@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, DollarSign, TrendingUp, TrendingDown, Edit2, Trash2 } from 'lucide-react';
+import { Plus, DollarSign, TrendingUp, TrendingDown, Edit2, Trash2, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Pagination } from '../components/ui/Pagination';
 import { Button } from '../components/ui/Button';
@@ -25,20 +25,36 @@ export function Finances() {
     const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
     const [formData, setFormData] = useState({ date: new Date().toISOString().split('T')[0], type: 'income', category: 'milk_sales', description: '', amount: '', paymentMethod: 'cash', relatedEntity: '', notes: '' });
     const [currentPage, setCurrentPage] = useState(1);
+    const [selectedDate, setSelectedDate] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
 
-    useEffect(() => { loadData(); }, []);
+    useEffect(() => { loadData(); }, [selectedDate]);
 
     const loadData = async () => {
         try {
-            const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+            setLoading(true);
+            const startOfMonth = selectedDate.toISOString().split('T')[0];
+            const endOfMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0).toISOString().split('T')[0];
+
             const [trans, sum] = await Promise.all([
-                window.go.main.FinancialService.GetTransactions('', '', '', ''),
-                window.go.main.FinancialService.GetFinancialSummary(startOfMonth, '')
+                window.go.main.FinancialService.GetTransactions(startOfMonth, endOfMonth, '', ''),
+                window.go.main.FinancialService.GetFinancialSummary(startOfMonth, endOfMonth)
             ]);
             setTransactions(trans || []);
             setSummary(sum);
         } catch (err) { console.error(err); }
         finally { setLoading(false); }
+    };
+
+    const handlePrevMonth = () => {
+        setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1));
+    };
+
+    const handleNextMonth = () => {
+        setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 1));
+    };
+
+    const getMonthName = () => {
+        return selectedDate.toLocaleString('default', { month: 'long', year: 'numeric' });
     };
 
     const handleSubmit = async (e) => {
@@ -99,11 +115,18 @@ export function Finances() {
                         {summary?.netProfit !== undefined && (
                             <div className={`profit-badge ${summary.netProfit >= 0 ? 'positive' : 'negative'}`}>
                                 <DollarSign size={14} />
-                                <span>Monthly Profit: {formatCurrency(summary.netProfit)}</span>
+                                <span>{selectedDate.toLocaleString('default', { month: 'short' })} Profit: {formatCurrency(summary.netProfit)}</span>
                             </div>
                         )}
                     </div>
-                    <p>Track income, expenses, and financial reports</p>
+                    <div className="month-selector">
+                        <button className="month-nav-btn" onClick={handlePrevMonth}><ChevronLeft size={16} /></button>
+                        <div className="current-month-display">
+                            <Calendar size={14} />
+                            <span>{getMonthName()}</span>
+                        </div>
+                        <button className="month-nav-btn" onClick={handleNextMonth}><ChevronRight size={16} /></button>
+                    </div>
                 </div>
                 <Button icon={Plus} onClick={() => { resetForm(); setShowModal(true); }}>Add Transaction</Button>
             </header>
