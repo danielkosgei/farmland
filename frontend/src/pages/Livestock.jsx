@@ -199,7 +199,6 @@ export function Livestock() {
                                 <TableHead>Tag / Name</TableHead>
                                 <TableHead>Type</TableHead>
                                 <TableHead>Breed</TableHead>
-                                <TableHead>Parents</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
@@ -210,7 +209,6 @@ export function Livestock() {
                                     <TableCell><Skeleton variant="text" width="120px" /></TableCell>
                                     <TableCell><Skeleton variant="rounded" width="60px" height="20px" /></TableCell>
                                     <TableCell><Skeleton variant="text" width="80px" /></TableCell>
-                                    <TableCell><Skeleton variant="text" width="100px" /></TableCell>
                                     <TableCell><Skeleton variant="rounded" width="70px" height="20px" /></TableCell>
                                     <TableCell><div className="flex gap-2"><Skeleton variant="circular" width="24px" height="24px" /><Skeleton variant="circular" width="24px" height="24px" /></div></TableCell>
                                 </TableRow>
@@ -226,7 +224,6 @@ export function Livestock() {
                                 <TableHead>Tag / Name</TableHead>
                                 <TableHead>Type</TableHead>
                                 <TableHead>Breed</TableHead>
-                                <TableHead>Parents</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
@@ -242,16 +239,6 @@ export function Livestock() {
                                     </TableCell>
                                     <TableCell><span className={`type-badge type-${animal.type}`}>{animal.type}</span></TableCell>
                                     <TableCell>{animal.breed || '-'}</TableCell>
-                                    <TableCell>
-                                        <div className="parents-info">
-                                            {animal.motherName || animal.fatherName ? (
-                                                <>
-                                                    {animal.motherName && <span className="parent-tag">♀ {animal.motherName}</span>}
-                                                    {animal.fatherName && <span className="parent-tag">♂ {animal.fatherName}</span>}
-                                                </>
-                                            ) : '-'}
-                                        </div>
-                                    </TableCell>
                                     <TableCell><span className={`status-badge status-${animal.status}`}>{animal.status}</span></TableCell>
                                     <TableCell>
                                         <div className="action-buttons">
