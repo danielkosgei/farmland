@@ -14,8 +14,41 @@ import { Settings } from './pages/Settings';
 import { Notifications } from './pages/Notifications';
 import { AnimalDetails } from './pages/AnimalDetails';
 import { FieldDetails } from './pages/FieldDetails';
+import { toast } from 'sonner';
 
 function App() {
+    React.useEffect(() => {
+        const checkInstallation = async () => {
+            try {
+                const isInstalled = await window.go.main.UpdateService.IsInstalled();
+                const isDev = (await window.go.main.UpdateService.GetCurrentVersion()) === 'dev';
+
+                if (!isInstalled && !isDev) {
+                    toast.info('Farmland is running from a temporary location.', {
+                        description: 'Would you like to install it to your system for easy access?',
+                        action: {
+                            label: 'Install Now',
+                            onClick: async () => {
+                                const loading = toast.loading('Installing Farmland...');
+                                try {
+                                    await window.go.main.UpdateService.InstallToSystem();
+                                    // App will exit/restart on success
+                                } catch (err) {
+                                    toast.error('Failed to install: ' + err, { id: loading });
+                                }
+                            }
+                        },
+                        duration: 10000
+                    });
+                }
+            } catch (err) {
+                console.error('Failed to check installation status:', err);
+            }
+        };
+
+        checkInstallation();
+    }, []);
+
     return (
         <Routes>
             <Route path="/" element={<Layout />}>

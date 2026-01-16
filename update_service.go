@@ -179,7 +179,6 @@ func (s *UpdateService) getAssetPatterns() []string {
 	case "windows":
 		return []string{
 			"farmland-windows-amd64.exe",
-			"farmland-windows-amd64-installer.exe",
 			"farmland.exe",
 		}
 	case "darwin":
@@ -355,20 +354,8 @@ func (s *UpdateService) ApplyUpdate() error {
 		return fmt.Errorf("could not determine current application path: %w", err)
 	}
 
-	// On Windows, if it's an INSTALLER, we execute it.
+	// On Windows: Use rename strategy to bypass file lock
 	if runtime.GOOS == "windows" {
-		isInstaller := strings.Contains(strings.ToLower(s.downloadedFile), "installer") ||
-			strings.Contains(strings.ToLower(s.latestAssetName), "installer")
-
-		if isInstaller {
-			// Trigger UAC elevation for installer to resolve "elevation required" issue
-			if err := s.runAsAdmin(s.downloadedFile); err != nil {
-				return fmt.Errorf("failed to launch installer with administrative privileges: %w (did you decline the prompt?)", err)
-			}
-			return nil
-		}
-
-		// Non-installer Windows update: Use rename strategy to bypass file lock
 		// Use a unique name for the old exe to avoid conflicts
 		oldExe := currentExe + "." + time.Now().Format("20060102150405") + ".old"
 
@@ -446,6 +433,86 @@ func (s *UpdateService) GetPlatformInfo() map[string]string {
 		"os":   runtime.GOOS,
 		"arch": runtime.GOARCH,
 	}
+}
+
+// IsInstalled checks if the app is running from a permanent installation directory
+func (s *UpdateService) IsInstalled() bool {
+	if runtime.GOOS != "windows" {
+		return true // Only handle Windows for now
+	}
+
+	exe, err := os.Executable()
+	if err != nil {
+		return true
+	}
+
+	appData := os.Getenv("LOCALAPPDATA")
+	if appData == "" {
+		return true
+	}
+
+	installPath := filepath.Join(appData, "Farmland")
+	return strings.HasPrefix(strings.ToLower(exe), strings.ToLower(installPath))
+}
+
+// InstallToSystem moves the current executable to a permanent location and creates shortcuts
+func (s *UpdateService) InstallToSystem() error {
+	if runtime.GOOS != "windows" {
+		return nil
+	}
+
+	currentExe, err := os.Executable()
+	if err != nil {
+		return fmt.Errorf("failed to get current path: %w", err)
+	}
+
+	appData := os.Getenv("LOCALAPPDATA")
+	if appData == "" {
+		return fmt.Errorf("could not find LocalAppData directory")
+	}
+
+	installDir := filepath.Join(appData, "Farmland")
+	if err := os.MkdirAll(installDir, 0755); err != nil {
+		return fmt.Errorf("failed to create install directory: %w", err)
+	}
+
+	targetExe := filepath.Join(installDir, "farmland.exe")
+
+	// If already running from the target, nothing to do
+	if strings.EqualFold(currentExe, targetExe) {
+		return nil
+	}
+
+	// 1. Copy self to target
+	if err := s.copyFile(currentExe, targetExe); err != nil {
+		return fmt.Errorf("failed to copy executable to %s: %w", targetExe, err)
+	}
+
+	// 2. Create Desktop Shortcut via PowerShell
+	desktop := filepath.Join(os.Getenv("USERPROFILE"), "Desktop", "Farmland.lnk")
+	s.createShortcut(targetExe, desktop)
+
+	// 3. Create Start Menu Shortcut
+	startMenu := filepath.Join(appData, "Microsoft", "Windows", "Start Menu", "Programs", "Farmland.lnk")
+	s.createShortcut(targetExe, startMenu)
+
+	// 4. Launch the installed version and exit
+	cmd := exec.Command(targetExe)
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("failed to launch installed version: %w", err)
+	}
+
+	os.Exit(0)
+	return nil
+}
+
+// createShortcut uses PowerShell to create a Windows shortcut
+func (s *UpdateService) createShortcut(target, shortcutPath string) {
+	cmdStr := fmt.Sprintf(
+		"$s = New-Object -ComObject WScript.Shell; $g = $s.CreateShortcut('%s'); $g.TargetPath = '%s'; $g.WorkingDirectory = '%s'; $g.Save()",
+		shortcutPath, target, filepath.Dir(target),
+	)
+	_ = exec.Command("powershell", "-Command", cmdStr).Run()
 }
 
 // runAsAdmin triggers the Windows UAC prompt to run the given path as administrator

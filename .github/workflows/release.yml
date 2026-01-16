@@ -194,19 +194,12 @@ jobs:
         run: |
           Get-ChildItem build\bin
           
-          # Handle raw binary
+          # Only handle raw binary for a single-asset release
           if (Test-Path build\bin\farmland.exe) {
-            Copy-Item build\bin\farmland.exe build\bin\farmland-windows-amd64.exe -Force
+            Move-Item build\bin\farmland.exe build\bin\farmland-windows-amd64.exe -Force
             Write-Host "Binary packaged: build\bin\farmland-windows-amd64.exe"
-          }
-
-          # Handle installer
-          $installer = Get-ChildItem build\bin\*installer.exe | Select-Object -First 1
-          if ($installer) {
-            Move-Item $installer.FullName build\bin\farmland-windows-amd64-installer.exe -Force
-            Write-Host "Installer packaged: build\bin\farmland-windows-amd64-installer.exe"
           } else {
-            Write-Warning "No installer found! This build may have failed to trigger NSIS."
+            Write-Error "No binary found!"
             exit 1
           }
         shell: pwsh
@@ -265,9 +258,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: farmland-windows-amd64
-          path: |
-            build/bin/farmland-windows-amd64-installer.exe
-            build/bin/farmland-windows-amd64.exe
+          path: build/bin/farmland-windows-amd64.exe
 
       - name: Upload macOS artifact
         if: matrix.platform == 'darwin'
@@ -303,7 +294,6 @@ jobs:
         with:
           body: ${{ needs.changelog.outputs.changelog }}
           files: |
-            artifacts/farmland-windows-amd64/farmland-windows-amd64-installer.exe
             artifacts/farmland-windows-amd64/farmland-windows-amd64.exe
             artifacts/farmland-darwin-amd64/farmland-darwin-amd64.zip
             artifacts/farmland-darwin-arm64/farmland-darwin-arm64.zip
