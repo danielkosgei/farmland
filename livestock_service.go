@@ -21,8 +21,7 @@ func (s *LivestockService) GetAllAnimals() ([]Animal, error) {
 			   a.status, a.notes, a.created_at, a.updated_at
 		FROM animals a
 		LEFT JOIN animals m ON a.mother_id = m.id
-		LEFT JOIN animals f ON a.father_id = f.id
-		ORDER BY a.name
+		ORDER BY a.date_of_birth ASC
 	`)
 	if err != nil {
 		return nil, err
@@ -177,7 +176,7 @@ func (s *LivestockService) GetFemaleAnimals() ([]Animal, error) {
 	rows, err := db.Query(`
 		SELECT id, tag_number, name, type, breed, date_of_birth, gender, status, notes, created_at, updated_at
 		FROM animals WHERE gender = 'female' AND status = 'active'
-		ORDER BY name
+		ORDER BY date_of_birth ASC
 	`)
 	if err != nil {
 		return nil, err
@@ -207,7 +206,7 @@ func (s *LivestockService) GetMaleAnimals() ([]Animal, error) {
 	rows, err := db.Query(`
 		SELECT id, tag_number, name, type, breed, date_of_birth, gender, status, notes, created_at, updated_at
 		FROM animals WHERE gender = 'male' AND status = 'active'
-		ORDER BY name
+		ORDER BY date_of_birth ASC
 	`)
 	if err != nil {
 		return nil, err
@@ -401,7 +400,7 @@ func (s *LivestockService) GetDairyCows() ([]Animal, error) {
 		SELECT id, tag_number, name, type, breed, date_of_birth, gender, status, notes, created_at, updated_at
 		FROM animals 
 		WHERE gender = 'female' AND status = 'active' AND type IN ('cow', 'heifer')
-		ORDER BY name
+		ORDER BY date_of_birth ASC
 	`)
 	if err != nil {
 		return nil, err
