@@ -6,8 +6,8 @@ export function GetDashboardStats() {
   return window['go']['main']['DashboardService']['GetDashboardStats']();
 }
 
-export function GetMilkProductionChart() {
-  return window['go']['main']['DashboardService']['GetMilkProductionChart']();
+export function GetMilkProductionChart(arg1) {
+  return window['go']['main']['DashboardService']['GetMilkProductionChart'](arg1);
 }
 
 export function GetRecentActivity() {

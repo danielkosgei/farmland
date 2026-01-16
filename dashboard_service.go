@@ -108,9 +108,19 @@ func (s *DashboardService) GetRecentActivity() ([]RecentActivity, error) {
 	return activities, nil
 }
 
-// GetMilkProductionChart returns milk production data for last 7 days
-func (s *DashboardService) GetMilkProductionChart() ([]map[string]interface{}, error) {
-	rows, err := db.Query(`SELECT date, SUM(total_liters) as total FROM milk_records WHERE date >= date('now', '-7 days') GROUP BY date ORDER BY date`)
+// GetMilkProductionChart returns milk production data for specified timeframe
+func (s *DashboardService) GetMilkProductionChart(timeframe string) ([]map[string]interface{}, error) {
+	var query string
+	switch timeframe {
+	case "month":
+		query = `SELECT date, SUM(total_liters) as total FROM milk_records WHERE date >= date('now', 'localtime', '-29 days') GROUP BY date ORDER BY date`
+	case "year":
+		query = `SELECT strftime('%Y-%m', date) as period, SUM(total_liters) as total FROM milk_records WHERE date >= date('now', 'localtime', '-11 months', 'start of month') GROUP BY period ORDER BY period`
+	default: // week
+		query = `SELECT date, SUM(total_liters) as total FROM milk_records WHERE date >= date('now', 'localtime', '-6 days') GROUP BY date ORDER BY date`
+	}
+
+	rows, err := db.Query(query)
 	if err != nil {
 		return nil, err
 	}
@@ -118,10 +128,59 @@ func (s *DashboardService) GetMilkProductionChart() ([]map[string]interface{}, e
 
 	var data []map[string]interface{}
 	for rows.Next() {
-		var date string
+		var label string
 		var total float64
-		_ = rows.Scan(&date, &total)
-		data = append(data, map[string]interface{}{"date": date, "liters": total})
+		_ = rows.Scan(&label, &total)
+		data = append(data, map[string]interface{}{"date": label, "liters": total})
 	}
-	return data, nil
+
+	return s.fillChartGaps(data, timeframe), nil
+}
+
+// fillChartGaps ensures that the returned data has an entry for every day/month in the range
+func (s *DashboardService) fillChartGaps(data []map[string]interface{}, timeframe string) []map[string]interface{} {
+	now := time.Now().Local()
+	var result []map[string]interface{}
+	dataMap := make(map[string]float64)
+	for _, d := range data {
+		dataMap[d["date"].(string)] = d["liters"].(float64)
+	}
+
+	switch timeframe {
+	case "year":
+		// Show last 12 months
+		for i := 11; i >= 0; i-- {
+			d := now.AddDate(0, -i, 0)
+			period := d.Format("2006-01")
+			val := 0.0
+			if v, ok := dataMap[period]; ok {
+				val = v
+			}
+			result = append(result, map[string]interface{}{"date": period, "liters": val})
+		}
+	case "month":
+		// Show last 30 days
+		for i := 29; i >= 0; i-- {
+			d := now.AddDate(0, 0, -i)
+			date := d.Format("2006-01-02")
+			val := 0.0
+			if v, ok := dataMap[date]; ok {
+				val = v
+			}
+			result = append(result, map[string]interface{}{"date": date, "liters": val})
+		}
+	default: // week
+		// Show last 7 days
+		for i := 6; i >= 0; i-- {
+			d := now.AddDate(0, 0, -i)
+			date := d.Format("2006-01-02")
+			val := 0.0
+			if v, ok := dataMap[date]; ok {
+				val = v
+			}
+			result = append(result, map[string]interface{}{"date": date, "liters": val})
+		}
+	}
+
+	return result
 }

@@ -10,6 +10,7 @@ import './Dashboard.css';
 export function Dashboard() {
     const [stats, setStats] = useState(null);
     const [milkData, setMilkData] = useState([]);
+    const [chartTimeframe, setChartTimeframe] = useState('week'); // week, month, year
     const [recentActivity, setRecentActivity] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -21,7 +22,7 @@ export function Dashboard() {
         try {
             const [statsData, chartData, activityData] = await Promise.all([
                 window.go.main.DashboardService.GetDashboardStats(),
-                window.go.main.DashboardService.GetMilkProductionChart(),
+                window.go.main.DashboardService.GetMilkProductionChart(chartTimeframe),
                 window.go.main.DashboardService.GetRecentActivity()
             ]);
             setStats(statsData);
@@ -33,6 +34,19 @@ export function Dashboard() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        const updateChart = async () => {
+            try {
+                const chartData = await window.go.main.DashboardService.GetMilkProductionChart(chartTimeframe);
+                console.log(`Milk Chart Update (${chartTimeframe}):`, chartData);
+                setMilkData(chartData || []);
+            } catch (err) {
+                console.error('Error updating chart:', err);
+            }
+        };
+        if (!loading) updateChart();
+    }, [chartTimeframe]);
 
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(amount || 0);
@@ -130,8 +144,27 @@ export function Dashboard() {
                 <Card className="chart-card">
                     <CardHeader>
                         <div className="card-header-row">
-                            <CardTitle>Milk Production (Last 7 Days)</CardTitle>
-                            <TrendingUp size={20} className="text-primary" />
+                            <CardTitle>Milk Production</CardTitle>
+                            <div className="chart-timeframe-toggles">
+                                <button
+                                    className={`timeframe-btn ${chartTimeframe === 'week' ? 'active' : ''}`}
+                                    onClick={() => setChartTimeframe('week')}
+                                >
+                                    Week
+                                </button>
+                                <button
+                                    className={`timeframe-btn ${chartTimeframe === 'month' ? 'active' : ''}`}
+                                    onClick={() => setChartTimeframe('month')}
+                                >
+                                    Month
+                                </button>
+                                <button
+                                    className={`timeframe-btn ${chartTimeframe === 'year' ? 'active' : ''}`}
+                                    onClick={() => setChartTimeframe('year')}
+                                >
+                                    Year
+                                </button>
+                            </div>
                         </div>
                     </CardHeader>
                     <CardContent>
@@ -146,7 +179,23 @@ export function Dashboard() {
                                             </linearGradient>
                                         </defs>
                                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
-                                        <XAxis dataKey="date" tick={{ fontSize: 12 }} tickFormatter={(val) => val.slice(5)} />
+                                        <XAxis
+                                            dataKey="date"
+                                            tick={{ fontSize: 10 }}
+                                            minTickGap={chartTimeframe === 'month' ? 15 : 5}
+                                            tickFormatter={(val) => {
+                                                if (!val) return '';
+                                                if (chartTimeframe === 'year') {
+                                                    const parts = val.split('-');
+                                                    if (parts.length < 2) return val;
+                                                    const y = parseInt(parts[0]);
+                                                    const m = parseInt(parts[1]);
+                                                    return new Date(y, m - 1).toLocaleString('default', { month: 'short' });
+                                                }
+                                                // Week/Month: show MM-DD
+                                                return val.slice(5);
+                                            }}
+                                        />
                                         <YAxis tick={{ fontSize: 12 }} />
                                         <RechartsTooltip
                                             contentStyle={{ borderRadius: '8px', border: '1px solid #e5e5e5' }}

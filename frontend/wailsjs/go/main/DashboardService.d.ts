@@ -4,6 +4,6 @@ import {main} from '../models';
 
 export function GetDashboardStats():Promise<main.DashboardStats>;
 
-export function GetMilkProductionChart():Promise<Array<Record<string, any>>>;
+export function GetMilkProductionChart(arg1:string):Promise<Array<Record<string, any>>>;
 
 export function GetRecentActivity():Promise<Array<main.RecentActivity>>;
