@@ -1,16 +1,14 @@
 .sidebar {
     position: fixed;
-    left: var(--sidebar-floating-margin);
-    top: var(--sidebar-floating-margin);
-    bottom: var(--sidebar-floating-margin);
+    left: 0;
+    top: 0;
+    bottom: 0;
     width: var(--sidebar-width);
     background: var(--bg-sidebar);
     display: flex;
     flex-direction: column;
     z-index: 100;
-    border: var(--border-thin);
-    border-radius: var(--radius-sidebar);
-    box-shadow: var(--shadow-sidebar);
+    border-right: var(--border-thin);
     overflow: hidden;
 }
 
