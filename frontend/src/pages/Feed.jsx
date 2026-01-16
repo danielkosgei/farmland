@@ -83,10 +83,10 @@ export function Feed() {
                         <TableBody>
                             {feedRecords.slice(0, 10).map(record => (
                                 <TableRow key={record.id}>
-                                    <TableCell>{new Date(record.date).toLocaleDateString('en-KE')}</TableCell>
+                                    <TableCell className="font-mono">{new Date(record.date).toLocaleDateString('en-KE')}</TableCell>
                                     <TableCell>{record.feedTypeName}</TableCell>
-                                    <TableCell>{record.quantityKg} kg</TableCell>
-                                    <TableCell>{record.animalCount}</TableCell>
+                                    <TableCell className="font-mono">{record.quantityKg} kg</TableCell>
+                                    <TableCell className="font-mono">{record.animalCount}</TableCell>
                                     <TableCell className="capitalize">{record.feedingTime}</TableCell>
                                 </TableRow>
                             ))}

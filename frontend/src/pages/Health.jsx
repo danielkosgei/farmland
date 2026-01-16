@@ -126,7 +126,7 @@ export function Health() {
                         <TableBody>
                             {records.map(record => (
                                 <TableRow key={record.id}>
-                                    <TableCell>{new Date(record.date).toLocaleDateString('en-KE')}</TableCell>
+                                    <TableCell className="font-mono">{new Date(record.date).toLocaleDateString('en-KE')}</TableCell>
                                     <TableCell className="font-medium">{record.animalName}</TableCell>
                                     <TableCell>
                                         <span className={`type-badge type-${record.recordType}`}>
@@ -135,7 +135,7 @@ export function Health() {
                                     </TableCell>
                                     <TableCell>{record.medicine || '-'}</TableCell>
                                     <TableCell>{record.vetName || '-'}</TableCell>
-                                    <TableCell>KES {record.cost || 0}</TableCell>
+                                    <TableCell className="font-mono">KES {record.cost || 0}</TableCell>
                                     <TableCell>
                                         <button className="action-btn delete" onClick={() => handleDelete(record.id)}><Trash2 size={16} /></button>
                                     </TableCell>

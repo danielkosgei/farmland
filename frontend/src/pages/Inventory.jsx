@@ -124,8 +124,8 @@ export function Inventory() {
                                         </div>
                                     </TableCell>
                                     <TableCell><span className={`category-badge cat-${item.category}`}>{item.category}</span></TableCell>
-                                    <TableCell>{item.quantity} {item.unit}</TableCell>
-                                    <TableCell>KES {item.costPerUnit}</TableCell>
+                                    <TableCell className="font-mono">{item.quantity} {item.unit}</TableCell>
+                                    <TableCell className="font-mono">KES {item.costPerUnit}</TableCell>
                                     <TableCell>
                                         {item.quantity < item.minimumStock ? (
                                             <span className="stock-status low"><AlertTriangle size={14} /> Low</span>
