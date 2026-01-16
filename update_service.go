@@ -139,7 +139,7 @@ func (s *UpdateService) CheckForUpdates() (*UpdateInfo, error) {
 			assetNameLower := strings.ToLower(asset.Name)
 			patternLower := strings.ToLower(basePattern)
 
-			// If lookin for a binary, strictly ignore installers.
+			// If looking for a binary, strictly ignore installers.
 			// If looking for an installer, strictly ignore non-installers.
 			isAssetInstaller := strings.Contains(assetNameLower, "installer")
 			if isInstallerPattern != isAssetInstaller {
@@ -385,7 +385,7 @@ func (s *UpdateService) ApplyUpdate() error {
 		if err := s.copyFile(s.downloadedFile, currentExe); err != nil {
 			// Try to restore the old one if copy fails
 			if restoreErr := os.Rename(oldExe, currentExe); restoreErr != nil {
-				// Log or ignore restore error if it fails - we're already returning the original error
+				_ = restoreErr // Ignore restore error
 			}
 
 			// If copy failed due to permissions, try elevated
@@ -414,12 +414,10 @@ func (s *UpdateService) ApplyUpdate() error {
 	}
 
 	if chmodErr := os.Chmod(currentExe, 0755); chmodErr != nil {
-		// Log or handle chmod error if critical
+		_ = chmodErr // Ignore chmod error
 	}
 	if s.downloadedFile != "" {
-		if removeErr := os.Remove(s.downloadedFile); removeErr != nil {
-			// Ignore remove error on temporary file
-		}
+		_ = os.Remove(s.downloadedFile)
 	}
 	s.downloadedFile = ""
 	return nil
@@ -551,19 +549,6 @@ func (s *UpdateService) createShortcut(target, shortcutPath string) {
 	)
 	cmd := exec.Command("powershell", "-Command", cmdStr)
 	if err := cmd.Run(); err != nil {
-		// Silently fail shortcut creation or handle error
+		_ = err // Silently fail shortcut creation
 	}
-}
-
-// runAsAdmin triggers the Windows UAC prompt to run the given path as administrator
-func (s *UpdateService) runAsAdmin(path string) error {
-	// Use PowerShell to start the process with 'RunAs' verb (elevation)
-	// We wrap the path in single quotes to handle spaces correctly
-	cmd := exec.Command("powershell", "-Command",
-		fmt.Sprintf("Start-Process -FilePath '%s' -Verb RunAs", path))
-
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("elevation failed: %w (did you decline the prompt?)", err)
-	}
-	return nil
 }

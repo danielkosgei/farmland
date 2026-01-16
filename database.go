@@ -249,7 +249,7 @@ func runMigrations() {
 
 	for _, m := range migrations {
 		if _, err := db.Exec(m); err != nil {
-			// Ignore errors (column may already exist)
+			_ = err // Ignore error as column may already exist
 		}
 	}
 
@@ -262,7 +262,7 @@ func runMigrations() {
 
 	for k, v := range defaultSettings {
 		if _, err := db.Exec(`INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)`, k, v); err != nil {
-			// Ignore errors or log
+			_ = err // Ignore errors or log
 		}
 	}
 }

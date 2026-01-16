@@ -127,14 +127,14 @@ func (s *BackupService) RestoreBackup() (*BackupInfo, error) {
 	if _, err := os.Stat(dbPath); err == nil {
 		backupPath := dbPath + ".pre-restore"
 		if err := copyFile(dbPath, backupPath); err != nil {
-			// Log or handle error
+			_ = err // Ignore backup error
 		}
 	}
 
 	// Close current database connection
 	if db != nil {
 		if err := db.Close(); err != nil {
-			// Log or handle error
+			_ = err // Ignore close error
 		}
 	}
 
@@ -161,7 +161,7 @@ func (s *BackupService) GetDatabaseInfo() (*BackupInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	dbPath := filepath.Join(homeDir, ".farmland")
+	dbPath := filepath.Join(homeDir, ".farmland", "farmland.db")
 
 	info, err := os.Stat(dbPath)
 	if err != nil {
