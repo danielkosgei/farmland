@@ -117,7 +117,6 @@ export function Health() {
                                 <TableHead>Date</TableHead>
                                 <TableHead>Animal</TableHead>
                                 <TableHead>Type</TableHead>
-                                <TableHead>Description</TableHead>
                                 <TableHead>Medicine</TableHead>
                                 <TableHead>Vet</TableHead>
                                 <TableHead>Cost</TableHead>
@@ -134,7 +133,6 @@ export function Health() {
                                             {getTypeIcon(record.recordType)} {record.recordType?.replace('_', ' ') || '-'}
                                         </span>
                                     </TableCell>
-                                    <TableCell>{record.description || record.diagnosis || '-'}</TableCell>
                                     <TableCell>{record.medicine || '-'}</TableCell>
                                     <TableCell>{record.vetName || '-'}</TableCell>
                                     <TableCell>KES {record.cost || 0}</TableCell>

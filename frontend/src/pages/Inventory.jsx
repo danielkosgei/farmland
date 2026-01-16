@@ -109,7 +109,6 @@ export function Inventory() {
                                 <TableHead>Item</TableHead>
                                 <TableHead>Category</TableHead>
                                 <TableHead>Quantity</TableHead>
-                                <TableHead>Min Stock</TableHead>
                                 <TableHead>Cost/Unit</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Actions</TableHead>
@@ -126,7 +125,6 @@ export function Inventory() {
                                     </TableCell>
                                     <TableCell><span className={`category-badge cat-${item.category}`}>{item.category}</span></TableCell>
                                     <TableCell>{item.quantity} {item.unit}</TableCell>
-                                    <TableCell>{item.minimumStock} {item.unit}</TableCell>
                                     <TableCell>KES {item.costPerUnit}</TableCell>
                                     <TableCell>
                                         {item.quantity < item.minimumStock ? (

@@ -63,62 +63,37 @@ export function Feed() {
                 </div>
             </header>
 
-            <div className="feed-grid">
-                <Card className="feed-summary-card">
-                    <CardHeader><CardTitle>Feed Stock Status</CardTitle></CardHeader>
-                    <CardContent>
-                        <div className="feed-status-list">
-                            {feedTypes.length === 0 ? (
-                                <p className="no-data-hint">No feed items found in inventory.</p>
-                            ) : feedTypes.map(ft => (
-                                <div key={ft.id} className="feed-status-item">
-                                    <div className="feed-status-info">
-                                        <span className="feed-status-name">{ft.name}</span>
-                                        <span className="feed-status-qty">
-                                            {ft.quantity} {ft.unit} left
-                                        </span>
-                                    </div>
-                                    <div className={`stock-indicator ${ft.quantity < ft.minimumStock ? 'low' : 'ok'}`}>
-                                        {ft.quantity < ft.minimumStock ? 'Low Stock' : 'In Stock'}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card padding="none" className="records-card">
-                    <div className="card-header-bar">
-                        <h3>Feeding Records</h3>
-                    </div>
-                    {feedRecords.length === 0 ? (
-                        <EmptyState icon={Utensils} title="No feeding records" description="Start recording daily feeding" />
-                    ) : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead>Feed Type</TableHead>
-                                    <TableHead>Quantity</TableHead>
-                                    <TableHead>Animals</TableHead>
-                                    <TableHead>Time</TableHead>
+            <Card padding="none" className="records-card">
+                <div className="card-header-bar">
+                    <h3>Feeding Records</h3>
+                </div>
+                {feedRecords.length === 0 ? (
+                    <EmptyState icon={Utensils} title="No feeding records" description="Start recording daily feeding" />
+                ) : (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Feed Type</TableHead>
+                                <TableHead>Quantity</TableHead>
+                                <TableHead>Animals</TableHead>
+                                <TableHead>Time</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {feedRecords.slice(0, 10).map(record => (
+                                <TableRow key={record.id}>
+                                    <TableCell>{new Date(record.date).toLocaleDateString('en-KE')}</TableCell>
+                                    <TableCell>{record.feedTypeName}</TableCell>
+                                    <TableCell>{record.quantityKg} kg</TableCell>
+                                    <TableCell>{record.animalCount}</TableCell>
+                                    <TableCell className="capitalize">{record.feedingTime}</TableCell>
                                 </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {feedRecords.slice(0, 10).map(record => (
-                                    <TableRow key={record.id}>
-                                        <TableCell>{new Date(record.date).toLocaleDateString('en-KE')}</TableCell>
-                                        <TableCell>{record.feedTypeName}</TableCell>
-                                        <TableCell>{record.quantityKg} kg</TableCell>
-                                        <TableCell>{record.animalCount}</TableCell>
-                                        <TableCell className="capitalize">{record.feedingTime}</TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    )}
-                </Card>
-            </div>
+                            ))}
+                        </TableBody>
+                    </Table>
+                )}
+            </Card>
 
             <Modal isOpen={showFeedModal} onClose={() => setShowFeedModal(false)} title="Record Feeding" size="sm">
                 <form onSubmit={handleFeedSubmit}>

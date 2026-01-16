@@ -15,7 +15,7 @@ export function MilkSales() {
     const [showModal, setShowModal] = useState(false);
     const [editingSale, setEditingSale] = useState(null);
     const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
-    const [formData, setFormData] = useState({ date: new Date().toISOString().split('T')[0], buyerName: '', liters: '', pricePerLiter: '60', isPaid: false, notes: '' });
+    const [formData, setFormData] = useState({ date: new Date().toISOString().split('T')[0], buyerName: '', liters: '', pricePerLiter: '60', isPaid: true, notes: '' });
 
     useEffect(() => { loadSales(); }, []);
 
@@ -68,7 +68,7 @@ export function MilkSales() {
         setShowModal(true);
     };
 
-    const resetForm = () => setFormData({ date: new Date().toISOString().split('T')[0], buyerName: '', liters: '', pricePerLiter: '60', isPaid: false, notes: '' });
+    const resetForm = () => setFormData({ date: new Date().toISOString().split('T')[0], buyerName: '', liters: '', pricePerLiter: '60', isPaid: true, notes: '' });
 
     const formatCurrency = (amt) => new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(amt);
 
