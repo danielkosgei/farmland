@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Edit2, Milk, Users, Info, Calendar,
     ChevronRight, Tag, Activity, Heart, Trash2,
-    Database, Beef, TrendingUp, ImageIcon,
+    Database, Beef, TrendingUp, Camera,
     Clipboard, Fingerprint, Save, CheckCircle
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
@@ -240,68 +240,49 @@ export function AnimalDetails() {
                         </div>
                     </div>
 
-                    <div className="details-info-column">
-                        <div className="details-section-card">
-                            <div className="section-header">
-                                <Fingerprint size={20} className="text-info" />
-                                <h3 className="section-title">Registry Specs</h3>
-                            </div>
-                            <div className="section-content">
-                                <div className="flex flex-col gap-8">
-                                    <div className="data-field">
-                                        <span className="data-label">System Record ID</span>
-                                        <span className="data-value font-mono">#{animal.id}</span>
-                                    </div>
-                                    <div className="data-field">
-                                        <span className="data-label">Identity Status</span>
-                                        <span className="data-value text-xs text-primary">Unique & Verified</span>
-                                    </div>
-                                </div>
-                            </div>
+                    <div className="gallery-section gallery-card">
+                        <div className="section-header">
+                            <Camera size={20} className="text-primary" />
+                            <h3 className="section-title">Gallery</h3>
+                        </div>
+                        <div className="section-content">
+                            <PhotoGallery entityType="animal" entityId={animal.id} />
                         </div>
                     </div>
                 </div>
 
-                <div className="gallery-container">
-                    <h2 className="gallery-title">
-                        <ImageIcon size={28} className="text-primary" />
-                        Visual History
-                    </h2>
-                    <PhotoGallery entityType="animal" entityId={animal.id} />
-                </div>
+                {/* Modals remain same */}
+                <Modal isOpen={showMilkModal} onClose={() => setShowMilkModal(false)} title={`Record Milk - ${animal.name}`} size="sm">
+                    <form onSubmit={handleMilkSubmit}>
+                        <FormGroup><Label htmlFor="milkDate" required>Date</Label><Input id="milkDate" type="date" value={milkForm.date} onChange={(e) => setMilkForm({ ...milkForm, date: e.target.value })} required /></FormGroup>
+                        <FormRow>
+                            <FormGroup><Label htmlFor="morning">Morning (L)</Label><Input id="morning" type="number" step="0.1" value={milkForm.morningLiters} onChange={(e) => setMilkForm({ ...milkForm, morningLiters: e.target.value })} /></FormGroup>
+                            <FormGroup><Label htmlFor="evening">Evening (L)</Label><Input id="evening" type="number" step="0.1" value={milkForm.eveningLiters} onChange={(e) => setMilkForm({ ...milkForm, eveningLiters: e.target.value })} /></FormGroup>
+                        </FormRow>
+                        <FormGroup><Label htmlFor="notes">Notes</Label><Textarea id="notes" value={milkForm.notes} onChange={(e) => setMilkForm({ ...milkForm, notes: e.target.value })} rows={2} /></FormGroup>
+                        <div className="modal-actions"><Button variant="outline" type="button" onClick={() => setShowMilkModal(false)}>Cancel</Button><Button type="submit">Save Record</Button></div>
+                    </form>
+                </Modal>
+
+                <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} title="Edit Animal Details" size="md">
+                    <form onSubmit={handleEditSubmit}>
+                        <FormRow>
+                            <FormGroup><Label htmlFor="tagNumber">Tag Number</Label><Input id="tagNumber" value={editForm.tagNumber} onChange={(e) => setEditForm({ ...editForm, tagNumber: e.target.value })} /></FormGroup>
+                            <FormGroup><Label htmlFor="name" required>Name</Label><Input id="name" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} required /></FormGroup>
+                        </FormRow>
+                        <FormRow>
+                            <FormGroup><Label htmlFor="type">Type</Label><Select id="type" value={editForm.type} onChange={(e) => setEditForm({ ...editForm, type: e.target.value })}><option value="cow">Cow</option><option value="bull">Bull</option><option value="heifer">Heifer</option><option value="calf">Calf</option></Select></FormGroup>
+                            <FormGroup><Label htmlFor="breed">Breed</Label><Input id="breed" value={editForm.breed} onChange={(e) => setEditForm({ ...editForm, breed: e.target.value })} /></FormGroup>
+                        </FormRow>
+                        <FormRow>
+                            <FormGroup><Label htmlFor="dob">Date of Birth</Label><Input id="dob" type="date" value={editForm.dateOfBirth} onChange={(e) => setEditForm({ ...editForm, dateOfBirth: e.target.value })} /></FormGroup>
+                            <FormGroup><Label htmlFor="status">Status</Label><Select id="status" value={editForm.status} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}><option value="active">Active</option><option value="sold">Sold</option><option value="deceased">Deceased</option></Select></FormGroup>
+                        </FormRow>
+                        <FormGroup><Label htmlFor="notes">Notes</Label><Textarea id="notes" value={editForm.notes} onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })} rows={3} /></FormGroup>
+                        <div className="modal-actions"><Button variant="outline" type="button" onClick={() => setShowEditModal(false)}>Cancel</Button><Button type="submit">Update Animal</Button></div>
+                    </form>
+                </Modal>
             </div>
-
-            {/* Modals remain same */}
-            <Modal isOpen={showMilkModal} onClose={() => setShowMilkModal(false)} title={`Record Milk - ${animal.name}`} size="sm">
-                <form onSubmit={handleMilkSubmit}>
-                    <FormGroup><Label htmlFor="milkDate" required>Date</Label><Input id="milkDate" type="date" value={milkForm.date} onChange={(e) => setMilkForm({ ...milkForm, date: e.target.value })} required /></FormGroup>
-                    <FormRow>
-                        <FormGroup><Label htmlFor="morning">Morning (L)</Label><Input id="morning" type="number" step="0.1" value={milkForm.morningLiters} onChange={(e) => setMilkForm({ ...milkForm, morningLiters: e.target.value })} /></FormGroup>
-                        <FormGroup><Label htmlFor="evening">Evening (L)</Label><Input id="evening" type="number" step="0.1" value={milkForm.eveningLiters} onChange={(e) => setMilkForm({ ...milkForm, eveningLiters: e.target.value })} /></FormGroup>
-                    </FormRow>
-                    <FormGroup><Label htmlFor="notes">Notes</Label><Textarea id="notes" value={milkForm.notes} onChange={(e) => setMilkForm({ ...milkForm, notes: e.target.value })} rows={2} /></FormGroup>
-                    <div className="modal-actions"><Button variant="outline" type="button" onClick={() => setShowMilkModal(false)}>Cancel</Button><Button type="submit">Save Record</Button></div>
-                </form>
-            </Modal>
-
-            <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} title="Edit Animal Details" size="md">
-                <form onSubmit={handleEditSubmit}>
-                    <FormRow>
-                        <FormGroup><Label htmlFor="tagNumber">Tag Number</Label><Input id="tagNumber" value={editForm.tagNumber} onChange={(e) => setEditForm({ ...editForm, tagNumber: e.target.value })} /></FormGroup>
-                        <FormGroup><Label htmlFor="name" required>Name</Label><Input id="name" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} required /></FormGroup>
-                    </FormRow>
-                    <FormRow>
-                        <FormGroup><Label htmlFor="type">Type</Label><Select id="type" value={editForm.type} onChange={(e) => setEditForm({ ...editForm, type: e.target.value })}><option value="cow">Cow</option><option value="bull">Bull</option><option value="heifer">Heifer</option><option value="calf">Calf</option></Select></FormGroup>
-                        <FormGroup><Label htmlFor="breed">Breed</Label><Input id="breed" value={editForm.breed} onChange={(e) => setEditForm({ ...editForm, breed: e.target.value })} /></FormGroup>
-                    </FormRow>
-                    <FormRow>
-                        <FormGroup><Label htmlFor="dob">Date of Birth</Label><Input id="dob" type="date" value={editForm.dateOfBirth} onChange={(e) => setEditForm({ ...editForm, dateOfBirth: e.target.value })} /></FormGroup>
-                        <FormGroup><Label htmlFor="status">Status</Label><Select id="status" value={editForm.status} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}><option value="active">Active</option><option value="sold">Sold</option><option value="deceased">Deceased</option></Select></FormGroup>
-                    </FormRow>
-                    <FormGroup><Label htmlFor="notes">Notes</Label><Textarea id="notes" value={editForm.notes} onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })} rows={3} /></FormGroup>
-                    <div className="modal-actions"><Button variant="outline" type="button" onClick={() => setShowEditModal(false)}>Cancel</Button><Button type="submit">Update Animal</Button></div>
-                </form>
-            </Modal>
         </div>
     );
 }
