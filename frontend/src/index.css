@@ -465,6 +465,52 @@ a:hover {
   color: var(--color-neutral-500);
 }
 
+/* Stats Grids */
+.stats-grid {
+  display: grid;
+  gap: var(--space-6);
+  margin-bottom: var(--space-8);
+  width: 100%;
+}
+
+.stats-grid--two {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.stats-grid--three {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.stats-grid--four {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Badges & Tags */
+.count-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-family-mono);
+  border: 1px solid var(--color-primary-200);
+}
+
+.count-badge--neutral {
+  background: var(--color-neutral-100);
+  color: var(--color-neutral-600);
+  border-color: var(--color-neutral-200);
+}
+
+.count-badge--secondary {
+  background: var(--color-secondary-100);
+  color: var(--color-secondary-800);
+  border-color: var(--color-secondary-200);
+}
+
 /* Animations */
 @keyframes fadeIn {
   from {

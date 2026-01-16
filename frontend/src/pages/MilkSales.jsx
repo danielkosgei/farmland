@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, CheckCircle, Milk } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, CheckCircle, Milk, Droplets, DollarSign, ClipboardList } from 'lucide-react';
 import { Pagination } from '../components/ui/Pagination';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
+import { StatCard } from '../components/ui/StatCard';
 import { Modal } from '../components/ui/Modal';
 import { FormGroup, FormRow, Label, Input, Textarea, Checkbox } from '../components/ui/Form';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/Table';
@@ -84,33 +85,28 @@ export function MilkSales() {
         <div className="milk-sales-page">
             <header className="page-header">
                 <div className="page-header-content">
-                    <h1>Milk Sales</h1>
+                    <div className="flex items-center gap-3">
+                        <h1>Milk Sales</h1>
+                        <span className="count-badge count-badge--neutral">{sales.length} records</span>
+                    </div>
                     <p>Track your milk sales and revenue</p>
                 </div>
                 <Button icon={Plus} onClick={() => { resetForm(); setEditingSale(null); setShowModal(true); }}>Record Sale</Button>
             </header>
 
-            <div className="livestock-toolbar" style={{ border: 'none', marginBottom: 'var(--space-6)', padding: 0 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-6)', width: '100%' }}>
-                    <Card className="stat-card" style={{ padding: 'var(--space-6)' }}>
-                        <div className="stat-content">
-                            <span className="stat-value font-mono">{totalLiters.toFixed(1)} L</span>
-                            <span className="stat-label uppercase tracking-wider text-[10px] font-bold text-neutral-400">Total Volume</span>
-                        </div>
-                    </Card>
-                    <Card className="stat-card" style={{ padding: 'var(--space-6)' }}>
-                        <div className="stat-content">
-                            <span className="stat-value font-mono text-primary-600">{formatCurrency(totalRevenue)}</span>
-                            <span className="stat-label uppercase tracking-wider text-[10px] font-bold text-neutral-400">Total Revenue</span>
-                        </div>
-                    </Card>
-                    <Card className="stat-card" style={{ padding: 'var(--space-6)' }}>
-                        <div className="stat-content">
-                            <span className="stat-value font-mono">{sales.length}</span>
-                            <span className="stat-label uppercase tracking-wider text-[10px] font-bold text-neutral-400">Sales Records</span>
-                        </div>
-                    </Card>
-                </div>
+            <div className="stats-grid stats-grid--two">
+                <StatCard
+                    title="Total Volume"
+                    value={`${totalLiters.toFixed(1)} L`}
+                    icon={Droplets}
+                    color="primary"
+                />
+                <StatCard
+                    title="Total Revenue"
+                    value={formatCurrency(totalRevenue)}
+                    icon={DollarSign}
+                    color="secondary"
+                />
             </div>
 
             <Card padding="none">
