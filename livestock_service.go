@@ -21,6 +21,7 @@ func (s *LivestockService) GetAllAnimals() ([]Animal, error) {
 			   a.status, a.notes, a.created_at, a.updated_at
 		FROM animals a
 		LEFT JOIN animals m ON a.mother_id = m.id
+		LEFT JOIN animals f ON a.father_id = f.id
 		ORDER BY a.date_of_birth ASC
 	`)
 	if err != nil {
