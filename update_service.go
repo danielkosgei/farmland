@@ -363,7 +363,8 @@ func (s *UpdateService) ApplyUpdate() error {
 		if err := os.Rename(currentExe, oldExe); err != nil {
 			// If access is denied, try to perform the operation with administrative privileges
 			if strings.Contains(err.Error(), "Access is denied") {
-				fmt.Printf("Access denied for rename, attempting elevated update...\n")
+				// Use println for simple status output during update
+				println("Access denied for rename, attempting elevated update...")
 
 				// Build a PowerShell command to do both the rename and the move
 				// We use Start-Process with -Verb RunAs to trigger UAC
@@ -401,7 +402,9 @@ func (s *UpdateService) ApplyUpdate() error {
 		}
 
 		// Success - cleanup
-		_ = os.Remove(s.downloadedFile)
+		if s.downloadedFile != "" {
+			_ = os.Remove(s.downloadedFile)
+		}
 		s.downloadedFile = ""
 		return nil
 	}
@@ -412,7 +415,9 @@ func (s *UpdateService) ApplyUpdate() error {
 	}
 
 	_ = os.Chmod(currentExe, 0755)
-	_ = os.Remove(s.downloadedFile)
+	if s.downloadedFile != "" {
+		_ = os.Remove(s.downloadedFile)
+	}
 	s.downloadedFile = ""
 	return nil
 }
@@ -423,13 +428,13 @@ func (s *UpdateService) copyFile(src, dst string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open source: %w", err)
 	}
-	defer in.Close()
+	defer func() { _ = in.Close() }()
 
 	out, err := os.Create(dst)
 	if err != nil {
 		return fmt.Errorf("failed to create destination: %w", err)
 	}
-	defer out.Close()
+	defer func() { _ = out.Close() }()
 
 	_, err = io.Copy(out, in)
 	if err != nil {
