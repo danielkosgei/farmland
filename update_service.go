@@ -361,6 +361,25 @@ func (s *UpdateService) ApplyUpdate() error {
 
 		// 1. Rename current executable to .old
 		if err := os.Rename(currentExe, oldExe); err != nil {
+			// If access is denied, try to perform the operation with administrative privileges
+			if strings.Contains(err.Error(), "Access is denied") {
+				fmt.Printf("Access denied for rename, attempting elevated update...\n")
+
+				// Build a PowerShell command to do both the rename and the move
+				// We use Start-Process with -Verb RunAs to trigger UAC
+				psCmd := fmt.Sprintf(
+					"Move-Item -Path '%s' -Destination '%s' -Force; Move-Item -Path '%s' -Destination '%s' -Force; Remove-Item -Path '%s' -Force",
+					currentExe, oldExe, s.downloadedFile, currentExe, s.downloadedFile,
+				)
+
+				err := exec.Command("powershell", "-Command", "Start-Process", "powershell", "-ArgumentList", fmt.Sprintf("-Command \"%s\"", psCmd), "-Verb", "RunAs", "-Wait").Run()
+				if err != nil {
+					return fmt.Errorf("failed to perform elevated update: %w (did you decline the UAC prompt?)", err)
+				}
+
+				s.downloadedFile = ""
+				return nil
+			}
 			return fmt.Errorf("failed to move current version to %s: %w (check permissions)", filepath.Base(oldExe), err)
 		}
 
@@ -368,6 +387,16 @@ func (s *UpdateService) ApplyUpdate() error {
 		if err := s.copyFile(s.downloadedFile, currentExe); err != nil {
 			// Try to restore the old one if copy fails
 			_ = os.Rename(oldExe, currentExe)
+
+			// If copy failed due to permissions, try elevated
+			if strings.Contains(err.Error(), "Access is denied") {
+				psCmd := fmt.Sprintf("Move-Item -Path '%s' -Destination '%s' -Force; Remove-Item -Path '%s' -Force", s.downloadedFile, currentExe, s.downloadedFile)
+				err := exec.Command("powershell", "-Command", "Start-Process", "powershell", "-ArgumentList", fmt.Sprintf("-Command \"%s\"", psCmd), "-Verb", "RunAs", "-Wait").Run()
+				if err == nil {
+					s.downloadedFile = ""
+					return nil
+				}
+			}
 			return fmt.Errorf("failed to install new binary: %w", err)
 		}
 
