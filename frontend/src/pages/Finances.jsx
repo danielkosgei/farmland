@@ -137,13 +137,47 @@ export function Finances() {
                     <CardHeader><CardTitle>Income vs Expenses</CardTitle></CardHeader>
                     <CardContent>
                         <div className="chart-container">
-                            <ResponsiveContainer width="100%" height={250}>
-                                <BarChart data={chartData} layout="vertical">
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis type="number" tickFormatter={(val) => `${(val / 1000).toFixed(0)}K`} />
-                                    <YAxis type="category" dataKey="name" width={80} />
-                                    <Tooltip formatter={(value) => formatCurrency(value)} />
-                                    <Bar dataKey="value" radius={[0, 8, 8, 0]} />
+                            <ResponsiveContainer width="100%" height={200}>
+                                <BarChart
+                                    data={chartData}
+                                    layout="vertical"
+                                    margin={{ top: 5, right: 40, left: 20, bottom: 5 }}
+                                >
+                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-neutral-200)" horizontal={false} />
+                                    <XAxis
+                                        type="number"
+                                        tickFormatter={(val) => `${(val / 1000).toFixed(0)}K`}
+                                        tick={{ fontSize: 10, fill: 'var(--color-neutral-500)', fontFamily: 'var(--font-family-mono)' }}
+                                        axisLine={false}
+                                        tickLine={false}
+                                    />
+                                    <YAxis
+                                        type="category"
+                                        dataKey="name"
+                                        width={80}
+                                        tick={{ fontSize: 12, fontWeight: 'var(--font-weight-bold)', fill: 'var(--color-neutral-700)' }}
+                                        axisLine={false}
+                                        tickLine={false}
+                                    />
+                                    <Tooltip
+                                        cursor={{ fill: 'var(--color-neutral-50)', opacity: 0.4 }}
+                                        contentStyle={{
+                                            borderRadius: 'var(--radius-lg)',
+                                            border: 'var(--border-thin)',
+                                            boxShadow: 'var(--shadow-lg)',
+                                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                            backdropFilter: 'blur(4px)',
+                                            padding: 'var(--space-2) var(--space-3)'
+                                        }}
+                                        itemStyle={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-bold)' }}
+                                        formatter={(value) => formatCurrency(value)}
+                                    />
+                                    <Bar
+                                        dataKey="value"
+                                        radius={[0, 4, 4, 0]}
+                                        barSize={32}
+                                        animationDuration={1000}
+                                    />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>

@@ -170,18 +170,20 @@ export function Dashboard() {
                     <CardContent>
                         <div className="chart-container">
                             {milkData.length > 0 ? (
-                                <ResponsiveContainer width="100%" height={280}>
-                                    <AreaChart data={milkData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={milkData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
                                         <defs>
                                             <linearGradient id="milkGradient" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
-                                                <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                                                <stop offset="5%" stopColor="var(--color-primary-500)" stopOpacity={0.15} />
+                                                <stop offset="95%" stopColor="var(--color-primary-500)" stopOpacity={0.01} />
                                             </linearGradient>
                                         </defs>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+                                        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-neutral-200)" vertical={false} />
                                         <XAxis
                                             dataKey="date"
-                                            tick={{ fontSize: 10 }}
+                                            tick={{ fontSize: 10, fill: 'var(--color-neutral-500)' }}
+                                            axisLine={false}
+                                            tickLine={false}
                                             minTickGap={chartTimeframe === 'month' ? 15 : 5}
                                             tickFormatter={(val) => {
                                                 if (!val) return '';
@@ -192,16 +194,36 @@ export function Dashboard() {
                                                     const m = parseInt(parts[1]);
                                                     return new Date(y, m - 1).toLocaleString('default', { month: 'short' });
                                                 }
-                                                // Week/Month: show MM-DD
                                                 return val.slice(5);
                                             }}
                                         />
-                                        <YAxis tick={{ fontSize: 12 }} />
-                                        <RechartsTooltip
-                                            contentStyle={{ borderRadius: '8px', border: '1px solid #e5e5e5' }}
-                                            formatter={(value) => [`${value} L`, 'Milk']}
+                                        <YAxis
+                                            tick={{ fontSize: 10, fill: 'var(--color-neutral-500)' }}
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tickFormatter={(val) => `${val}L`}
                                         />
-                                        <Area type="monotone" dataKey="liters" stroke="#22c55e" strokeWidth={2} fill="url(#milkGradient)" />
+                                        <RechartsTooltip
+                                            contentStyle={{
+                                                borderRadius: 'var(--radius-lg)',
+                                                border: 'var(--border-thin)',
+                                                boxShadow: 'var(--shadow-lg)',
+                                                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                                backdropFilter: 'blur(4px)',
+                                                padding: 'var(--space-2) var(--space-3)'
+                                            }}
+                                            itemStyle={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-bold)' }}
+                                            labelStyle={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-neutral-500)', marginBottom: 'var(--space-1)' }}
+                                            formatter={(value) => [`${value} Liters`, 'Production']}
+                                        />
+                                        <Area
+                                            type="monotone"
+                                            dataKey="liters"
+                                            stroke="var(--color-primary-500)"
+                                            strokeWidth={3}
+                                            fill="url(#milkGradient)"
+                                            animationDuration={1500}
+                                        />
                                     </AreaChart>
                                 </ResponsiveContainer>
                             ) : (
