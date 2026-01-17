@@ -127,10 +127,10 @@ func (s *FinancialService) GetFinancialSummary(startDate, endDate string) (*Fina
 
 	var income, expenses sql.NullFloat64
 	if err := db.QueryRow(incomeQuery, args...).Scan(&income); err != nil {
-		// Log error if needed or continue with null
+		_ = err // Log error if needed or continue with null
 	}
 	if err := db.QueryRow(expenseQuery, args...).Scan(&expenses); err != nil {
-		// Log error if needed or continue with null
+		_ = err // Log error if needed or continue with null
 	}
 
 	summary.TotalIncome = income.Float64

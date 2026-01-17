@@ -89,7 +89,7 @@ func (s *InventoryService) AddInventoryItem(item InventoryItem) (int64, error) {
 		if err := addTransactionInternal(date, "expense", item.Category,
 			fmt.Sprintf("Purchase: %.1f %s of %s", item.Quantity, item.Unit, item.Name),
 			totalCost, fmt.Sprintf("inventory:%d", id)); err != nil {
-			// Log error but continue
+			_ = err // Log error but continue
 		}
 	}
 

@@ -365,7 +365,7 @@ func (s *LivestockService) AddMilkSale(sale MilkSale) (int64, error) {
 	if err := addTransactionInternal(sale.Date, "income", "milk_sales",
 		fmt.Sprintf("Milk Sale: %.1fL to %s", sale.Liters, sale.BuyerName),
 		total, fmt.Sprintf("milk_sale:%d", id)); err != nil {
-		// Log error but continue
+		_ = err // Log error but continue
 	}
 
 	return id, nil

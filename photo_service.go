@@ -140,7 +140,7 @@ func (s *PhotoService) DeletePhoto(id int64) error {
 	}
 
 	if err := os.Remove(path); err != nil {
-		// Log or ignore remove error
+		_ = err // Log or ignore remove error
 	}
 	return nil
 }

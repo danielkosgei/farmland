@@ -153,28 +153,28 @@ func (s *CropsService) AddCropRecord(record CropRecord) (int64, error) {
 		if err := addTransactionInternal(record.PlantingDate, "expense", "seeds",
 			fmt.Sprintf("Seeds: %s for Field #%d", record.CropType, record.FieldID),
 			record.SeedCost, fmt.Sprintf("crop_record:%d:seed", id)); err != nil {
-			// Log error but continue
+			_ = err // Log error but continue
 		}
 	}
 	if record.FertilizerCost > 0 {
 		if err := addTransactionInternal(record.PlantingDate, "expense", "fertilizer",
 			fmt.Sprintf("Fertilizer: %s for Field #%d", record.CropType, record.FieldID),
 			record.FertilizerCost, fmt.Sprintf("crop_record:%d:fert", id)); err != nil {
-			// Log error but continue
+			_ = err // Log error but continue
 		}
 	}
 	if record.LaborCost > 0 {
 		if err := addTransactionInternal(record.PlantingDate, "expense", "labor",
 			fmt.Sprintf("Labor: Planting %s in Field #%d", record.CropType, record.FieldID),
 			record.LaborCost, fmt.Sprintf("crop_record:%d:labor", id)); err != nil {
-			// Log error but continue
+			_ = err // Log error but continue
 		}
 	}
 
 	// Update field's current crop and status
 	if record.Status == "planted" || record.Status == "growing" {
 		if _, err := db.Exec(`UPDATE fields SET current_crop = ?, status = ? WHERE id = ?`, record.CropType, record.Status, record.FieldID); err != nil {
-			// Log error but continue
+			_ = err // Log error but continue
 		}
 	}
 

@@ -77,7 +77,7 @@ func (s *HealthService) AddVetRecord(record VetRecord) (int64, error) {
 		if err := addTransactionInternal(record.Date, "expense", "veterinary",
 			fmt.Sprintf("Vet: %s for Animal #%d", record.RecordType, record.AnimalID),
 			record.Cost, fmt.Sprintf("vet_record:%d", id)); err != nil {
-			// Log error but continue
+			_ = err // Log error but continue
 		}
 	}
 

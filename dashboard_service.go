@@ -25,19 +25,19 @@ func (s *DashboardService) GetDashboardStats() (*DashboardStats, error) {
 
 	// Total animals
 	if err := db.QueryRow(`SELECT COUNT(*) FROM animals WHERE status = 'active'`).Scan(&stats.TotalAnimals); err != nil {
-		// Log error or continue
+		_ = err // Log error or continue
 	}
 
 	// Active dairy cows
 	if err := db.QueryRow(`SELECT COUNT(*) FROM animals WHERE status = 'active' AND gender = 'female' AND type IN ('cow', 'heifer')`).Scan(&stats.ActiveCows); err != nil {
-		// Log error or continue
+		_ = err // Log error or continue
 	}
 
 	// Today's milk
 	today := time.Now().Format("2006-01-02")
 	var todayMilk sql.NullFloat64
 	if err := db.QueryRow(`SELECT SUM(total_liters) FROM milk_records WHERE date = ?`, today).Scan(&todayMilk); err != nil {
-		// Log error or continue
+		_ = err // Log error or continue
 	}
 	stats.TodayMilkLiters = todayMilk.Float64
 
@@ -45,26 +45,26 @@ func (s *DashboardService) GetDashboardStats() (*DashboardStats, error) {
 	startOfMonth := time.Now().Format("2006-01") + "-01"
 	var monthMilk sql.NullFloat64
 	if err := db.QueryRow(`SELECT SUM(total_liters) FROM milk_records WHERE date >= ?`, startOfMonth).Scan(&monthMilk); err != nil {
-		// Log error or continue
+		_ = err // Log error or continue
 	}
 	stats.MonthMilkLiters = monthMilk.Float64
 
 	// Active fields
 	if err := db.QueryRow(`SELECT COUNT(*) FROM fields WHERE status IN ('planted', 'growing', 'ready_harvest')`).Scan(&stats.ActiveFields); err != nil {
-		// Log error or continue
+		_ = err // Log error or continue
 	}
 
 	// Total field acres
 	var totalAcres sql.NullFloat64
 	if err := db.QueryRow(`SELECT SUM(size_acres) FROM fields`).Scan(&totalAcres); err != nil {
-		// Log error or continue
+		_ = err // Log error or continue
 	}
 	stats.TotalFieldsAcres = totalAcres.Float64
 
 	// Month income
 	var monthIncome sql.NullFloat64
 	if err := db.QueryRow(`SELECT SUM(amount) FROM transactions WHERE type = 'income' AND date >= ?`, startOfMonth).Scan(&monthIncome); err != nil {
-		// Log error or continue
+		_ = err // Log error or continue
 	}
 	stats.MonthIncome = monthIncome.Float64
 
@@ -73,25 +73,25 @@ func (s *DashboardService) GetDashboardStats() (*DashboardStats, error) {
 	lastMonthStartStr := lastMonthStart.Format("2006-01") + "-01"
 	var lastMonthIncome sql.NullFloat64
 	if err := db.QueryRow(`SELECT SUM(amount) FROM transactions WHERE type = 'income' AND date >= ? AND date < ?`, lastMonthStartStr, startOfMonth).Scan(&lastMonthIncome); err != nil {
-		// Log error or continue
+		_ = err // Log error or continue
 	}
 	stats.LastMonthIncome = lastMonthIncome.Float64
 
 	// Month expenses
 	var monthExpenses sql.NullFloat64
 	if err := db.QueryRow(`SELECT SUM(amount) FROM transactions WHERE type = 'expense' AND date >= ?`, startOfMonth).Scan(&monthExpenses); err != nil {
-		// Log error or continue
+		_ = err // Log error or continue
 	}
 	stats.MonthExpenses = monthExpenses.Float64
 
 	// Low stock items
 	if err := db.QueryRow(`SELECT COUNT(*) FROM inventory_items WHERE quantity < minimum_stock`).Scan(&stats.LowStockItems); err != nil {
-		// Log error or continue
+		_ = err // Log error or continue
 	}
 
 	// Pending vet visits
 	if err := db.QueryRow(`SELECT COUNT(*) FROM vet_records WHERE next_due_date IS NOT NULL AND next_due_date != '' AND next_due_date >= date('now') AND next_due_date <= date('now', '+30 days')`).Scan(&stats.PendingVetVisits); err != nil {
-		// Log error or continue
+		_ = err // Log error or continue
 	}
 
 	return stats, nil
@@ -163,7 +163,7 @@ func (s *DashboardService) GetMilkProductionChart(timeframe string) ([]map[strin
 		var label string
 		var total float64
 		if err := rows.Scan(&label, &total); err != nil {
-			// Log or continue
+			_ = err // Log or continue
 		}
 		data = append(data, map[string]interface{}{"date": label, "liters": total})
 	}
