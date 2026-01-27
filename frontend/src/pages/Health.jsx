@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Search, Edit2, Trash2, Heart, Activity, Calendar, AlertCircle, Syringe } from 'lucide-react';
 import { Pagination } from '../components/ui/Pagination';
 import { Button } from '../components/ui/Button';
@@ -20,13 +20,29 @@ export function Health() {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
-    const [formData, setFormData] = useState({ animalId: '', date: new Date().toISOString().split('T')[0], recordType: 'treatment', description: '', diagnosis: '', treatment: '', medicine: '', dosage: '', vetName: '', cost: '', nextDueDate: '', notes: '' });
+    const [formData, setFormData] = useState({ animalIds: [], selectAll: false, date: new Date().toISOString().split('T')[0], recordType: 'treatment', description: '', diagnosis: '', treatment: '', medicine: '', dosage: '', vetName: '', cost: '', nextDueDate: '', notes: '' });
     const [currentPage, setCurrentPage] = useState(1);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const dropdownRef = useRef(null);
 
     const itemsPerPage = 10;
     const paginatedRecords = records.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     useEffect(() => { loadData(); }, []);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsDropdownOpen(false);
+            }
+        };
+
+        if (isDropdownOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+            return () => document.removeEventListener('mousedown', handleClickOutside);
+        }
+    }, [isDropdownOpen]);
 
     const loadData = async () => {
         try {
@@ -44,33 +60,51 @@ export function Health() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const loadingToast = toast.loading('Saving health record...');
+        
+        if (formData.animalIds.length === 0) {
+            toast.error('Please select at least one animal');
+            return;
+        }
+        
+        const loadingToast = toast.loading(
+            `Saving health record for ${formData.animalIds.length} animal${formData.animalIds.length !== 1 ? 's' : ''}...`
+        );
+        
         try {
             const cost = parseFloat(formData.cost) || 0;
-            await window.go.main.HealthService.AddVetRecord({
-                animalId: parseInt(formData.animalId),
-                date: formData.date,
-                recordType: formData.recordType,
-                description: formData.description,
-                diagnosis: formData.diagnosis,
-                treatment: formData.treatment,
-                medicine: formData.medicine,
-                dosage: formData.dosage,
-                vetName: formData.vetName,
-                cost: cost,
-                nextDueDate: formData.nextDueDate,
-                notes: formData.notes
-            });
-
+            
+            // Create a record for each selected animal
+            const promises = formData.animalIds.map((animalId, index) => 
+                window.go.main.HealthService.AddVetRecord({
+                    animalId: animalId,
+                    date: formData.date,
+                    recordType: formData.recordType,
+                    description: formData.description,
+                    diagnosis: formData.diagnosis,
+                    treatment: formData.treatment,
+                    medicine: formData.medicine,
+                    dosage: formData.dosage,
+                    vetName: formData.vetName,
+                    cost: index === 0 ? cost : 0,  // Only first animal gets the cost
+                    nextDueDate: formData.nextDueDate,
+                    notes: formData.notes
+                })
+            );
+            
+            await Promise.all(promises);
+            
             const financialMsg = cost > 0 ? ' & added to Finances' : '';
-            toast.success(`Health record saved${financialMsg}`, { id: loadingToast });
-
+            toast.success(
+                `${formData.animalIds.length} health record${formData.animalIds.length !== 1 ? 's' : ''} saved${financialMsg}`, 
+                { id: loadingToast }
+            );
+            
             setShowModal(false);
             resetForm();
             loadData();
         } catch (err) {
             console.error(err);
-            toast.error('Failed to save health record', { id: loadingToast });
+            toast.error('Failed to save health records', { id: loadingToast });
         }
     };
 
@@ -86,7 +120,10 @@ export function Health() {
         } catch (err) { console.error(err); }
     };
 
-    const resetForm = () => setFormData({ animalId: '', date: new Date().toISOString().split('T')[0], recordType: 'treatment', description: '', diagnosis: '', treatment: '', medicine: '', dosage: '', vetName: '', cost: '', nextDueDate: '', notes: '' });
+    const resetForm = () => {
+        setFormData({ animalIds: [], selectAll: false, date: new Date().toISOString().split('T')[0], recordType: 'treatment', description: '', diagnosis: '', treatment: '', medicine: '', dosage: '', vetName: '', cost: '', nextDueDate: '', notes: '' });
+        setIsDropdownOpen(false);
+    };
 
     const getTypeIcon = (type) => {
         if (type === 'vaccination' || type === 'deworming') return '💉';
@@ -171,10 +208,100 @@ export function Health() {
 
             <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Add Health Record" size="lg">
                 <form onSubmit={handleSubmit}>
-                    <FormRow>
-                        <FormGroup><Label htmlFor="animal" required>Animal</Label><Select id="animal" value={formData.animalId} onChange={(e) => setFormData({ ...formData, animalId: e.target.value })} required><option value="">Select animal</option>{animals.map(a => <option key={a.id} value={a.id}>{a.name} {a.tagNumber ? `(#${a.tagNumber})` : ''}</option>)}</Select></FormGroup>
-                        <FormGroup><Label htmlFor="recDate" required>Date</Label><Input id="recDate" type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} required /></FormGroup>
-                    </FormRow>
+                    <FormGroup>
+                        <Label htmlFor="animals" required>Animals</Label>
+                        <div className="multi-select-dropdown" ref={dropdownRef}>
+                            <button
+                                type="button"
+                                className="multi-select-trigger"
+                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            >
+                                <div className="multi-select-value">
+                                    {formData.animalIds.length === 0 ? (
+                                        <span className="placeholder-text">Select animals...</span>
+                                    ) : (
+                                        <div className="selected-animals-chips">
+                                            {formData.animalIds.map(animalId => {
+                                                const animal = animals.find(a => a.id === animalId);
+                                                return animal ? (
+                                                    <span key={animalId} className="animal-chip">
+                                                        <span className="animal-chip-name">{animal.name}</span>
+                                                        <button
+                                                            type="button"
+                                                            className="animal-chip-remove"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                const newAnimalIds = formData.animalIds.filter(id => id !== animalId);
+                                                                setFormData({
+                                                                    ...formData,
+                                                                    animalIds: newAnimalIds,
+                                                                    selectAll: newAnimalIds.length === animals.length
+                                                                });
+                                                            }}
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </span>
+                                                ) : null;
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                                <svg className={`multi-select-arrow ${isDropdownOpen ? 'open' : ''}`} width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                            </button>
+                            
+                            {isDropdownOpen && (
+                                <div className="multi-select-options">
+                                    <div className="select-all-option">
+                                        <label className="checkbox-label">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={formData.selectAll}
+                                                onChange={(e) => {
+                                                    const checked = e.target.checked;
+                                                    setFormData({ 
+                                                        ...formData, 
+                                                        selectAll: checked,
+                                                        animalIds: checked ? animals.map(a => a.id) : []
+                                                    });
+                                                }}
+                                            />
+                                            <span className="select-all-text">Select All Animals</span>
+                                        </label>
+                                    </div>
+                                    <div className="animals-checkbox-list">
+                                        {animals.map(a => (
+                                            <label key={a.id} className="animal-checkbox-item">
+                                                <input 
+                                                    type="checkbox"
+                                                    checked={formData.animalIds.includes(a.id)}
+                                                    onChange={(e) => {
+                                                        const checked = e.target.checked;
+                                                        let newAnimalIds;
+                                                        if (checked) {
+                                                            newAnimalIds = [...formData.animalIds, a.id];
+                                                        } else {
+                                                            newAnimalIds = formData.animalIds.filter(id => id !== a.id);
+                                                        }
+                                                        setFormData({ 
+                                                            ...formData, 
+                                                            animalIds: newAnimalIds,
+                                                            selectAll: newAnimalIds.length === animals.length
+                                                        });
+                                                    }}
+                                                />
+                                                <span className="animal-name">{a.name}</span>
+                                                {a.tagNumber && <span className="animal-tag">#{a.tagNumber}</span>}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </FormGroup>
+                    <FormGroup><Label htmlFor="recDate" required>Date</Label><Input id="recDate" type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} required /></FormGroup>
                     <FormRow>
                         <FormGroup><Label htmlFor="recType">Record Type</Label><Select id="recType" value={formData.recordType} onChange={(e) => setFormData({ ...formData, recordType: e.target.value })}>{recordTypes.map(t => <option key={t} value={t}>{t.replace('_', ' ').charAt(0).toUpperCase() + t.replace('_', ' ').slice(1)}</option>)}</Select></FormGroup>
                         <FormGroup><Label htmlFor="vetName">Vet Name</Label><Input id="vetName" value={formData.vetName} onChange={(e) => setFormData({ ...formData, vetName: e.target.value })} placeholder="Dr. Name" /></FormGroup>
