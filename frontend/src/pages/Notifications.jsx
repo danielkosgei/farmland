@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, Calendar, Box, Activity, AlertCircle, Check } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
+import { formatLabel } from '../utils/formatting';
 import './Notifications.css';
 
 export function Notifications() {
@@ -72,7 +73,7 @@ export function Notifications() {
                                         </div>
                                         <div className="notif-main">
                                             <div className="notif-meta-row">
-                                                <span className="notif-tag">{notif.type.replace('_', ' ')}</span>
+                                                <span className="notif-tag">{formatLabel(notif.type)}</span>
                                                 {notif.dueDate && (
                                                     <span className={`notif-due-tag ${notif.daysUntil <= 1 ? 'urgent' : ''}`}>
                                                         {notif.daysUntil === 0 ? 'Today' :

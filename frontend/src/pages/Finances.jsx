@@ -10,6 +10,7 @@ import { FormGroup, FormRow, Label, Input, Select, Textarea } from '../component
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/Table';
 import { EmptyState } from '../components/ui/EmptyState';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { formatLabel } from '../utils/formatting';
 import './Finances.css';
 
 const incomeCategories = ['milk_sales', 'crop_sales', 'livestock_sales', 'other_income'];
@@ -214,7 +215,7 @@ export function Finances() {
                                         <TableRow key={trans.id}>
                                             <TableCell className="font-mono">{new Date(trans.date).toLocaleDateString('en-KE')}</TableCell>
                                             <TableCell><span className="font-bold text-neutral-900">{trans.description || '-'}</span></TableCell>
-                                            <TableCell><span className={`cat-badge cat-${trans.type}`}>{trans.category?.replace('_', ' ') || '-'}</span></TableCell>
+                                            <TableCell><span className={`cat-badge cat-${trans.type}`}>{formatLabel(trans.category)}</span></TableCell>
                                             <TableCell className={`amount font-mono font-bold ${trans.type}`}>
                                                 {trans.type === 'income' ? '+' : '-'}{formatCurrency(trans.amount)}
                                             </TableCell>
@@ -243,7 +244,7 @@ export function Finances() {
                         <FormGroup><Label htmlFor="transType">Type</Label><Select id="transType" value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value, category: e.target.value === 'income' ? 'milk_sales' : 'feed' })}><option value="income">Income</option><option value="expense">Expense</option></Select></FormGroup>
                     </FormRow>
                     <FormRow>
-                        <FormGroup><Label htmlFor="transCat">Category</Label><Select id="transCat" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })}>{(formData.type === 'income' ? incomeCategories : expenseCategories).map(c => <option key={c} value={c}>{c.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}</Select></FormGroup>
+                        <FormGroup><Label htmlFor="transCat">Category</Label><Select id="transCat" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })}>{(formData.type === 'income' ? incomeCategories : expenseCategories).map(c => <option key={c} value={c}>{formatLabel(c)}</option>)}</Select></FormGroup>
                         <FormGroup><Label htmlFor="transAmt" required>Amount (KES)</Label><Input id="transAmt" type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} required /></FormGroup>
                     </FormRow>
                     <FormGroup><Label htmlFor="transDesc">Description</Label><Input id="transDesc" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="e.g., Sold 50 liters milk" /></FormGroup>

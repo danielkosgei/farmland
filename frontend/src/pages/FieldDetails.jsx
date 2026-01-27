@@ -11,6 +11,7 @@ import { Card, CardContent } from '../components/ui/Card';
 import { Modal } from '../components/ui/Modal';
 import { PhotoGallery } from '../components/PhotoGallery';
 import { Input, Label, FormGroup, Select, Textarea, FormRow } from '../components/ui/Form';
+import { formatLabel } from '../utils/formatting';
 import './Crops.css';
 import '../components/EntityDetails.css';
 
@@ -127,7 +128,7 @@ export function FieldDetails() {
                             <h1>{field.name}</h1>
                             <div className="header-badges">
                                 <span className="badge badge-primary">FLD-{field.id.toString().padStart(3, '0')}</span>
-                                <span className={`badge badge-status-${field.status}`}>{field.status?.replace('_', ' ')}</span>
+                                <span className={`badge badge-status-${field.status}`}>{formatLabel(field.status)}</span>
                                 <span className="badge badge-neutral">{field.sizeAcres} Acres</span>
                                 <span className="badge badge-neutral">{field.soilType || 'Loam'}</span>
                             </div>

@@ -9,6 +9,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '.
 import { EmptyState } from '../components/ui/EmptyState';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { toast } from 'sonner';
+import { formatLabel } from '../utils/formatting';
 import './Health.css';
 
 const recordTypes = ['treatment', 'vaccination', 'checkup', 'deworming', 'artificial_insemination', 'pregnancy_check', 'hoof_trimming'];
@@ -19,16 +20,38 @@ export function Health() {
     const [upcoming, setUpcoming] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [editingRecord, setEditingRecord] = useState(null);
     const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
     const [formData, setFormData] = useState({ animalIds: [], selectAll: false, date: new Date().toISOString().split('T')[0], recordType: 'treatment', description: '', diagnosis: '', treatment: '', medicine: '', dosage: '', vetName: '', cost: '', nextDueDate: '', notes: '' });
     const [currentPage, setCurrentPage] = useState(1);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filterType, setFilterType] = useState('all');
     const dropdownRef = useRef(null);
 
     const itemsPerPage = 10;
-    const paginatedRecords = records.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    
+    // Filter records based on search term and record type
+    const filteredRecords = records.filter(record => {
+        const matchesSearch = searchTerm === '' || 
+            record.animalName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            record.medicine?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            record.vetName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            record.description?.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        const matchesFilter = filterType === 'all' || record.recordType === filterType;
+        
+        return matchesSearch && matchesFilter;
+    });
+    
+    const paginatedRecords = filteredRecords.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     useEffect(() => { loadData(); }, []);
+    
+    // Reset pagination when search/filter changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, filterType]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -61,22 +84,14 @@ export function Health() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        if (formData.animalIds.length === 0) {
-            toast.error('Please select at least one animal');
-            return;
-        }
-        
-        const loadingToast = toast.loading(
-            `Saving health record for ${formData.animalIds.length} animal${formData.animalIds.length !== 1 ? 's' : ''}...`
-        );
-        
-        try {
-            const cost = parseFloat(formData.cost) || 0;
-            
-            // Create a record for each selected animal
-            const promises = formData.animalIds.map((animalId, index) => 
-                window.go.main.HealthService.AddVetRecord({
-                    animalId: animalId,
+        if (editingRecord) {
+            // Update existing record
+            const loadingToast = toast.loading('Updating health record...');
+            try {
+                const cost = parseFloat(formData.cost) || 0;
+                await window.go.main.HealthService.UpdateVetRecord({
+                    id: editingRecord.id,
+                    animalId: formData.animalIds[0],
                     date: formData.date,
                     recordType: formData.recordType,
                     description: formData.description,
@@ -85,26 +100,67 @@ export function Health() {
                     medicine: formData.medicine,
                     dosage: formData.dosage,
                     vetName: formData.vetName,
-                    cost: index === 0 ? cost : 0,  // Only first animal gets the cost
+                    cost: cost,
                     nextDueDate: formData.nextDueDate,
                     notes: formData.notes
-                })
+                });
+                
+                toast.success('Health record updated', { id: loadingToast });
+                setShowModal(false);
+                setEditingRecord(null);
+                resetForm();
+                loadData();
+            } catch (err) {
+                console.error(err);
+                toast.error('Failed to update health record', { id: loadingToast });
+            }
+        } else {
+            // Add new records
+            if (formData.animalIds.length === 0) {
+                toast.error('Please select at least one animal');
+                return;
+            }
+            
+            const loadingToast = toast.loading(
+                `Saving health record for ${formData.animalIds.length} animal${formData.animalIds.length !== 1 ? 's' : ''}...`
             );
             
-            await Promise.all(promises);
-            
-            const financialMsg = cost > 0 ? ' & added to Finances' : '';
-            toast.success(
-                `${formData.animalIds.length} health record${formData.animalIds.length !== 1 ? 's' : ''} saved${financialMsg}`, 
-                { id: loadingToast }
-            );
-            
-            setShowModal(false);
-            resetForm();
-            loadData();
-        } catch (err) {
-            console.error(err);
-            toast.error('Failed to save health records', { id: loadingToast });
+            try {
+                const cost = parseFloat(formData.cost) || 0;
+                
+                // Create a record for each selected animal
+                const promises = formData.animalIds.map((animalId, index) => 
+                    window.go.main.HealthService.AddVetRecord({
+                        animalId: animalId,
+                        date: formData.date,
+                        recordType: formData.recordType,
+                        description: formData.description,
+                        diagnosis: formData.diagnosis,
+                        treatment: formData.treatment,
+                        medicine: formData.medicine,
+                        dosage: formData.dosage,
+                        vetName: formData.vetName,
+                        cost: index === 0 ? cost : 0,  // Only first animal gets the cost
+                        nextDueDate: formData.nextDueDate,
+                        notes: formData.notes
+                    })
+                );
+                
+                await Promise.all(promises);
+                
+                const financialMsg = cost > 0 ? ' & added to Finances' : '';
+                toast.success(
+                    `${formData.animalIds.length} health record${formData.animalIds.length !== 1 ? 's' : ''} saved${financialMsg}`, 
+                    { id: loadingToast }
+                );
+                
+                setShowModal(false);
+                resetForm();
+                loadData();
+            } catch (err) {
+                console.error(err);
+                toast.error('Failed to save health records', { id: loadingToast });
+            }
         }
     };
 
@@ -120,8 +176,29 @@ export function Health() {
         } catch (err) { console.error(err); }
     };
 
+    const openEditModal = (record) => {
+        setEditingRecord(record);
+        setFormData({
+            animalIds: [record.animalId],
+            selectAll: false,
+            date: record.date,
+            recordType: record.recordType,
+            description: record.description || '',
+            diagnosis: record.diagnosis || '',
+            treatment: record.treatment || '',
+            medicine: record.medicine || '',
+            dosage: record.dosage || '',
+            vetName: record.vetName || '',
+            cost: record.cost ? record.cost.toString() : '',
+            nextDueDate: record.nextDueDate || '',
+            notes: record.notes || ''
+        });
+        setShowModal(true);
+    };
+
     const resetForm = () => {
         setFormData({ animalIds: [], selectAll: false, date: new Date().toISOString().split('T')[0], recordType: 'treatment', description: '', diagnosis: '', treatment: '', medicine: '', dosage: '', vetName: '', cost: '', nextDueDate: '', notes: '' });
+        setEditingRecord(null);
         setIsDropdownOpen(false);
     };
 
@@ -149,13 +226,48 @@ export function Health() {
                         {upcoming.slice(0, 5).map(item => (
                             <div key={item.id} className="upcoming-item">
                                 <span className="upcoming-animal">{item.animalName}</span>
-                                <span className="upcoming-type">{item.recordType?.replace('_', ' ') || '-'}</span>
+                                <span className="upcoming-type">{formatLabel(item.recordType)}</span>
                                 <span className="upcoming-date">{new Date(item.nextDueDate).toLocaleDateString('en-KE')}</span>
                             </div>
                         ))}
                     </div>
                 </Card>
             )}
+
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', alignItems: 'center' }}>
+                <div style={{ position: 'relative', flex: 1, maxWidth: '400px' }}>
+                    <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+                    <input
+                        type="text"
+                        placeholder="Search by animal, medicine, vet, or description..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '10px 12px 10px 40px',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '6px',
+                            fontSize: '14px'
+                        }}
+                    />
+                </div>
+                <select
+                    value={filterType}
+                    onChange={(e) => setFilterType(e.target.value)}
+                    style={{
+                        padding: '10px 12px',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '6px',
+                        fontSize: '14px',
+                        minWidth: '180px'
+                    }}
+                >
+                    <option value="all">All Types</option>
+                    {recordTypes.map(type => (
+                        <option key={type} value={type}>{formatLabel(type)}</option>
+                    ))}
+                </select>
+            </div>
 
             <Card padding="none">
                 {loading ? (
@@ -169,8 +281,10 @@ export function Health() {
                                 <TableHead>Date</TableHead>
                                 <TableHead>Animal</TableHead>
                                 <TableHead>Type</TableHead>
+                                <TableHead>Description</TableHead>
                                 <TableHead>Medicine</TableHead>
                                 <TableHead>Vet</TableHead>
+                                <TableHead>Next Due</TableHead>
                                 <TableHead>Cost</TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
@@ -182,23 +296,40 @@ export function Health() {
                                     <TableCell className="font-medium">{record.animalName}</TableCell>
                                     <TableCell>
                                         <span className={`type-badge type-${record.recordType}`}>
-                                            {getTypeIcon(record.recordType)} {record.recordType?.replace('_', ' ') || '-'}
+                                            {getTypeIcon(record.recordType)} {formatLabel(record.recordType)}
+                                        </span>
+                                    </TableCell>
+                                    <TableCell>
+                                        <span style={{ 
+                                            display: 'block', 
+                                            maxWidth: '200px', 
+                                            overflow: 'hidden', 
+                                            textOverflow: 'ellipsis', 
+                                            whiteSpace: 'nowrap' 
+                                        }} title={record.description || '-'}>
+                                            {record.description || '-'}
                                         </span>
                                     </TableCell>
                                     <TableCell>{record.medicine || '-'}</TableCell>
                                     <TableCell>{record.vetName || '-'}</TableCell>
+                                    <TableCell className="font-mono">
+                                        {record.nextDueDate ? new Date(record.nextDueDate).toLocaleDateString('en-KE') : '-'}
+                                    </TableCell>
                                     <TableCell className="font-mono">KES {record.cost || 0}</TableCell>
                                     <TableCell>
-                                        <button className="action-btn delete" onClick={() => handleDelete(record.id)}><Trash2 size={16} /></button>
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <button className="action-btn" onClick={() => openEditModal(record)}><Edit2 size={16} /></button>
+                                            <button className="action-btn delete" onClick={() => handleDelete(record.id)}><Trash2 size={16} /></button>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
                     </Table>
                 )}
-                {!loading && records.length > 0 && (
+                {!loading && filteredRecords.length > 0 && (
                     <Pagination
-                        totalItems={records.length}
+                        totalItems={filteredRecords.length}
                         itemsPerPage={itemsPerPage}
                         currentPage={currentPage}
                         onPageChange={setCurrentPage}
@@ -206,15 +337,18 @@ export function Health() {
                 )}
             </Card>
 
-            <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Add Health Record" size="lg">
+            <Modal isOpen={showModal} onClose={() => { setShowModal(false); if (editingRecord) { setEditingRecord(null); resetForm(); } }} title={editingRecord ? "Edit Health Record" : "Add Health Record"} size="lg">
                 <form onSubmit={handleSubmit}>
                     <FormGroup>
                         <Label htmlFor="animals" required>Animals</Label>
+                        {editingRecord && <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '8px' }}>Animal cannot be changed when editing a record</p>}
                         <div className="multi-select-dropdown" ref={dropdownRef}>
                             <button
                                 type="button"
                                 className="multi-select-trigger"
-                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                onClick={() => !editingRecord && setIsDropdownOpen(!isDropdownOpen)}
+                                disabled={editingRecord}
+                                style={editingRecord ? { cursor: 'not-allowed', opacity: 0.6 } : {}}
                             >
                                 <div className="multi-select-value">
                                     {formData.animalIds.length === 0 ? (
@@ -303,7 +437,7 @@ export function Health() {
                     </FormGroup>
                     <FormGroup><Label htmlFor="recDate" required>Date</Label><Input id="recDate" type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} required /></FormGroup>
                     <FormRow>
-                        <FormGroup><Label htmlFor="recType">Record Type</Label><Select id="recType" value={formData.recordType} onChange={(e) => setFormData({ ...formData, recordType: e.target.value })}>{recordTypes.map(t => <option key={t} value={t}>{t.replace('_', ' ').charAt(0).toUpperCase() + t.replace('_', ' ').slice(1)}</option>)}</Select></FormGroup>
+                        <FormGroup><Label htmlFor="recType">Record Type</Label><Select id="recType" value={formData.recordType} onChange={(e) => setFormData({ ...formData, recordType: e.target.value })}>{recordTypes.map(t => <option key={t} value={t}>{formatLabel(t)}</option>)}</Select></FormGroup>
                         <FormGroup><Label htmlFor="vetName">Vet Name</Label><Input id="vetName" value={formData.vetName} onChange={(e) => setFormData({ ...formData, vetName: e.target.value })} placeholder="Dr. Name" /></FormGroup>
                     </FormRow>
                     <FormGroup><Label htmlFor="description">Description / Symptoms</Label><Textarea id="description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={2} /></FormGroup>
@@ -320,7 +454,7 @@ export function Health() {
                         <FormGroup><Label htmlFor="nextDue">Next Due Date</Label><Input id="nextDue" type="date" value={formData.nextDueDate} onChange={(e) => setFormData({ ...formData, nextDueDate: e.target.value })} /></FormGroup>
                     </FormRow>
                     <FormGroup><Label htmlFor="healthNotes">Notes</Label><Textarea id="healthNotes" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} rows={2} /></FormGroup>
-                    <div className="modal-actions"><Button variant="outline" type="button" onClick={() => setShowModal(false)}>Cancel</Button><Button type="submit">Save Record</Button></div>
+                    <div className="modal-actions"><Button variant="outline" type="button" onClick={() => setShowModal(false)}>Cancel</Button><Button type="submit">{editingRecord ? 'Update Record' : 'Save Record'}</Button></div>
                 </form>
             </Modal>
 

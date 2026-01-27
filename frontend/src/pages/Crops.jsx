@@ -11,6 +11,7 @@ import { FormGroup, FormRow, Label, Input, Select, Textarea } from '../component
 import { EmptyState } from '../components/ui/EmptyState';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { toast } from 'sonner';
+import { formatLabel } from '../utils/formatting';
 import './Crops.css';
 
 const cropTypes = ['Maize', 'Beans', 'Sukuma Wiki (Kale)', 'Spinach', 'Cabbage', 'Tomatoes', 'Onions', 'Potatoes', 'Sweet Potatoes', 'Sorghum', 'Millet', 'Groundnuts', 'Cowpeas', 'Green Grams', 'Napier Grass'];
@@ -174,7 +175,7 @@ export function Crops() {
                                 <p className="field-location">{field.location || 'No location set'}</p>
                                 <div className="field-meta">
                                     <span className="field-size">{field.sizeAcres} acres</span>
-                                    <span className={`field-status ${getStatusColor(field.status)}`}>{field.status?.replace('_', ' ') || '-'}</span>
+                                    <span className={`field-status ${getStatusColor(field.status)}`}>{formatLabel(field.status)}</span>
                                 </div>
                                 {field.currentCrop && <div className="current-crop"><Wheat size={14} /> {field.currentCrop}</div>}
                                 <div className="field-footer">
@@ -202,7 +203,7 @@ export function Crops() {
                         <FormGroup><Label htmlFor="location">Location</Label><Input id="location" value={fieldForm.location} onChange={(e) => setFieldForm({ ...fieldForm, location: e.target.value })} placeholder="e.g., Near the river" /></FormGroup>
                         <FormGroup><Label htmlFor="soil">Soil Type</Label><Select id="soil" value={fieldForm.soilType} onChange={(e) => setFieldForm({ ...soilTypes, soilType: e.target.value })}><option value="">Select soil type</option>{soilTypes.map(s => <option key={s} value={s}>{s}</option>)}</Select></FormGroup>
                     </FormRow>
-                    <FormGroup><Label htmlFor="fieldStatus">Status</Label><Select id="fieldStatus" value={fieldForm.status} onChange={(e) => setFieldForm({ ...fieldForm, status: e.target.value })}>{fieldStatuses.map(s => <option key={s} value={s}>{s?.replace('_', ' ').charAt(0).toUpperCase() + s?.replace('_', ' ').slice(1)}</option>)}</Select></FormGroup>
+                    <FormGroup><Label htmlFor="fieldStatus">Status</Label><Select id="fieldStatus" value={fieldForm.status} onChange={(e) => setFieldForm({ ...fieldForm, status: e.target.value })}>{fieldStatuses.map(s => <option key={s} value={s}>{formatLabel(s)}</option>)}</Select></FormGroup>
                     <FormGroup><Label htmlFor="fieldNotes">Notes</Label><Textarea id="fieldNotes" value={fieldForm.notes} onChange={(e) => setFieldForm({ ...fieldForm, notes: e.target.value })} rows={2} /></FormGroup>
 
                     <PhotoGallery

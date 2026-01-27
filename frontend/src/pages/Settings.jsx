@@ -162,11 +162,12 @@ export function Settings() {
 
     const handleTestNotification = async () => {
         setLoading(true);
+        const loadingToast = toast.loading('Sending test notification...');
         try {
             const result = await window.go.main.NotificationService.TestNotification();
-            setMessage({ type: 'success', text: result });
+            toast.success(result || 'Test notification sent', { id: loadingToast });
         } catch (err) {
-            setMessage({ type: 'error', text: 'Failed to send test notification' });
+            toast.error('Failed to send test notification', { id: loadingToast });
         } finally {
             setLoading(false);
         }

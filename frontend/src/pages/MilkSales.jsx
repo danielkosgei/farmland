@@ -68,11 +68,16 @@ export function MilkSales() {
     };
 
     const confirmDeleteSale = async () => {
+        const loadingToast = toast.loading('Deleting milk sale...');
         try {
             await window.go.main.LivestockService.DeleteMilkSale(confirmDelete.id);
+            toast.success('Milk sale deleted', { id: loadingToast });
             setConfirmDelete({ show: false, id: null });
             loadSales();
-        } catch (err) { console.error(err); }
+        } catch (err) {
+            console.error(err);
+            toast.error('Failed to delete milk sale', { id: loadingToast });
+        }
     };
 
     const openEdit = (sale) => {

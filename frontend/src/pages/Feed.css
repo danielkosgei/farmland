@@ -92,3 +92,190 @@
 .capitalize {
     text-transform: capitalize;
 }
+
+/* Multi-select dropdown component styles */
+.multi-select-dropdown {
+    position: relative;
+    width: 100%;
+}
+
+.multi-select-trigger {
+    width: 100%;
+    padding: 10px 12px;
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #1e293b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.multi-select-trigger:hover {
+    border-color: #cbd5e1;
+}
+
+.multi-select-trigger:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.multi-select-value {
+    flex: 1;
+    text-align: left;
+    min-width: 0;
+}
+
+.placeholder-text {
+    color: #64748b;
+}
+
+.selected-animals-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.animal-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background-color: #3b82f6;
+    color: white;
+    padding: 4px 6px 4px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1;
+}
+
+.animal-chip-name {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.animal-chip-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: none;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 0;
+    transition: background-color 0.15s ease;
+}
+
+.animal-chip-remove:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.multi-select-arrow {
+    transition: transform 0.2s ease;
+    color: #64748b;
+    flex-shrink: 0;
+}
+
+.multi-select-arrow.open {
+    transform: rotate(180deg);
+}
+
+.multi-select-options {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    z-index: 50;
+    max-height: 320px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.select-all-option {
+    padding: 10px 12px;
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    flex-shrink: 0;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #334155;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.select-all-text {
+    font-weight: 600;
+}
+
+.animals-checkbox-list {
+    overflow-y: auto;
+    flex: 1;
+}
+
+.animal-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background-color 0.15s ease;
+}
+
+.animal-checkbox-item:last-child {
+    border-bottom: none;
+}
+
+.animal-checkbox-item:hover {
+    background-color: #f8fafc;
+}
+
+.animal-checkbox-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.animal-checkbox-item .animal-name {
+    font-size: 14px;
+    color: #1e293b;
+    font-weight: 500;
+    flex: 1;
+}
+
+.animal-checkbox-item .animal-tag {
+    font-size: 12px;
+    color: #64748b;
+    font-family: var(--font-family-mono);
+    background-color: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
