@@ -30,6 +30,14 @@ export function GetPlatformInfo() {
   return window['go']['main']['UpdateService']['GetPlatformInfo']();
 }
 
+export function InstallToSystem() {
+  return window['go']['main']['UpdateService']['InstallToSystem']();
+}
+
+export function IsInstalled() {
+  return window['go']['main']['UpdateService']['IsInstalled']();
+}
+
 export function RestartApp() {
   return window['go']['main']['UpdateService']['RestartApp']();
 }

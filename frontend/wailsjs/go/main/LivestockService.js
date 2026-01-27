@@ -46,6 +46,10 @@ export function GetMaleAnimals() {
   return window['go']['main']['LivestockService']['GetMaleAnimals']();
 }
 
+export function GetMilkRecordByAnimalAndDate(arg1, arg2) {
+  return window['go']['main']['LivestockService']['GetMilkRecordByAnimalAndDate'](arg1, arg2);
+}
+
 export function GetMilkRecords(arg1, arg2, arg3) {
   return window['go']['main']['LivestockService']['GetMilkRecords'](arg1, arg2, arg3);
 }

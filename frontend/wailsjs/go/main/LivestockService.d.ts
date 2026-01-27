@@ -24,6 +24,8 @@ export function GetFemaleAnimals():Promise<Array<main.Animal>>;
 
 export function GetMaleAnimals():Promise<Array<main.Animal>>;
 
+export function GetMilkRecordByAnimalAndDate(arg1:number,arg2:string):Promise<main.MilkRecord>;
+
 export function GetMilkRecords(arg1:number,arg2:string,arg3:string):Promise<Array<main.MilkRecord>>;
 
 export function GetMilkSales(arg1:string,arg2:string):Promise<Array<main.MilkSale>>;

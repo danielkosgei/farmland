@@ -277,6 +277,27 @@ func (s *LivestockService) GetMilkRecords(animalId int64, startDate, endDate str
 	return records, nil
 }
 
+// GetMilkRecordByAnimalAndDate returns a milk record for a specific animal and date
+func (s *LivestockService) GetMilkRecordByAnimalAndDate(animalId int64, date string) (*MilkRecord, error) {
+	var r MilkRecord
+	var notes sql.NullString
+	err := db.QueryRow(`
+		SELECT mr.id, mr.animal_id, a.name, mr.date, mr.morning_liters, mr.evening_liters, mr.total_liters, mr.notes, mr.created_at
+		FROM milk_records mr
+		JOIN animals a ON mr.animal_id = a.id
+		WHERE mr.animal_id = ? AND mr.date = ?
+	`, animalId, date).Scan(&r.ID, &r.AnimalID, &r.AnimalName, &r.Date, &r.MorningLiters, &r.EveningLiters, &r.TotalLiters, &notes, &r.CreatedAt)
+
+	if err == sql.ErrNoRows {
+		return nil, nil // No record found
+	}
+	if err != nil {
+		return nil, err
+	}
+	r.Notes = notes.String
+	return &r, nil
+}
+
 // AddMilkRecord adds a new milk record
 func (s *LivestockService) AddMilkRecord(record MilkRecord) (int64, error) {
 	total := record.MorningLiters + record.EveningLiters

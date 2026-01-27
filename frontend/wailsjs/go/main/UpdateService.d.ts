@@ -16,6 +16,10 @@ export function GetDownloadStatus():Promise<main.DownloadStatus>;
 
 export function GetPlatformInfo():Promise<Record<string, string>>;
 
+export function InstallToSystem():Promise<void>;
+
+export function IsInstalled():Promise<boolean>;
+
 export function RestartApp():Promise<void>;
 
 export function StartDownload(arg1:string):Promise<void>;

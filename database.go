@@ -219,6 +219,7 @@ func createTables() error {
 	indexes := []string{
 		`CREATE INDEX IF NOT EXISTS idx_milk_records_date ON milk_records(date)`,
 		`CREATE INDEX IF NOT EXISTS idx_milk_records_animal ON milk_records(animal_id)`,
+		`CREATE UNIQUE INDEX IF NOT EXISTS idx_milk_records_animal_date ON milk_records(animal_id, date)`,
 		`CREATE INDEX IF NOT EXISTS idx_milk_sales_date ON milk_sales(date)`,
 		`CREATE INDEX IF NOT EXISTS idx_crop_records_field ON crop_records(field_id)`,
 		`CREATE INDEX IF NOT EXISTS idx_vet_records_animal ON vet_records(animal_id)`,

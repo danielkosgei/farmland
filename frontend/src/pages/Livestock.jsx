@@ -37,6 +37,7 @@ export function Livestock() {
         gender: 'female', motherId: null, fatherId: null, status: 'active', notes: ''
     });
     const [milkForm, setMilkForm] = useState({ date: new Date().toISOString().split('T')[0], morningLiters: '', eveningLiters: '', notes: '' });
+    const [existingMilkRecord, setExistingMilkRecord] = useState(null);
 
     useEffect(() => { loadAnimals(); }, []);
 
@@ -46,6 +47,32 @@ export function Livestock() {
             setAnimals(data || []);
         } catch (err) { console.error(err); }
         finally { setLoading(false); }
+    };
+
+    const loadMilkRecord = async (animalId, date) => {
+        try {
+            const record = await window.go.main.LivestockService.GetMilkRecordByAnimalAndDate(animalId, date);
+            if (record) {
+                setExistingMilkRecord(record);
+                setMilkForm({
+                    date: record.date,
+                    morningLiters: record.morningLiters > 0 ? record.morningLiters.toString() : '',
+                    eveningLiters: record.eveningLiters > 0 ? record.eveningLiters.toString() : '',
+                    notes: record.notes || ''
+                });
+            } else {
+                setExistingMilkRecord(null);
+                setMilkForm({
+                    date: date,
+                    morningLiters: '',
+                    eveningLiters: '',
+                    notes: ''
+                });
+            }
+        } catch (err) {
+            console.error('Failed to load milk record:', err);
+            setExistingMilkRecord(null);
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -80,17 +107,30 @@ export function Livestock() {
 
     const handleMilkSubmit = async (e) => {
         e.preventDefault();
-        const loadingToast = toast.loading('Saving milk record...');
+        const loadingToast = toast.loading(existingMilkRecord ? 'Updating milk record...' : 'Saving milk record...');
         try {
-            await window.go.main.LivestockService.AddMilkRecord({
-                animalId: selectedAnimal.id,
-                date: milkForm.date,
-                morningLiters: parseFloat(milkForm.morningLiters) || 0,
-                eveningLiters: parseFloat(milkForm.eveningLiters) || 0,
-                notes: milkForm.notes
-            });
-            toast.success('Milk record saved', { id: loadingToast });
+            if (existingMilkRecord) {
+                await window.go.main.LivestockService.UpdateMilkRecord({
+                    id: existingMilkRecord.id,
+                    animalId: selectedAnimal.id,
+                    date: milkForm.date,
+                    morningLiters: parseFloat(milkForm.morningLiters) || 0,
+                    eveningLiters: parseFloat(milkForm.eveningLiters) || 0,
+                    notes: milkForm.notes
+                });
+                toast.success('Milk record updated', { id: loadingToast });
+            } else {
+                await window.go.main.LivestockService.AddMilkRecord({
+                    animalId: selectedAnimal.id,
+                    date: milkForm.date,
+                    morningLiters: parseFloat(milkForm.morningLiters) || 0,
+                    eveningLiters: parseFloat(milkForm.eveningLiters) || 0,
+                    notes: milkForm.notes
+                });
+                toast.success('Milk record saved', { id: loadingToast });
+            }
             setShowMilkModal(false);
+            setExistingMilkRecord(null);
             setMilkForm({ date: new Date().toISOString().split('T')[0], morningLiters: '', eveningLiters: '', notes: '' });
         } catch (err) {
             console.error(err);
@@ -126,10 +166,18 @@ export function Livestock() {
         setShowModal(true);
     };
 
-    const openMilkRecord = (animal, e) => {
+    const openMilkRecord = async (animal, e) => {
         if (e) e.stopPropagation();
         setSelectedAnimal(animal);
+        const today = new Date().toISOString().split('T')[0];
+        await loadMilkRecord(animal.id, today);
         setShowMilkModal(true);
+    };
+
+    const handleMilkDateChange = (newDate) => {
+        if (selectedAnimal) {
+            loadMilkRecord(selectedAnimal.id, newDate);
+        }
     };
 
     const handleRowClick = (animal) => {
@@ -319,13 +367,18 @@ export function Livestock() {
 
             <Modal isOpen={showMilkModal} onClose={() => setShowMilkModal(false)} title={`Record Milk - ${selectedAnimal?.name}`} size="sm">
                 <form onSubmit={handleMilkSubmit}>
-                    <FormGroup><Label htmlFor="milkDate" required>Date</Label><Input id="milkDate" type="date" value={milkForm.date} onChange={(e) => setMilkForm({ ...milkForm, date: e.target.value })} required /></FormGroup>
+                    {existingMilkRecord && (
+                        <div style={{ padding: '8px 12px', marginBottom: '12px', backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '6px', fontSize: '13px', color: '#0369a1' }}>
+                            ✓ Updating existing record for {milkForm.date}
+                        </div>
+                    )}
+                    <FormGroup><Label htmlFor="milkDate" required>Date</Label><Input id="milkDate" type="date" value={milkForm.date} onChange={(e) => handleMilkDateChange(e.target.value)} required /></FormGroup>
                     <FormRow>
                         <FormGroup><Label htmlFor="morning">Morning (L)</Label><Input id="morning" type="number" step="0.1" value={milkForm.morningLiters} onChange={(e) => setMilkForm({ ...milkForm, morningLiters: e.target.value })} placeholder="0.0" /></FormGroup>
                         <FormGroup><Label htmlFor="evening">Evening (L)</Label><Input id="evening" type="number" step="0.1" value={milkForm.eveningLiters} onChange={(e) => setMilkForm({ ...milkForm, eveningLiters: e.target.value })} placeholder="0.0" /></FormGroup>
                     </FormRow>
                     <FormGroup><Label htmlFor="milkNotes">Notes</Label><Textarea id="milkNotes" value={milkForm.notes} onChange={(e) => setMilkForm({ ...milkForm, notes: e.target.value })} rows={2} /></FormGroup>
-                    <div className="modal-actions"><Button variant="outline" type="button" onClick={() => setShowMilkModal(false)}>Cancel</Button><Button type="submit">Save Record</Button></div>
+                    <div className="modal-actions"><Button variant="outline" type="button" onClick={() => setShowMilkModal(false)}>Cancel</Button><Button type="submit">{existingMilkRecord ? 'Update' : 'Save'} Record</Button></div>
                 </form>
             </Modal>
 
