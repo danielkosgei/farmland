@@ -18,8 +18,18 @@ export function Feed() {
     const [currentPage, setCurrentPage] = useState(1);
     const [showModal, setShowModal] = useState(false);
     const [formData, setFormData] = useState({ date: new Date().toISOString().split('T')[0], feedTypeId: '', quantityKg: '', animalCount: '', feedingTime: 'morning', notes: '' });
+    const [selectedFeedUnit, setSelectedFeedUnit] = useState('kg');
 
-    const resetForm = () => setFormData({ date: new Date().toISOString().split('T')[0], feedTypeId: '', quantityKg: '', animalCount: '', feedingTime: 'morning', notes: '' });
+    const getSelectedFeedUnit = (feedTypeId) => {
+        if (!feedTypeId) return 'kg';
+        const selectedFeed = feedTypes.find(ft => ft.id === parseInt(feedTypeId));
+        return selectedFeed?.unit || 'kg';
+    };
+
+    const resetForm = () => {
+        setFormData({ date: new Date().toISOString().split('T')[0], feedTypeId: '', quantityKg: '', animalCount: '', feedingTime: 'morning', notes: '' });
+        setSelectedFeedUnit('kg');
+    };
 
     const itemsPerPage = 10;
     const paginatedRecords = records.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -47,6 +57,7 @@ export function Feed() {
                 date: formData.date,
                 feedTypeId: parseInt(formData.feedTypeId),
                 quantityKg: parseFloat(formData.quantityKg) || 0,
+                unit: selectedFeedUnit,
                 animalCount: parseInt(formData.animalCount) || 0,
                 feedingTime: formData.feedingTime,
                 notes: formData.notes
@@ -92,7 +103,7 @@ export function Feed() {
                                 <TableRow key={record.id}>
                                     <TableCell className="font-mono">{new Date(record.date).toLocaleDateString('en-KE')}</TableCell>
                                     <TableCell>{record.feedTypeName}</TableCell>
-                                    <TableCell className="font-mono">{record.quantityKg} kg</TableCell>
+                                    <TableCell className="font-mono">{record.quantityKg} {record.unit || 'kg'}</TableCell>
                                     <TableCell className="font-mono">{record.animalCount}</TableCell>
                                     <TableCell className="capitalize">{record.feedingTime}</TableCell>
                                 </TableRow>
@@ -113,9 +124,9 @@ export function Feed() {
             <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Record Feeding" size="sm">
                 <form onSubmit={handleFeedSubmit}>
                     <FormGroup><Label htmlFor="feedDate" required>Date</Label><Input id="feedDate" type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} required /></FormGroup>
-                    <FormGroup><Label htmlFor="feedType" required>Feed Type</Label><Select id="feedType" value={formData.feedTypeId} onChange={(e) => setFormData({ ...formData, feedTypeId: e.target.value })} required><option value="">Select feed</option>{feedTypes.map(ft => <option key={ft.id} value={ft.id}>{ft.name}</option>)}</Select></FormGroup>
+                    <FormGroup><Label htmlFor="feedType" required>Feed Type</Label><Select id="feedType" value={formData.feedTypeId} onChange={(e) => { const newFeedTypeId = e.target.value; const unit = getSelectedFeedUnit(newFeedTypeId); setFormData({ ...formData, feedTypeId: newFeedTypeId }); setSelectedFeedUnit(unit); }} required><option value="">Select feed</option>{feedTypes.map(ft => <option key={ft.id} value={ft.id}>{ft.name}</option>)}</Select></FormGroup>
                     <FormRow>
-                        <FormGroup><Label htmlFor="feedQty">Quantity (kg)</Label><Input id="feedQty" type="number" step="0.1" value={formData.quantityKg} onChange={(e) => setFormData({ ...formData, quantityKg: e.target.value })} /></FormGroup>
+                        <FormGroup><Label htmlFor="feedQty">Quantity ({selectedFeedUnit})</Label><Input id="feedQty" type="number" step="0.1" value={formData.quantityKg} onChange={(e) => setFormData({ ...formData, quantityKg: e.target.value })} /></FormGroup>
                         <FormGroup><Label htmlFor="animalCnt">Animals Fed</Label><Input id="animalCnt" type="number" value={formData.animalCount} onChange={(e) => setFormData({ ...formData, animalCount: e.target.value })} /></FormGroup>
                     </FormRow>
                     <FormGroup><Label htmlFor="feedTime">Feeding Time</Label><Select id="feedTime" value={formData.feedingTime} onChange={(e) => setFormData({ ...formData, feedingTime: e.target.value })}>{feedingTimes.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}</Select></FormGroup>

@@ -314,6 +314,7 @@ export namespace main {
 	    feedTypeId: number;
 	    feedTypeName?: string;
 	    quantityKg: number;
+	    unit: string;
 	    animalCount: number;
 	    feedingTime: string;
 	    notes: string;
@@ -331,6 +332,7 @@ export namespace main {
 	        this.feedTypeId = source["feedTypeId"];
 	        this.feedTypeName = source["feedTypeName"];
 	        this.quantityKg = source["quantityKg"];
+	        this.unit = source["unit"];
 	        this.animalCount = source["animalCount"];
 	        this.feedingTime = source["feedingTime"];
 	        this.notes = source["notes"];

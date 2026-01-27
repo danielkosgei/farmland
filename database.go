@@ -246,6 +246,7 @@ func runMigrations() {
 	migrations := []string{
 		`ALTER TABLE animals ADD COLUMN mother_id INTEGER REFERENCES animals(id)`,
 		`ALTER TABLE animals ADD COLUMN father_id INTEGER REFERENCES animals(id)`,
+		`ALTER TABLE feed_records ADD COLUMN unit TEXT DEFAULT 'kg'`,
 	}
 
 	for _, m := range migrations {

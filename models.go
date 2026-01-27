@@ -113,8 +113,9 @@ type FeedRecord struct {
 	FeedTypeID   int64     `json:"feedTypeId"`
 	FeedTypeName string    `json:"feedTypeName,omitempty"` // Joined field
 	QuantityKg   float64   `json:"quantityKg"`
-	AnimalCount  int       `json:"animalCount"` // number of animals fed
-	FeedingTime  string    `json:"feedingTime"` // morning, afternoon, evening
+	Unit         string    `json:"unit"`         // kg, liters, bags, pieces, bottles, packets
+	AnimalCount  int       `json:"animalCount"`  // number of animals fed
+	FeedingTime  string    `json:"feedingTime"`  // morning, afternoon, evening
 	Notes        string    `json:"notes"`
 	CreatedAt    time.Time `json:"createdAt"`
 }

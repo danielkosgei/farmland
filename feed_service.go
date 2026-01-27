@@ -69,7 +69,7 @@ func (s *FeedService) DeleteFeedType(id int64) error {
 // GetFeedRecords returns feed records within a date range
 func (s *FeedService) GetFeedRecords(startDate, endDate string) ([]FeedRecord, error) {
 	query := `
-		SELECT fr.id, fr.date, fr.feed_type_id, ft.name, fr.quantity_kg, fr.animal_count, fr.feeding_time, fr.notes, fr.created_at
+		SELECT fr.id, fr.date, fr.feed_type_id, ft.name, fr.quantity_kg, fr.unit, fr.animal_count, fr.feeding_time, fr.notes, fr.created_at
 		FROM feed_records fr
 		JOIN feed_types ft ON fr.feed_type_id = ft.id
 		WHERE 1=1
@@ -95,13 +95,17 @@ func (s *FeedService) GetFeedRecords(startDate, endDate string) ([]FeedRecord, e
 	var records []FeedRecord
 	for rows.Next() {
 		var r FeedRecord
-		var feedingTime, notes sql.NullString
-		err := rows.Scan(&r.ID, &r.Date, &r.FeedTypeID, &r.FeedTypeName, &r.QuantityKg, &r.AnimalCount, &feedingTime, &notes, &r.CreatedAt)
+		var feedingTime, notes, unit sql.NullString
+		err := rows.Scan(&r.ID, &r.Date, &r.FeedTypeID, &r.FeedTypeName, &r.QuantityKg, &unit, &r.AnimalCount, &feedingTime, &notes, &r.CreatedAt)
 		if err != nil {
 			return nil, err
 		}
 		r.FeedingTime = feedingTime.String
 		r.Notes = notes.String
+		r.Unit = unit.String
+		if r.Unit == "" {
+			r.Unit = "kg" // Default for old records
+		}
 		records = append(records, r)
 	}
 	return records, nil
@@ -110,9 +114,9 @@ func (s *FeedService) GetFeedRecords(startDate, endDate string) ([]FeedRecord, e
 // AddFeedRecord adds a new feed record
 func (s *FeedService) AddFeedRecord(record FeedRecord) (int64, error) {
 	result, err := db.Exec(`
-		INSERT INTO feed_records (date, feed_type_id, quantity_kg, animal_count, feeding_time, notes)
-		VALUES (?, ?, ?, ?, ?, ?)
-	`, record.Date, record.FeedTypeID, record.QuantityKg, record.AnimalCount, record.FeedingTime, record.Notes)
+		INSERT INTO feed_records (date, feed_type_id, quantity_kg, unit, animal_count, feeding_time, notes)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
+	`, record.Date, record.FeedTypeID, record.QuantityKg, record.Unit, record.AnimalCount, record.FeedingTime, record.Notes)
 	if err != nil {
 		return 0, err
 	}
@@ -122,9 +126,9 @@ func (s *FeedService) AddFeedRecord(record FeedRecord) (int64, error) {
 // UpdateFeedRecord updates an existing feed record
 func (s *FeedService) UpdateFeedRecord(record FeedRecord) error {
 	_, err := db.Exec(`
-		UPDATE feed_records SET date = ?, feed_type_id = ?, quantity_kg = ?, animal_count = ?, feeding_time = ?, notes = ?
+		UPDATE feed_records SET date = ?, feed_type_id = ?, quantity_kg = ?, unit = ?, animal_count = ?, feeding_time = ?, notes = ?
 		WHERE id = ?
-	`, record.Date, record.FeedTypeID, record.QuantityKg, record.AnimalCount, record.FeedingTime, record.Notes, record.ID)
+	`, record.Date, record.FeedTypeID, record.QuantityKg, record.Unit, record.AnimalCount, record.FeedingTime, record.Notes, record.ID)
 	return err
 }
 
